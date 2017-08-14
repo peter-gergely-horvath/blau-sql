@@ -15,6 +15,12 @@ public class ManageConnectionsWindow extends CloseOnEscapeKeyPressWindow {
 		
 		super("Manage Connections");
 
+		addComponent(new Button("BACK (ESC)", new Action() {
+
+			public void doAction() {
+				ManageConnectionsWindow.this.close();
+			}
+		}));
 		addComponent(new Button("[A]dd connection", onAddConnectionButtonSelectedAction));
 		addComponent(new Button("[E]dit connection", onEditConnectionButtonSelectedAction));
 		addComponent(new Button("[D]elete connection", onDeleteConnectionButtonSelectedAction));
