@@ -19,18 +19,20 @@ public class Database {
 
 	private final AtomicReference<DatabaseConnection> currentConnectionHolder = new AtomicReference<DatabaseConnection>();
 
-	private static final RowMapperResultSetExtractor<Map<String, Object>> ROW_MAPPER_RESULT_SET_EXTRACTOR = new RowMapperResultSetExtractor<Map<String, Object>>(
-			new ColumnMapRowMapper());
+	private static final RowMapperResultSetExtractor<Map<String, Object>> ROW_MAPPER_RESULT_SET_EXTRACTOR =
+			new RowMapperResultSetExtractor<Map<String, Object>>(new ColumnMapRowMapper());
 
-	private static class LazyInitHolder {
-        private static final Database INSTANCE = new Database();
-    }
- 
+	private static final Database INSTANCE = new Database();
+
+	private Database() {
+		// no external instances
+	}
+
     public static Database getInstance() {
-        return LazyInitHolder.INSTANCE;
+        return INSTANCE;
     }
 	
-	public void estabilishConnetion(ConnectionDefinition cd) {
+	public void establishConnection(ConnectionDefinition cd) {
 
 		DatabaseConnection existingConn = currentConnectionHolder.get();
 		if (existingConn != null) {
@@ -51,7 +53,7 @@ public class Database {
 		DatabaseConnection existingConn = currentConnectionHolder.get();
 		if (existingConn == null) {
 			throw new IllegalStateException(
-					"No current connection: must estabilish first");
+					"No current connection: must establish first");
 		}
 
 		existingConn.disconnect();
@@ -159,7 +161,7 @@ public class Database {
 				((SingleConnectionDataSource) jdbcTemplate.getDataSource()).initConnection();
 
 			} catch (SQLException e) {
-				throw new RuntimeException("Failed to estabilish connection", e);
+				throw new RuntimeException("Failed to establish connection", e);
 			}
 		}
 

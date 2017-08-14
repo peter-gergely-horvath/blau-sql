@@ -53,7 +53,7 @@ final class SelectConnectionForQueryWindow extends SelectConnectionWindow {
 			@Override
 			protected Void doBackgroundTask() {
 				Database.getInstance()
-						.estabilishConnetion(connectionDefinition);
+						.establishConnection(connectionDefinition);
 				return null;
 			}
 
