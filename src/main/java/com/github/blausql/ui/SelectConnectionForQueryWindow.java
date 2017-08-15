@@ -1,6 +1,6 @@
 package com.github.blausql.ui;
 
-import com.github.blausql.Main;
+import com.github.blausql.TerminalUI;
 import com.github.blausql.core.connection.ConnectionDefinition;
 import com.github.blausql.core.connection.Database;
 import com.github.blausql.ui.util.BackgroundWorker;
@@ -20,7 +20,7 @@ final class SelectConnectionForQueryWindow extends SelectConnectionWindow {
 			CredentialsDialog credentialsDialog = 
 					new CredentialsDialog(connectionDefinition);
 
-			Main.UI.showWindowCenter(credentialsDialog);
+			TerminalUI.showWindowCenter(credentialsDialog);
 			
 			if(DialogResult.CANCEL ==
 					credentialsDialog.getDialogResult()) {
@@ -39,12 +39,12 @@ final class SelectConnectionForQueryWindow extends SelectConnectionWindow {
 			connectionDefinition = actualConnectionDefinition;
 		}
 
-		estabilishConnection(connectionDefinition);
+		establishConnection(connectionDefinition);
 	}
 
-	protected void estabilishConnection(
+	protected void establishConnection(
 			final ConnectionDefinition connectionDefinition) {
-		final Window showWaitDialog = Main.UI.showWaitDialog("Please wait",
+		final Window showWaitDialog = TerminalUI.showWaitDialog("Please wait",
 				"Connecting to " + connectionDefinition.getConnectionName()
 						+ "... ");
 
@@ -60,15 +60,14 @@ final class SelectConnectionForQueryWindow extends SelectConnectionWindow {
 			@Override
 			protected void onBackgroundTaskFailed(Throwable t) {
 				showWaitDialog.close();
-				Main.UI.showErrorMessageFromThrowable(t);
+				TerminalUI.showErrorMessageFromThrowable(t);
 
 			}
 
 			@Override
 			protected void onBackgroundTaskCompleted(Void result) {
 				showWaitDialog.close();
-				Main.UI.showWindowFullScreen(new SqlCommandWindow(
-						connectionDefinition));
+				TerminalUI.showWindowFullScreen(new SqlCommandWindow(connectionDefinition));
 
 			}
 		}.start();

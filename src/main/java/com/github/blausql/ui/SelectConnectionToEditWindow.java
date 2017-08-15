@@ -1,6 +1,6 @@
 package com.github.blausql.ui;
 
-import com.github.blausql.Main;
+import com.github.blausql.TerminalUI;
 import com.github.blausql.core.connection.ConnectionDefinition;
 
 final class SelectConnectionToEditWindow extends
@@ -10,7 +10,7 @@ final class SelectConnectionToEditWindow extends
 			final ConnectionDefinition cd) {
 		
 		SelectConnectionToEditWindow.this.close();
-		Main.UI.showWindowCenter(
+		TerminalUI.showWindowCenter(
 				ConnectionSettingsWindow.createForExistingConnectionDefinition(cd));
 	}
 }

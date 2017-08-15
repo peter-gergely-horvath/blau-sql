@@ -1,6 +1,6 @@
 package com.github.blausql.ui;
 
-import com.github.blausql.Main;
+import com.github.blausql.TerminalUI;
 import com.github.blausql.ui.components.CloseOnEscapeKeyPressWindow;
 import com.github.blausql.ui.util.HotKeySupportListener;
 
@@ -38,14 +38,14 @@ public class ManageConnectionsWindow extends CloseOnEscapeKeyPressWindow {
 
 		public void doAction() {
 			ManageConnectionsWindow.this.close();
-			Main.UI.showWindowCenter(ConnectionSettingsWindow.createForNewConnectionDefinition());
+			TerminalUI.showWindowCenter(ConnectionSettingsWindow.createForNewConnectionDefinition());
 		}
 	};
 	private final Action onEditConnectionButtonSelectedAction = new Action() {
 
 		public void doAction() {
 			ManageConnectionsWindow.this.close();
-			Main.UI.showWindowCenter(new SelectConnectionToEditWindow());
+			TerminalUI.showWindowCenter(new SelectConnectionToEditWindow());
 		}
 	};
 	
@@ -53,7 +53,7 @@ public class ManageConnectionsWindow extends CloseOnEscapeKeyPressWindow {
 
 		public void doAction() {
 			ManageConnectionsWindow.this.close();
-			Main.UI.showWindowCenter(new SelectConnectionToDeleteWindow());
+			TerminalUI.showWindowCenter(new SelectConnectionToDeleteWindow());
 		}
 	};	
 }

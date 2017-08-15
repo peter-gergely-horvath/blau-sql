@@ -9,7 +9,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import com.github.blausql.Main;
+import com.github.blausql.TerminalUI;
 import com.github.blausql.core.connection.ConnectionDefinition;
 import com.github.blausql.core.connection.Database;
 import com.github.blausql.core.connection.Database.StatementResult;
@@ -20,6 +20,7 @@ import com.googlecode.lanterna.gui.Border;
 import com.googlecode.lanterna.gui.Window;
 import com.googlecode.lanterna.gui.component.Button;
 import com.googlecode.lanterna.gui.component.EditArea;
+import com.googlecode.lanterna.gui.component.Label;
 import com.googlecode.lanterna.gui.component.Panel;
 import com.googlecode.lanterna.input.Key;
 import com.googlecode.lanterna.input.Key.Kind;
@@ -49,6 +50,8 @@ public class SqlCommandWindow extends Window {
 		Panel verticalPanel = new Panel(new Border.Invisible(),
 				Panel.Orientation.VERTICAL);
 
+		bottomPanel.addComponent(new Label(">>> Press TAB >>>"));
+
 		bottomPanel.addComponent(executeSqlButton);
 
 		bottomPanel.addComponent(new Button("Close connection (ESC)", new Action() {
@@ -59,8 +62,7 @@ public class SqlCommandWindow extends Window {
 
 		}));
 
-		TerminalSize screenTerminalSize = Main.UI.SCREEN.getScreen()
-				.getTerminalSize();
+		TerminalSize screenTerminalSize = TerminalUI.getTerminalSize();
 
 		final int sqlEditorPanelColumns = screenTerminalSize.getColumns() - 4;
 		final int sqlEditorPanelRows = screenTerminalSize.getRows() - 4;
@@ -103,7 +105,7 @@ public class SqlCommandWindow extends Window {
 
 	protected void executeQuery(final String sqlCommand) {
 		
-		final Window showWaitDialog = Main.UI.showWaitDialog("Please wait",
+		final Window showWaitDialog = TerminalUI.showWaitDialog("Please wait",
 				String.format("Executing statement against %s ..." , connectionName));
 		
 		new BackgroundWorker<StatementResult>() {
@@ -116,7 +118,8 @@ public class SqlCommandWindow extends Window {
 			@Override
 			protected void onBackgroundTaskFailed(Throwable t) {
 				showWaitDialog.close();
-				Main.UI.showErrorMessageFromThrowable(t);
+				TerminalUI.showErrorMessageFromThrowable(t);
+				setFocus(sqlEditArea);
 
 			}
 
@@ -124,20 +127,23 @@ public class SqlCommandWindow extends Window {
 			protected void onBackgroundTaskCompleted(StatementResult statementResult) {
 				
 				showWaitDialog.close();
+
+				setFocus(sqlEditArea);
 				
 				if(statementResult.isResultSet()) {
 					
 					final List<Map<String,Object>> queryResult = statementResult.getQueryResult();
 					
-					Main.UI.showWindowFullScreen(new QueryResultWindow(queryResult));
-				
+					TerminalUI.showWindowFullScreen(new QueryResultWindow(queryResult));
+
 				} else {
 					
 					final int updateCount = statementResult.getUpdateCount();
 					
 					final String message = String.format("%s row(s) changed", updateCount);
 					
-					Main.UI.showMessageBox("Statement executed", message);
+					TerminalUI.showMessageBox("Statement executed", message);
+
 				}
 			}
 		}.start();

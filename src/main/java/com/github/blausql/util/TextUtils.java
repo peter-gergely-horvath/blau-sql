@@ -16,4 +16,15 @@ public class TextUtils {
 		}
 		return multilineStringBuilder.toString();
 	}
+
+	public static String separateLines(String... lines) {
+        StringBuilder multilineStringBuilder = new StringBuilder();
+
+        for (String aLine : lines) {
+            multilineStringBuilder.append(aLine);
+            multilineStringBuilder.append(LINE_SEPARATOR);
+        }
+
+        return multilineStringBuilder.toString();
+    }
 }

@@ -1,7 +1,10 @@
 package com.github.blausql.ui;
 
+
 import com.github.blausql.Main;
+import com.github.blausql.TerminalUI;
 import com.github.blausql.core.preferences.ConnectionDefinitionRepository;
+import com.github.blausql.util.TextUtils;
 import org.springframework.util.Assert;
 
 import com.googlecode.lanterna.gui.Action;
@@ -13,92 +16,125 @@ import com.googlecode.lanterna.input.Key.Kind;
 
 public class MainMenuWindow extends Window {
 
-	public MainMenuWindow() {
+    private static final String ABOUT_TEXT = TextUtils.separateLines(
+            "",
+            "Copyright 2017 Peter G. Horvath",
+            "",
+            "Licensed under the Apache License, Version 2.0 (the \"License\");",
+            "you may not use this file except in compliance with the License.",
+            "You may obtain a copy of the License at",
+            "",
+            "    http://www.apache.org/licenses/LICENSE-2.0",
+            "",
+            "Unless required by applicable law or agreed to in writing, software",
+            "distributed under the License is distributed on an \"AS IS\" BASIS,",
+            "WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.",
+            "See the License for the specific language governing permissions and",
+            "limitations under the License."
+    );
 
-		super("BLAU SQL UNIVERSAL DATABASE CLIENT");
+    public MainMenuWindow() {
 
-		addWindowListener(new HotKeyWindowListener());
+        super("BLAU SQL UNIVERSAL DATABASE CLIENT");
 
-		if (ConnectionDefinitionRepository.getInstance()
-				.getConnectionDefinitions().size() != 0) {
-			addComponent(new Button("[C]onnect to database", new Action() {
+        addWindowListener(new HotKeyWindowListener());
 
-				public void doAction() {
-					onConnectToDatabaseButtonSelected();
-				}
+        if (ConnectionDefinitionRepository.getInstance()
+                .getConnectionDefinitions().size() != 0) {
+            addComponent(new Button("[C]onnect to database", new Action() {
 
-			}));
-		}
+                public void doAction() {
+                    onConnectToDatabaseButtonSelected();
+                }
 
-		addComponent(new Button("[M]anage Connections", new Action() {
+            }));
+        }
 
-			public void doAction() {
-				onManageConnectionsButtonSelected();
-			}
+        addComponent(new Button("[M]anage Connections", new Action() {
 
-		}));
+            public void doAction() {
+                onManageConnectionsButtonSelected();
+            }
 
-		addComponent(new Button("[E]xit Application", new Action() {
+        }));
 
-			public void doAction() {
-				onExitApplicationButtonSelected();
+        addComponent(new Button("[A]bout", new Action() {
 
-			}
-		}));
-	}
+            public void doAction() {
+                onAboutButtonSelected();
+            }
 
-	private void onConnectToDatabaseButtonSelected() {
-		Main.UI.showWindowCenter(new SelectConnectionForQueryWindow());
-	}
+        }));
 
-	private void onManageConnectionsButtonSelected() {
-		Main.UI.showWindowCenter(new ManageConnectionsWindow());
-	}
+        addComponent(new Button("[E]xit Application", new Action() {
 
-	private void onExitApplicationButtonSelected() {
-		Main.UI.SCREEN.getScreen().stopScreen();
-		System.exit(0);
-	}
+            public void doAction() {
+                onExitApplicationButtonSelected();
 
-	private final class HotKeyWindowListener extends WindowAdapter {
-		@Override
-		public void onUnhandledKeyboardInteraction(Window window, Key key) {
+            }
+        }));
+    }
 
-			final Kind keyKind = key.getKind();
+    private void onConnectToDatabaseButtonSelected() {
+        TerminalUI.showWindowCenter(new SelectConnectionForQueryWindow());
+    }
 
-			Assert.notNull(keyKind, "kind retrieved from key is null");
+    private void onManageConnectionsButtonSelected() {
+        TerminalUI.showWindowCenter(new ManageConnectionsWindow());
+    }
 
-			switch (keyKind) {
+    private void onAboutButtonSelected() {
+        TerminalUI.showMessageBox("About BlauSQL... ", ABOUT_TEXT);
+    }
 
-			case NormalKey:
-				final char characterKey = key.getCharacter();
+    private void onExitApplicationButtonSelected() {
+        Main.exitApplication(0);
+    }
 
-				switch (characterKey) {
-				case 'C':
-				case 'c':
-					onConnectToDatabaseButtonSelected();
-					break;
+    private final class HotKeyWindowListener extends WindowAdapter {
+        @Override
+        public void onUnhandledKeyboardInteraction(Window window, Key key) {
 
-				case 'M':
-				case 'm':
-					onManageConnectionsButtonSelected();
-					break;
+            final Kind keyKind = key.getKind();
 
-				case 'E':
-				case 'e':
-					onExitApplicationButtonSelected();
-				}
+            Assert.notNull(keyKind, "kind retrieved from key is null");
 
-				break; // outer switch
+            switch (keyKind) {
 
-			case Escape:
-				onExitApplicationButtonSelected();
-				break;
+                case NormalKey:
+                    final char characterKey = key.getCharacter();
 
-			default:
-				// nothing to do
-				break;
-			}
-		}
-	}
+                    switch (characterKey) {
+                        case 'C':
+                        case 'c':
+                            onConnectToDatabaseButtonSelected();
+                            break;
+
+                        case 'M':
+                        case 'm':
+                            onManageConnectionsButtonSelected();
+                            break;
+
+                        case 'A':
+                        case 'a':
+                            onAboutButtonSelected();
+                            break;
+
+                        case 'E':
+                        case 'e':
+                            onExitApplicationButtonSelected();
+                    }
+
+                    break; // outer switch
+
+                case Escape:
+                    onExitApplicationButtonSelected();
+                    break;
+
+                default:
+                    // nothing to do
+                    break;
+            }
+        }
+    }
 }

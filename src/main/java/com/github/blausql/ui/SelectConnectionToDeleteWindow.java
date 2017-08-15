@@ -1,6 +1,6 @@
 package com.github.blausql.ui;
 
-import com.github.blausql.Main;
+import com.github.blausql.TerminalUI;
 import com.github.blausql.core.connection.ConnectionDefinition;
 import com.github.blausql.core.preferences.ConnectionDefinitionRepository;
 import com.github.blausql.ui.util.BackgroundWorker;
@@ -17,13 +17,13 @@ final class SelectConnectionToDeleteWindow extends
 
 		
 		
-		DialogResult dialogResult = Main.UI.showMessageBox(
+		DialogResult dialogResult = TerminalUI.showMessageBox(
 				"Confirm deletion of connection", 
 				"Delete connection: " + cd.getConnectionName(),
 				DialogButtons.OK_CANCEL);
 
 		if(DialogResult.OK.equals(dialogResult)) {
-			final Window showWaitDialog = Main.UI.showWaitDialog("Please wait", 
+			final Window showWaitDialog = TerminalUI.showWaitDialog("Please wait",
 					"Deleting " + cd.getConnectionName() + "... ");
 			
 			new BackgroundWorker<Void>() {
@@ -41,7 +41,7 @@ final class SelectConnectionToDeleteWindow extends
 				@Override
 				protected void onBackgroundTaskFailed(Throwable t) {
 					showWaitDialog.close();
-					Main.UI.showErrorMessageFromThrowable(t);
+					TerminalUI.showErrorMessageFromThrowable(t);
 			
 				}
 			

@@ -1,6 +1,6 @@
 package com.github.blausql.ui;
 
-import com.github.blausql.Main;
+import com.github.blausql.TerminalUI;
 import com.github.blausql.core.connection.ConnectionDefinition;
 import com.github.blausql.core.preferences.ConnectionDefinitionRepository;
 
@@ -127,7 +127,7 @@ public class ConnectionSettingsWindow extends Window {
 			
 			
 		} catch (Exception e) {
-			Main.UI.showErrorMessageFromThrowable(e);
+			TerminalUI.showErrorMessageFromThrowable(e);
 		}
 
 	}

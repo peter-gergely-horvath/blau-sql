@@ -1,12 +1,14 @@
 package com.github.blausql.core.connection;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.net.MalformedURLException;
+import java.sql.*;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.github.blausql.CommandLineArguments;
+import com.github.blausql.core.classloader.ClassLoaderFactory;
+import com.github.blausql.core.classloader.DelegatingDriver;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ColumnMapRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -15,160 +17,204 @@ import org.springframework.jdbc.core.StatementCallback;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import org.springframework.util.Assert;
 
+import com.github.blausql.Main;
+
 public class Database {
 
-	private final AtomicReference<DatabaseConnection> currentConnectionHolder = new AtomicReference<DatabaseConnection>();
+    private final AtomicReference<DatabaseConnection> currentConnectionHolder = new AtomicReference<DatabaseConnection>();
 
-	private static final RowMapperResultSetExtractor<Map<String, Object>> ROW_MAPPER_RESULT_SET_EXTRACTOR =
-			new RowMapperResultSetExtractor<Map<String, Object>>(new ColumnMapRowMapper());
+    private static final RowMapperResultSetExtractor<Map<String, Object>> ROW_MAPPER_RESULT_SET_EXTRACTOR =
+            new RowMapperResultSetExtractor<Map<String, Object>>(new ColumnMapRowMapper());
 
-	private static final Database INSTANCE = new Database();
+    private static final Database INSTANCE = new Database();
 
-	private Database() {
-		// no external instances
-	}
+    private Database() {
+        // no external instances
+    }
 
     public static Database getInstance() {
         return INSTANCE;
     }
-	
-	public void establishConnection(ConnectionDefinition cd) {
 
-		DatabaseConnection existingConn = currentConnectionHolder.get();
-		if (existingConn != null) {
-			throw new IllegalStateException(
-					"Current connection exists: must close it first");
-		}
+    public void establishConnection(ConnectionDefinition cd) {
 
-		DatabaseConnection databaseConnection = DatabaseConnection
-				.fromConnectionDefinition(cd);
+        DatabaseConnection existingConn = currentConnectionHolder.get();
+        if (existingConn != null) {
+            throw new IllegalStateException(
+                    "Current connection exists: must close it first");
+        }
 
-		databaseConnection.estabilish();
+        ClassLoader originalContextClassLoader = Thread.currentThread().getContextClassLoader();
+        try {
+            CommandLineArguments commandLineArguments = Main.getCommandLineArguments();
+            String classpath = commandLineArguments.getClasspath();
 
-		currentConnectionHolder.set(databaseConnection);
-	}
+            if (classpath != null) {
+                ClassLoader classLoader = ClassLoaderFactory.getClassLoaderForClasspathString(classpath);
+                Thread.currentThread().setContextClassLoader(classLoader);
+            }
 
-	public void disconnect() {
+            String driverClassName = cd.getDriverClassName();
+            if (driverClassName != null && !"".equals(driverClassName.trim())) {
+                initDriver(driverClassName);
+            }
 
-		DatabaseConnection existingConn = currentConnectionHolder.get();
-		if (existingConn == null) {
-			throw new IllegalStateException(
-					"No current connection: must establish first");
-		}
 
-		existingConn.disconnect();
+            DatabaseConnection databaseConnection = DatabaseConnection.fromConnectionDefinition(cd);
 
-		currentConnectionHolder.set(null);
-	}
+            databaseConnection.estabilish();
 
-	public StatementResult executeStatement(final String sql) {
+            currentConnectionHolder.set(databaseConnection);
 
-		JdbcTemplate jdbcTemplate = currentConnectionHolder.get().jdbcTemplate;
 
-		return jdbcTemplate.execute(new StatementCallback<StatementResult>() {
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(
+                    "Malformed URL: " + e.getMessage());
 
-			public StatementResult doInStatement(Statement stmt)
-					throws SQLException, DataAccessException {
+        } catch (IllegalAccessException | InstantiationException | SQLException e) {
+            throw new RuntimeException("Problem loading the driver", e);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException("Class not found: " + e.getMessage(),  e);
+        } finally {
+            Thread.currentThread().setContextClassLoader(originalContextClassLoader);
+        }
 
-				List<Map<String, Object>> queryResult = null;
-				int updateCount = -1;
 
-				final boolean yieldedResultSet = stmt.execute(sql);
-				if (yieldedResultSet) {
-					ResultSet resultSet = stmt.getResultSet();
-					try {
+    }
 
-						queryResult = ROW_MAPPER_RESULT_SET_EXTRACTOR
-								.extractData(resultSet);
+    private void initDriver(String driverClassName)
+            throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
+        ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
 
-					} catch (SQLException e) {
+        Class<Driver> driverClass = (Class<Driver>) Class.forName(driverClassName, true, contextClassLoader);
+        Driver d = driverClass.newInstance();
+        DriverManager.registerDriver(new DelegatingDriver(d));
+    }
 
-						throw new RuntimeException(
-								"ResultSet processing failed", e);
+    public void disconnect() {
 
-					} finally {
-						resultSet.close();
-					}
-				} else {
-					updateCount = stmt.getUpdateCount();
+        DatabaseConnection existingConn = currentConnectionHolder.get();
+        if (existingConn == null) {
+            throw new IllegalStateException(
+                    "No current connection: must establish first");
+        }
 
-				}
+        existingConn.disconnect();
 
-				return new StatementResult(yieldedResultSet, queryResult,
-						updateCount);
-			}
-		});
+        currentConnectionHolder.set(null);
+    }
 
-	}
+    public StatementResult executeStatement(final String sql) {
 
-	public static class StatementResult {
+        JdbcTemplate jdbcTemplate = currentConnectionHolder.get().jdbcTemplate;
 
-		private final boolean isResultSet;
-		private final List<Map<String, Object>> queryResult;
-		private final int updateCount;
+        return jdbcTemplate.execute(new StatementCallback<StatementResult>() {
 
-		private StatementResult(boolean isResultSet,
-				List<Map<String, Object>> queryResult, int updateCount) {
+            public StatementResult doInStatement(Statement stmt)
+                    throws SQLException, DataAccessException {
 
-			this.isResultSet = isResultSet;
-			this.queryResult = queryResult;
-			this.updateCount = updateCount;
-		}
+                List<Map<String, Object>> queryResult = null;
+                int updateCount = -1;
 
-		public boolean isResultSet() {
-			return isResultSet;
-		}
+                final boolean yieldedResultSet = stmt.execute(sql);
+                if (yieldedResultSet) {
+                    ResultSet resultSet = stmt.getResultSet();
+                    try {
 
-		public List<Map<String, Object>> getQueryResult() {
-			Assert.isTrue(isResultSet, "Statement yielded update count");
-			return queryResult;
-		}
+                        queryResult = ROW_MAPPER_RESULT_SET_EXTRACTOR
+                                .extractData(resultSet);
 
-		public int getUpdateCount() {
-			Assert.isTrue(!isResultSet, "Statement yielded result set");
-			return updateCount;
-		}
-	}
+                    } catch (SQLException e) {
 
-	private static class DatabaseConnection {
+                        throw new RuntimeException(
+                                "ResultSet processing failed", e);
 
-		private final JdbcTemplate jdbcTemplate;
+                    } finally {
+                        resultSet.close();
+                    }
+                } else {
+                    updateCount = stmt.getUpdateCount();
 
-		private static DatabaseConnection fromConnectionDefinition(
-				ConnectionDefinition cd) {
-			return new DatabaseConnection(cd.getDriverClassName(),
-					cd.getJdbcUrl(), cd.getUserName(), cd.getPassword());
-		}
+                }
 
-		private DatabaseConnection(String driverClassName, String url,
-				String username, String password) {
-			super();
+                return new StatementResult(yieldedResultSet, queryResult,
+                        updateCount);
+            }
+        });
 
-			SingleConnectionDataSource dataSource = new SingleConnectionDataSource();
-			dataSource.setDriverClassName(driverClassName);
-			dataSource.setUrl(url);
-			dataSource.setUsername(username);
-			dataSource.setPassword(password);
+    }
 
-			dataSource.setSuppressClose(false);
+    public static class StatementResult {
 
-			this.jdbcTemplate = new JdbcTemplate(dataSource);
-		}
+        private final boolean isResultSet;
+        private final List<Map<String, Object>> queryResult;
+        private final int updateCount;
 
-		private void estabilish() {
-			try {
+        private StatementResult(boolean isResultSet,
+                                List<Map<String, Object>> queryResult, int updateCount) {
 
-				((SingleConnectionDataSource) jdbcTemplate.getDataSource()).initConnection();
+            this.isResultSet = isResultSet;
+            this.queryResult = queryResult;
+            this.updateCount = updateCount;
+        }
 
-			} catch (SQLException e) {
-				throw new RuntimeException("Failed to establish connection", e);
-			}
-		}
+        public boolean isResultSet() {
+            return isResultSet;
+        }
 
-		private void disconnect() {
-			((SingleConnectionDataSource) jdbcTemplate.getDataSource()).resetConnection();
-		}
+        public List<Map<String, Object>> getQueryResult() {
+            Assert.isTrue(isResultSet, "Statement yielded update count");
+            return queryResult;
+        }
 
-	}
+        public int getUpdateCount() {
+            Assert.isTrue(!isResultSet, "Statement yielded result set");
+            return updateCount;
+        }
+    }
+
+    private static class DatabaseConnection {
+
+        private final JdbcTemplate jdbcTemplate;
+
+        private static DatabaseConnection fromConnectionDefinition(
+                ConnectionDefinition cd) {
+            return new DatabaseConnection(cd.getDriverClassName(),
+                    cd.getJdbcUrl(), cd.getUserName(), cd.getPassword());
+        }
+
+        private DatabaseConnection(String driverClassName, String url,
+                                   String username, String password) {
+            super();
+
+            SingleConnectionDataSource dataSource = new SingleConnectionDataSource();
+            if (driverClassName != null && !"".equals(driverClassName.trim())) {
+                dataSource.setDriverClassName(driverClassName);
+            }
+
+            dataSource.setUrl(url);
+            dataSource.setUsername(username);
+            dataSource.setPassword(password);
+
+            dataSource.setSuppressClose(false);
+
+            this.jdbcTemplate = new JdbcTemplate(dataSource);
+        }
+
+        private void estabilish() {
+            try {
+
+                ((SingleConnectionDataSource) jdbcTemplate.getDataSource()).initConnection();
+
+            } catch (SQLException e) {
+                throw new RuntimeException("Failed to establish connection", e);
+            }
+        }
+
+        private void disconnect() {
+            ((SingleConnectionDataSource) jdbcTemplate.getDataSource()).resetConnection();
+        }
+
+    }
 
 }
