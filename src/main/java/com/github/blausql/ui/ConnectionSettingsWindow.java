@@ -15,6 +15,18 @@ import com.googlecode.lanterna.gui.component.TextBox;
 
 public class ConnectionSettingsWindow extends Window {
 
+    public enum Mode {
+	    ADD("Add connection"), EDIT("Edit connection"), COPY("Copy connection");
+
+        private final String description;
+
+        Mode(String description) {
+            this.description = description;
+        }
+    }
+
+    private final Mode dialogMode;
+
 	private final TextBox connectionNameTextBox;
 	private final TextBox driverClassTextBox;
 	private final TextBox jdbcUrlTextBox;
@@ -24,26 +36,20 @@ public class ConnectionSettingsWindow extends Window {
 	private final TextBox userNameTextBox;
 	private final PasswordBox passwordPasswordBox;
 	
-	private final boolean existingConnectionDefinition;
 	private final String originalNameOfExistingConnectionDefinition;
-	
-	public static ConnectionSettingsWindow createForExistingConnectionDefinition(ConnectionDefinition cd) {
-		return new ConnectionSettingsWindow(cd); 
-	}
-	
-	public static ConnectionSettingsWindow createForNewConnectionDefinition() {
-		return new ConnectionSettingsWindow(null); 
-	}
-	
-	
 
-	public ConnectionSettingsWindow(ConnectionDefinition cd) {
+
+	public ConnectionSettingsWindow() {
+	    this(null, Mode.ADD);
+    }
+
+    public ConnectionSettingsWindow(ConnectionDefinition cd, Mode mode) {
 		
-		super(cd != null ? "Edit connection" : "Add new connection");
+		super(mode.description);
 		
-		existingConnectionDefinition = cd != null; 
+		this.dialogMode = mode;
 		
-		if(existingConnectionDefinition) {
+		if(dialogMode == Mode.EDIT) {
 			this.originalNameOfExistingConnectionDefinition = cd.getConnectionName();
 			
 		} else {
@@ -114,18 +120,24 @@ public class ConnectionSettingsWindow extends Window {
 					loginAutomatically,
 					userName, 
 					password);
-			
-			if(existingConnectionDefinition) {
-				updateConnectionDefinition(connectionDefinition);
-			} else {
-				saveConnectionDefinition(connectionDefinition);
-			}
-			
-			this.close();
-			
 
-			
-			
+			switch (dialogMode) {
+
+                case ADD:
+                case COPY:
+                    saveConnectionDefinition(connectionDefinition);
+                    break;
+
+
+                case EDIT:
+                    updateConnectionDefinition(connectionDefinition);
+                    break;
+
+			    default:
+			        throw new IllegalStateException("Unknown dialogMode: " + dialogMode);
+            }
+
+			this.close();
 		} catch (Exception e) {
 			TerminalUI.showErrorMessageFromThrowable(e);
 		}

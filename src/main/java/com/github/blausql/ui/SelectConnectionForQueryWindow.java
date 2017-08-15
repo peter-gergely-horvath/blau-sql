@@ -9,6 +9,11 @@ import com.googlecode.lanterna.gui.Window;
 import com.googlecode.lanterna.gui.dialog.DialogResult;
 
 final class SelectConnectionForQueryWindow extends SelectConnectionWindow {
+
+	public SelectConnectionForQueryWindow() {
+		super("Select connection to Connect to");
+	}
+
 	@Override
 	protected void onConnectionSelected(
 			ConnectionDefinition connectionDefinition) {

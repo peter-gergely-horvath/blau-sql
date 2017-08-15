@@ -10,6 +10,7 @@ import com.github.blausql.core.connection.ConnectionDefinition;
 import com.github.blausql.core.preferences.ConnectionDefinitionRepository;
 import com.github.blausql.ui.components.CloseOnEscapeKeyPressWindow;
 
+import com.google.common.collect.ImmutableList;
 import com.googlecode.lanterna.gui.Action;
 import com.googlecode.lanterna.gui.Window;
 import com.googlecode.lanterna.gui.component.Button;
@@ -19,19 +20,19 @@ import org.springframework.util.Assert;
 
 public abstract class SelectConnectionWindow extends CloseOnEscapeKeyPressWindow {
 
-    private static final List<Character> HOTKEY_CHARACTERS = Collections.unmodifiableList(Arrays.asList(
+    private static final ImmutableList<Character> HOTKEY_CHARACTERS = ImmutableList.<Character>builder().add(
             '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'
-    ));
+    ).build();
 
 
     private final Map<Character, ConnectionDefinition> hotKeyMap = new ConcurrentHashMap<>();
 
-	public SelectConnectionWindow() {
-		super("Select connection");
+	public SelectConnectionWindow(String title) {
+		super(title);
 
 		addWindowListener(new HotKeyWindowListener());
 
-		addComponent(new Button("BACK (ESC)", new Action() {
+		addComponent(new Button("CANCEL (ESC)", new Action() {
 
 			public void doAction() {
 				SelectConnectionWindow.this.close();

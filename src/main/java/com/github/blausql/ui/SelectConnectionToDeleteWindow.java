@@ -9,8 +9,12 @@ import com.googlecode.lanterna.gui.Window;
 import com.googlecode.lanterna.gui.dialog.DialogButtons;
 import com.googlecode.lanterna.gui.dialog.DialogResult;
 
-final class SelectConnectionToDeleteWindow extends
-		SelectConnectionWindow {
+final class SelectConnectionToDeleteWindow extends SelectConnectionWindow {
+
+	public SelectConnectionToDeleteWindow() {
+		super("Select Connection to Delete");
+	}
+
 	@Override
 	protected void onConnectionSelected(
 			final ConnectionDefinition cd) {

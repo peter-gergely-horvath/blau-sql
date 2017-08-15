@@ -23,12 +23,14 @@ public class ManageConnectionsWindow extends CloseOnEscapeKeyPressWindow {
 		}));
 		addComponent(new Button("[A]dd connection", onAddConnectionButtonSelectedAction));
 		addComponent(new Button("[E]dit connection", onEditConnectionButtonSelectedAction));
+		addComponent(new Button("[C]opy connection", onCopyConnectionButtonSelectedAction));
 		addComponent(new Button("[D]elete connection", onDeleteConnectionButtonSelectedAction));
 		
 		addWindowListener(new HotKeySupportListener(
 				ImmutableMap.<Character, Action>builder()
 				.put('A', onAddConnectionButtonSelectedAction)
 				.put('E', onEditConnectionButtonSelectedAction)
+				.put('C', onCopyConnectionButtonSelectedAction)
 				.put('D', onDeleteConnectionButtonSelectedAction)
 				.build(), true));
 	}
@@ -38,9 +40,18 @@ public class ManageConnectionsWindow extends CloseOnEscapeKeyPressWindow {
 
 		public void doAction() {
 			ManageConnectionsWindow.this.close();
-			TerminalUI.showWindowCenter(ConnectionSettingsWindow.createForNewConnectionDefinition());
+            TerminalUI.showWindowCenter(new ConnectionSettingsWindow());
 		}
 	};
+
+	private final Action onCopyConnectionButtonSelectedAction = new Action() {
+
+		public void doAction() {
+			ManageConnectionsWindow.this.close();
+			TerminalUI.showWindowCenter(new SelectConnectionToCopyWindow());
+		}
+	};
+
 	private final Action onEditConnectionButtonSelectedAction = new Action() {
 
 		public void doAction() {

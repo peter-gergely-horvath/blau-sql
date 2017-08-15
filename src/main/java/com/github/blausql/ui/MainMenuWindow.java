@@ -17,6 +17,7 @@ import com.googlecode.lanterna.input.Key.Kind;
 public class MainMenuWindow extends Window {
 
     private static final String ABOUT_TEXT = TextUtils.separateLines(
+            "BlauSQL version 1.0",
             "",
             "Copyright 2017 Peter G. Horvath",
             "",
