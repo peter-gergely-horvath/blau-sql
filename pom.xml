@@ -49,7 +49,7 @@
 	<properties>
 		<!-- Project configuration -->
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<displayName>Dynamic Languages For JDBC Driver</displayName>
+		<displayName>Blau SQL</displayName>
 		<javaVersion>8</javaVersion>
 		<maven.compiler.source>1.${javaVersion}</maven.compiler.source>
 		<maven.compiler.target>1.${javaVersion}</maven.compiler.target>
