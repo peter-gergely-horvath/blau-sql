@@ -87,9 +87,10 @@ public class ConnectionDefinitionRepository {
 
 			return new ArrayList<ConnectionDefinition>(map.values());
 
-		} catch (Exception e) {
+		} catch (IOException e) {
 			throw new RuntimeException("Failed to load connection definitions", e);
 		}
+
 	}
 
 	public void saveConnectionDefinition(ConnectionDefinition cd) {
@@ -102,7 +103,7 @@ public class ConnectionDefinitionRepository {
 			}
 
 			PropertyStore.persistProperties();
-		} catch (Exception e) {
+		} catch (IOException e) {
 			throw new RuntimeException("Failed to save connection definition", e);
 		}
 
@@ -137,7 +138,7 @@ public class ConnectionDefinitionRepository {
 			}
 
 			PropertyStore.persistProperties();
-		} catch (Exception e) {
+		} catch (IOException e) {
 			throw new RuntimeException("Failed to delete connection definition", e);
 		}
 
@@ -154,7 +155,9 @@ public class ConnectionDefinitionRepository {
 			if(loadedProperties == null) {
 				loadedProperties = new Properties();
 				if (PROPERTY_FILE.exists()) {
-					loadedProperties.load(new FileInputStream(PROPERTY_FILE));
+					try(FileInputStream inStream = new FileInputStream(PROPERTY_FILE)) {
+						loadedProperties.load(inStream);
+					}
 				}
 			}
 			
@@ -167,9 +170,12 @@ public class ConnectionDefinitionRepository {
 			if(loadedProperties == null) {
 				throw new IllegalStateException("Cannot persist properties: not loaded yet");
 			}
-			
-			loadedProperties.store(new FileOutputStream(PROPERTY_FILE),
-							"BlauSQL universal database client connection configurations");
+
+			try(FileOutputStream fileOutputStream = new FileOutputStream(PROPERTY_FILE)) {
+				loadedProperties.store(fileOutputStream,
+						"BlauSQL universal database client connection configurations");
+			}
+
 		}
 	}
 

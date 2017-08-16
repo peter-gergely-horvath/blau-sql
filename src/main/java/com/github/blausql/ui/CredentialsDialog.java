@@ -43,11 +43,11 @@ public class CredentialsDialog extends CloseOnEscapeKeyPressWindow {
 
 		addComponent(new Label("User name:"));
 		addComponent(userNameTextBox =
-				new TextBox(cd != null ? cd.getUserName() : null, 20));
+				new TextBox(cd.getUserName(), 20));
 
 		addComponent(new Label("Password:"));
 		addComponent(passwordPasswordBox =
-				 new PasswordBox(cd != null ? cd.getPassword() : null, 20));
+				 new PasswordBox(cd.getPassword(), 20));
 		
         Button okButton = new Button("OK", new Action() {
             public void doAction()

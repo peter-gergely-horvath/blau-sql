@@ -21,7 +21,11 @@ package com.github.blausql.ui.util;
 import com.github.blausql.TerminalUI;
 import com.googlecode.lanterna.gui.Action;
 
-public class LanternaUtilities {
+public final class LanternaUtilities {
+
+	private LanternaUtilities() {
+		// no external instances
+	}
 	
     public static void invokeLater(final Runnable runnable) {
     	TerminalUI.runInEventThread(new Action() {

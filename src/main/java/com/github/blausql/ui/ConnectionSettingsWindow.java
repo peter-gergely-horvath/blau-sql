@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
- 
+
 package com.github.blausql.ui;
 
 import com.github.blausql.TerminalUI;
@@ -33,7 +33,7 @@ import com.googlecode.lanterna.gui.component.TextBox;
 public class ConnectionSettingsWindow extends Window {
 
     public enum Mode {
-	    ADD("Add connection"), EDIT("Edit connection"), COPY("Copy connection");
+        ADD("Add connection"), EDIT("Edit connection"), COPY("Copy connection");
 
         private final String description;
 
@@ -44,101 +44,101 @@ public class ConnectionSettingsWindow extends Window {
 
     private final Mode dialogMode;
 
-	private final TextBox connectionNameTextBox;
-	private final TextBox driverClassTextBox;
-	private final TextBox jdbcUrlTextBox;
+    private final TextBox connectionNameTextBox;
+    private final TextBox driverClassTextBox;
+    private final TextBox jdbcUrlTextBox;
 
-	private final CheckBox loginAutomaticallyCheckBox;
-	
-	private final TextBox userNameTextBox;
-	private final PasswordBox passwordPasswordBox;
-	
-	private final String originalNameOfExistingConnectionDefinition;
+    private final CheckBox loginAutomaticallyCheckBox;
+
+    private final TextBox userNameTextBox;
+    private final PasswordBox passwordPasswordBox;
+
+    private final String originalNameOfExistingConnectionDefinition;
 
 
-	public ConnectionSettingsWindow() {
-	    this(null, Mode.ADD);
+    public ConnectionSettingsWindow() {
+        this(null, Mode.ADD);
     }
 
     public ConnectionSettingsWindow(ConnectionDefinition cd, Mode mode) {
-		
-		super(mode.description);
-		
-		this.dialogMode = mode;
-		
-		if(dialogMode == Mode.EDIT) {
-			this.originalNameOfExistingConnectionDefinition = cd.getConnectionName();
-			
-		} else {
-			this.originalNameOfExistingConnectionDefinition = null;
-		}
-		
-		addComponent(new Button("BACK TO MAIN MENU", new Action() {
 
-			public void doAction() {
-				ConnectionSettingsWindow.this.onCancelButtonSelected();
-			}
-		}));
+        super(mode.description);
 
-		addComponent(new Label("Connection name:"));
-		addComponent(connectionNameTextBox = 
-				new TextBox(cd != null ? cd.getConnectionName() : null, 25));
-		
-		addComponent(new Label("Driver class:"));
-		addComponent(driverClassTextBox = 
-				new TextBox(cd != null ? cd.getDriverClassName() : null, 150));
+        this.dialogMode = mode;
 
-		addComponent(new Label("JDBC URL:"));
-		addComponent(jdbcUrlTextBox = 
-				new TextBox(cd != null ? cd.getJdbcUrl() : null, 150));
-		
-		addComponent(loginAutomaticallyCheckBox = 
-				new CheckBox("Log in automatically", cd != null ? cd.getLoginAutomatically() : false));
-		
-		addComponent(new Label("User name:"));
-		addComponent(userNameTextBox =
-				new TextBox(cd != null ? cd.getUserName() : null, 20));
+        if (dialogMode == Mode.EDIT) {
+            this.originalNameOfExistingConnectionDefinition = cd.getConnectionName();
 
-		addComponent(new Label("Password:"));
-		addComponent(passwordPasswordBox =
-				 new PasswordBox(cd != null ? cd.getPassword() : null, 20));
+        } else {
+            this.originalNameOfExistingConnectionDefinition = null;
+        }
 
-		
-		addComponent(new Button("SAVE CONNECTION", new Action() {
+        addComponent(new Button("BACK TO MAIN MENU", new Action() {
 
-			public void doAction() {
-				ConnectionSettingsWindow.this.onSaveButtonSelected();
-			}
-		}));
-	}
+            public void doAction() {
+                ConnectionSettingsWindow.this.onCancelButtonSelected();
+            }
+        }));
 
-	protected void onCancelButtonSelected() {
-		this.close();
-	}
+        addComponent(new Label("Connection name:"));
+        addComponent(connectionNameTextBox =
+                new TextBox(cd != null ? cd.getConnectionName() : null, 25));
 
-	protected void onSaveButtonSelected() {
+        addComponent(new Label("Driver class:"));
+        addComponent(driverClassTextBox =
+                new TextBox(cd != null ? cd.getDriverClassName() : null, 150));
 
-		try {
-			
-			final String connectionName = connectionNameTextBox.getText();
-			final String jdbcDriverClassName = driverClassTextBox.getText();
-			final String jdbcUrl = jdbcUrlTextBox.getText();
+        addComponent(new Label("JDBC URL:"));
+        addComponent(jdbcUrlTextBox =
+                new TextBox(cd != null ? cd.getJdbcUrl() : null, 150));
 
-			final boolean loginAutomatically = loginAutomaticallyCheckBox.isSelected();
-			
-			final String userName = userNameTextBox.getText();
-			final String password = passwordPasswordBox.getText();
+        addComponent(loginAutomaticallyCheckBox =
+                new CheckBox("Log in automatically", cd != null ? cd.getLoginAutomatically() : false));
 
-			
-			ConnectionDefinition connectionDefinition = new ConnectionDefinition(
-					connectionName, 
-					jdbcDriverClassName,
-					jdbcUrl,
-					loginAutomatically,
-					userName, 
-					password);
+        addComponent(new Label("User name:"));
+        addComponent(userNameTextBox =
+                new TextBox(cd != null ? cd.getUserName() : null, 20));
 
-			switch (dialogMode) {
+        addComponent(new Label("Password:"));
+        addComponent(passwordPasswordBox =
+                new PasswordBox(cd != null ? cd.getPassword() : null, 20));
+
+
+        addComponent(new Button("SAVE CONNECTION", new Action() {
+
+            public void doAction() {
+                ConnectionSettingsWindow.this.onSaveButtonSelected();
+            }
+        }));
+    }
+
+    protected void onCancelButtonSelected() {
+        this.close();
+    }
+
+    protected void onSaveButtonSelected() {
+
+        try {
+
+            final String connectionName = connectionNameTextBox.getText();
+            final String jdbcDriverClassName = driverClassTextBox.getText();
+            final String jdbcUrl = jdbcUrlTextBox.getText();
+
+            final boolean loginAutomatically = loginAutomaticallyCheckBox.isSelected();
+
+            final String userName = userNameTextBox.getText();
+            final String password = passwordPasswordBox.getText();
+
+
+            ConnectionDefinition connectionDefinition = new ConnectionDefinition(
+                    connectionName,
+                    jdbcDriverClassName,
+                    jdbcUrl,
+                    loginAutomatically,
+                    userName,
+                    password);
+
+            switch (dialogMode) {
 
                 case ADD:
                 case COPY:
@@ -150,47 +150,47 @@ public class ConnectionSettingsWindow extends Window {
                     updateConnectionDefinition(connectionDefinition);
                     break;
 
-			    default:
-			        throw new IllegalStateException("Unknown dialogMode: " + dialogMode);
+                default:
+                    throw new IllegalStateException("Unknown dialogMode: " + dialogMode);
             }
 
-			this.close();
-		} catch (Exception e) {
-			TerminalUI.showErrorMessageFromThrowable(e);
-		}
+            this.close();
+        } catch (Exception e) {
+            TerminalUI.showErrorMessageFromThrowable(e);
+        }
 
-	}
+    }
 
-	private void updateConnectionDefinition(ConnectionDefinition connectionDefinitionToUpdate) {
-		String connectionName = connectionDefinitionToUpdate.getConnectionName();
-		
-		final boolean nameChanged = !Objects.equal(connectionName, originalNameOfExistingConnectionDefinition);
-		
-		ConnectionDefinitionRepository.getInstance()
-			.saveConnectionDefinition(connectionDefinitionToUpdate);
-		
-		if(nameChanged) {
-			ConnectionDefinitionRepository.getInstance()
-				.deleteConnectionDefinitionByName(originalNameOfExistingConnectionDefinition);
-		}
-		
-		
-	}
+    private void updateConnectionDefinition(ConnectionDefinition connectionDefinitionToUpdate) {
+        String connectionName = connectionDefinitionToUpdate.getConnectionName();
 
-	private void saveConnectionDefinition(ConnectionDefinition connectionDefinitionToSave) {
+        final boolean nameChanged = !Objects.equal(connectionName, originalNameOfExistingConnectionDefinition);
 
-		String connectionName = connectionDefinitionToSave.getConnectionName();
-		
-		ConnectionDefinition existingConnectionDefinition = 
-				ConnectionDefinitionRepository.getInstance()
-					.findConnectionDefinitionByName(connectionName);
-		
-		if(existingConnectionDefinition != null) {
-			throw new IllegalStateException("Connection with name '"+connectionName+"' already exists");
-		}
-		
-		ConnectionDefinitionRepository.getInstance()
-			.saveConnectionDefinition(connectionDefinitionToSave);
-		
-	}
+        ConnectionDefinitionRepository.getInstance()
+                .saveConnectionDefinition(connectionDefinitionToUpdate);
+
+        if (nameChanged) {
+            ConnectionDefinitionRepository.getInstance()
+                    .deleteConnectionDefinitionByName(originalNameOfExistingConnectionDefinition);
+        }
+
+
+    }
+
+    private void saveConnectionDefinition(ConnectionDefinition connectionDefinitionToSave) {
+
+        String connectionName = connectionDefinitionToSave.getConnectionName();
+
+        ConnectionDefinition existingConnectionDefinition =
+                ConnectionDefinitionRepository.getInstance()
+                        .findConnectionDefinitionByName(connectionName);
+
+        if (existingConnectionDefinition != null) {
+            throw new IllegalStateException("Connection with name '" + connectionName + "' already exists");
+        }
+
+        ConnectionDefinitionRepository.getInstance()
+                .saveConnectionDefinition(connectionDefinitionToSave);
+
+    }
 }

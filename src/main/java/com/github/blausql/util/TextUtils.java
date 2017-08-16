@@ -14,27 +14,30 @@
  * limitations under the License.
  */
 
- 
+
 package com.github.blausql.util;
 
-public class TextUtils {
+public final class TextUtils {
 
-	public static final String LINE_SEPARATOR = System.getProperty("line.separator");
-	
-	
-	public static String breakLine(String theString, int maxLineLen) {
-		StringBuilder multilineStringBuilder = new StringBuilder();
-		
-		for(int i=0; i < theString.length(); i+=maxLineLen) {
-			multilineStringBuilder.append(
-					theString.substring(i, Math.min(i + maxLineLen, theString.length())));
-			
-			multilineStringBuilder.append(LINE_SEPARATOR);
-		}
-		return multilineStringBuilder.toString();
-	}
+    public static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
-	public static String separateLines(String... lines) {
+    private TextUtils() {
+        // no external instances
+    }
+
+    public static String breakLine(String theString, int maxLineLen) {
+        StringBuilder multilineStringBuilder = new StringBuilder();
+
+        for (int i = 0; i < theString.length(); i += maxLineLen) {
+            multilineStringBuilder.append(
+                    theString.substring(i, Math.min(i + maxLineLen, theString.length())));
+
+            multilineStringBuilder.append(LINE_SEPARATOR);
+        }
+        return multilineStringBuilder.toString();
+    }
+
+    public static String separateLines(String... lines) {
         StringBuilder multilineStringBuilder = new StringBuilder();
 
         for (String aLine : lines) {

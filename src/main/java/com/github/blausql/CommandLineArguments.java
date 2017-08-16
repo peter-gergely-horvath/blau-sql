@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
- 
+
 package com.github.blausql;
 
 import org.kohsuke.args4j.Option;
@@ -25,7 +25,11 @@ public final class CommandLineArguments {
         return classpath;
     }
 
-    @Option(name="--classpath")
+    public void setClasspath(String classpath) {
+        this.classpath = classpath;
+    }
+
+    @Option(name = "--classpath")
     private String classpath = null;
 
 

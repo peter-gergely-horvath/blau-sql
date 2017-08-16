@@ -14,19 +14,12 @@
  * limitations under the License.
  */
 
- 
-package com.github.blausql.ui;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+package com.github.blausql.ui;
 
 import com.github.blausql.core.connection.ConnectionDefinition;
 import com.github.blausql.core.preferences.ConnectionDefinitionRepository;
 import com.github.blausql.ui.components.CloseOnEscapeKeyPressWindow;
-
 import com.google.common.collect.ImmutableList;
 import com.googlecode.lanterna.gui.Action;
 import com.googlecode.lanterna.gui.Window;
@@ -36,70 +29,74 @@ import com.googlecode.lanterna.gui.listener.WindowAdapter;
 import com.googlecode.lanterna.input.Key;
 import org.springframework.util.Assert;
 
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 public abstract class SelectConnectionWindow extends CloseOnEscapeKeyPressWindow {
 
     private static final ImmutableList<Character> HOTKEY_CHARACTERS = ImmutableList.<Character>builder().add(
-            '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'
+            '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
     ).build();
 
 
     private final Map<Character, ConnectionDefinition> hotKeyMap = new ConcurrentHashMap<>();
 
-	public SelectConnectionWindow(String title) {
-		super(title);
+    public SelectConnectionWindow(String title) {
+        super(title);
 
-		addWindowListener(new HotKeyWindowListener());
+        addWindowListener(new HotKeyWindowListener());
 
-		addComponent(new Button("CANCEL (ESC)", new Action() {
+        addComponent(new Button("CANCEL (ESC)", new Action() {
 
-			public void doAction() {
-				SelectConnectionWindow.this.close();
-			}
-		}));
-		
-		
-		List<ConnectionDefinition> connectionDefinitions =
-				ConnectionDefinitionRepository.getInstance().getConnectionDefinitions();
+            public void doAction() {
+                SelectConnectionWindow.this.close();
+            }
+        }));
 
-		if (connectionDefinitions.isEmpty()) {
-			addComponent(new Label("(no connections defined)"));
-		} else {
 
-			int index = 0;
+        List<ConnectionDefinition> connectionDefinitions =
+                ConnectionDefinitionRepository.getInstance().getConnectionDefinitions();
 
-			for(final ConnectionDefinition connectionDefinition : connectionDefinitions) {
-				String connectionName;
+        if (connectionDefinitions.isEmpty()) {
+            addComponent(new Label("(no connections defined)"));
+        } else {
 
-				if (index < HOTKEY_CHARACTERS.size()) {
-					Character hotkeyChar = HOTKEY_CHARACTERS.get(index++);
+            int index = 0;
 
-					connectionName = String.format("[%s] %s", hotkeyChar, connectionDefinition.getConnectionName());
+            for (final ConnectionDefinition connectionDefinition : connectionDefinitions) {
+                String connectionName;
 
-					hotKeyMap.put(hotkeyChar, connectionDefinition);
+                if (index < HOTKEY_CHARACTERS.size()) {
+                    Character hotkeyChar = HOTKEY_CHARACTERS.get(index++);
 
-				} else {
-					connectionName = connectionDefinition.getConnectionName();
-				}
+                    connectionName = String.format("[%s] %s", hotkeyChar, connectionDefinition.getConnectionName());
 
-				addComponent(new Button(connectionName, new Action() {
+                    hotKeyMap.put(hotkeyChar, connectionDefinition);
 
-					public void doAction() {
-						SelectConnectionWindow.this.onConnectionSelected(connectionDefinition);
-					}
-				}));
-			}
-		}
-	}
+                } else {
+                    connectionName = connectionDefinition.getConnectionName();
+                }
 
-	private final class HotKeyWindowListener extends WindowAdapter {
-		@Override
-		public void onUnhandledKeyboardInteraction(Window window, Key key) {
+                addComponent(new Button(connectionName, new Action() {
 
-			final Key.Kind keyKind = key.getKind();
+                    public void doAction() {
+                        SelectConnectionWindow.this.onConnectionSelected(connectionDefinition);
+                    }
+                }));
+            }
+        }
+    }
 
-			Assert.notNull(keyKind, "kind retrieved from key is null");
+    private final class HotKeyWindowListener extends WindowAdapter {
+        @Override
+        public void onUnhandledKeyboardInteraction(Window window, Key key) {
 
-            if(keyKind == Key.Kind.NormalKey) {
+            final Key.Kind keyKind = key.getKind();
+
+            Assert.notNull(keyKind, "kind retrieved from key is null");
+
+            if (keyKind == Key.Kind.NormalKey) {
                 final char characterKey = key.getCharacter();
                 Character mapKey = Character.valueOf(characterKey);
 
@@ -108,10 +105,10 @@ public abstract class SelectConnectionWindow extends CloseOnEscapeKeyPressWindow
                     SelectConnectionWindow.this.onConnectionSelected(connectionDefinition);
                 }
             }
-		}
-	}
+        }
+    }
 
-	protected abstract void onConnectionSelected(
-			ConnectionDefinition connectionDefinition);
+    protected abstract void onConnectionSelected(
+            ConnectionDefinition connectionDefinition);
 
 }
