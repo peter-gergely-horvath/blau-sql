@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
- 
+
 package com.github.blausql.core.preferences;
 
 import java.io.File;
@@ -35,255 +35,250 @@ import com.google.common.base.Preconditions;
 
 public class ConnectionDefinitionRepository {
 
-	private static final String PROPERTY_SEPARATOR = "\\.";
-	
-	private static final String PROPERTY_FILE_NAME = ".blauSQL.properties";
-	
-	private static final String PROPERTY_FILE_PATH = String.format("%s%s%s", 
-			System.getProperty("user.home"),
-			System.getProperty("file.separator"),
-			PROPERTY_FILE_NAME);
-	
-	private static final File PROPERTY_FILE = new File(PROPERTY_FILE_PATH);
+    private static final String PROPERTY_SEPARATOR = "\\.";
 
-	public static ConnectionDefinitionRepository getInstance() {
-		return InstanceHolder.INSTANCE;
-	}
+    private static final String PROPERTY_FILE_NAME = ".blauSQL.properties";
 
-	private static final class InstanceHolder {
-		private static final ConnectionDefinitionRepository INSTANCE = new ConnectionDefinitionRepository();
-	}
-	
-	public List<ConnectionDefinition> getConnectionDefinitions() {
-		try {
+    private static final File PROPERTY_FILE = new File(new File(System.getProperty("user.home")), PROPERTY_FILE_NAME);
 
-			LinkedHashMap<String, ConnectionDefinition> map = new LinkedHashMap<String, ConnectionDefinition>();
+    public static ConnectionDefinitionRepository getInstance() {
+        return InstanceHolder.INSTANCE;
+    }
 
-			Properties properties = PropertyStore.loadProperties();
+    private static final class InstanceHolder {
+        private static final ConnectionDefinitionRepository INSTANCE = new ConnectionDefinitionRepository();
+    }
 
-			for (Map.Entry<Object, Object> entry : properties.entrySet()) {
-				final String key = entry.getKey().toString();
-				final String value = entry.getValue().toString();
+    public List<ConnectionDefinition> getConnectionDefinitions() {
+        try {
 
-				final String[] splitString = key.split(PROPERTY_SEPARATOR);
-				if (splitString.length != 2) {
-					throw new IllegalStateException("Unknown property found: "
-							+ key);
-				}
+            LinkedHashMap<String, ConnectionDefinition> map = new LinkedHashMap<String, ConnectionDefinition>();
 
-				final String connectionDefinitionName = splitString[0];
-				final String propertyName = splitString[1];
+            Properties properties = PropertyStore.loadProperties();
 
-				ConnectionDefinition cd = map.get(connectionDefinitionName);
-				if (cd == null) {
-					cd = new ConnectionDefinition(connectionDefinitionName, null, null, false, null, null);
-					map.put(connectionDefinitionName, cd);
-				}
+            for (Map.Entry<Object, Object> entry : properties.entrySet()) {
+                final String key = entry.getKey().toString();
+                final String value = entry.getValue().toString();
 
-				PropertyMapping propertyMapping = 
-						PropertyMapping.valueOf(propertyName);
-				propertyMapping.setValue(cd, value);
-			}
+                final String[] splitString = key.split(PROPERTY_SEPARATOR);
+                if (splitString.length != 2) {
+                    throw new IllegalStateException("Unknown property found: "
+                            + key);
+                }
 
-			return new ArrayList<ConnectionDefinition>(map.values());
+                final String connectionDefinitionName = splitString[0];
+                final String propertyName = splitString[1];
 
-		} catch (IOException e) {
-			throw new RuntimeException("Failed to load connection definitions", e);
-		}
+                ConnectionDefinition cd = map.get(connectionDefinitionName);
+                if (cd == null) {
+                    cd = new ConnectionDefinition(connectionDefinitionName, null, null, false, null, null);
+                    map.put(connectionDefinitionName, cd);
+                }
 
-	}
+                PropertyMapping propertyMapping =
+                        PropertyMapping.valueOf(propertyName);
+                propertyMapping.setValue(cd, value);
+            }
 
-	public void saveConnectionDefinition(ConnectionDefinition cd) {
+            return new ArrayList<ConnectionDefinition>(map.values());
 
-		try {
-			Properties properties = PropertyStore.loadProperties();
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to load connection definitions", e);
+        }
 
-			for (PropertyMapping propertyMapping : PropertyMapping.values()) {
-				propertyMapping.putPropertyKeyValue(cd, properties);
-			}
+    }
 
-			PropertyStore.persistProperties();
-		} catch (IOException e) {
-			throw new RuntimeException("Failed to save connection definition", e);
-		}
+    public void saveConnectionDefinition(ConnectionDefinition cd) {
 
-	}
+        try {
+            Properties properties = PropertyStore.loadProperties();
 
-	public void updateConnectionDefinition(ConnectionDefinition cd) {
+            for (PropertyMapping propertyMapping : PropertyMapping.values()) {
+                propertyMapping.putPropertyKeyValue(cd, properties);
+            }
 
-		saveConnectionDefinition(cd);
-	}
+            PropertyStore.persistProperties();
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to save connection definition", e);
+        }
 
-	public void deleteConnectionDefinitionByName(String connectionName) {
+    }
 
-		try {
-			
-			boolean foundInProperties = false;
+    public void updateConnectionDefinition(ConnectionDefinition cd) {
 
-			Properties properties = PropertyStore.loadProperties();
+        saveConnectionDefinition(cd);
+    }
 
-			for (Iterator<Object> itetator = properties.keySet().iterator(); 
-					itetator.hasNext();) {
-				
-				String key = itetator.next().toString();
+    public void deleteConnectionDefinitionByName(String connectionName) {
 
-				if (key.split(PROPERTY_SEPARATOR)[0].equals(connectionName)) {
-					itetator.remove();
-					foundInProperties = true;
-				}
-			}
-			
-			if(!foundInProperties) {
-				throw new IllegalStateException("Connection definition not found:" + connectionName);
-			}
+        try {
 
-			PropertyStore.persistProperties();
-		} catch (IOException e) {
-			throw new RuntimeException("Failed to delete connection definition", e);
-		}
+            boolean foundInProperties = false;
 
-	}
-	
-	
-	private static final class PropertyStore {
+            Properties properties = PropertyStore.loadProperties();
 
-		private static Properties loadedProperties;
+            for (Iterator<Object> itetator = properties.keySet().iterator();
+                 itetator.hasNext(); ) {
 
-		private synchronized static Properties loadProperties()
-				throws FileNotFoundException, IOException {
+                String key = itetator.next().toString();
 
-			if(loadedProperties == null) {
-				loadedProperties = new Properties();
-				if (PROPERTY_FILE.exists()) {
-					try(FileInputStream inStream = new FileInputStream(PROPERTY_FILE)) {
-						loadedProperties.load(inStream);
-					}
-				}
-			}
-			
-			return loadedProperties;
-		}
+                if (key.split(PROPERTY_SEPARATOR)[0].equals(connectionName)) {
+                    itetator.remove();
+                    foundInProperties = true;
+                }
+            }
 
-		private synchronized static void persistProperties()
-				throws FileNotFoundException, IOException {
+            if (!foundInProperties) {
+                throw new IllegalStateException("Connection definition not found:" + connectionName);
+            }
 
-			if(loadedProperties == null) {
-				throw new IllegalStateException("Cannot persist properties: not loaded yet");
-			}
+            PropertyStore.persistProperties();
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to delete connection definition", e);
+        }
 
-			try(FileOutputStream fileOutputStream = new FileOutputStream(PROPERTY_FILE)) {
-				loadedProperties.store(fileOutputStream,
-						"BlauSQL universal database client connection configurations");
-			}
+    }
 
-		}
-	}
 
-	private static enum PropertyMapping {
-		connectionName {
-			@Override
-			String getValue(ConnectionDefinition cd) {
-				return cd.getConnectionName();
-			}
+    private static final class PropertyStore {
 
-			@Override
-			void setValue(ConnectionDefinition cd, String value) {
-				cd.setConnectionName(value);
-			}
-		},
-		
-		driverClassName {
-			@Override
-			String getValue(ConnectionDefinition cd) {
-				return cd.getDriverClassName();
-			}
+        private static Properties loadedProperties;
 
-			@Override
-			void setValue(ConnectionDefinition cd, String value) {
-				cd.setDriverClassName(value);
+        private synchronized static Properties loadProperties()
+                throws FileNotFoundException, IOException {
 
-			}
-		},
-		jdbcUrl {
-			@Override
-			String getValue(ConnectionDefinition cd) {
-				return cd.getJdbcUrl();
-			}
+            if (loadedProperties == null) {
+                loadedProperties = new Properties();
+                if (PROPERTY_FILE.exists()) {
+                    try (FileInputStream inStream = new FileInputStream(PROPERTY_FILE)) {
+                        loadedProperties.load(inStream);
+                    }
+                }
+            }
 
-			@Override
-			void setValue(ConnectionDefinition cd, String value) {
-				cd.setJdbcUrl(value);
+            return loadedProperties;
+        }
 
-			}
-		},
-		loginAutomatically {
-			@Override
-			String getValue(ConnectionDefinition cd) {
-				return Boolean.toString(cd.getLoginAutomatically());
-			}
+        private synchronized static void persistProperties()
+                throws FileNotFoundException, IOException {
 
-			@Override
-			void setValue(ConnectionDefinition cd, String value) {
-				cd.setLoginAutomatically(Boolean.parseBoolean(value));
-			}
-		},
-		userName {
-			@Override
-			String getValue(ConnectionDefinition cd) {
-				return cd.getUserName();
-			}
+            if (loadedProperties == null) {
+                throw new IllegalStateException("Cannot persist properties: not loaded yet");
+            }
 
-			@Override
-			void setValue(ConnectionDefinition cd, String value) {
-				cd.setUserName(value);
+            try (FileOutputStream fileOutputStream = new FileOutputStream(PROPERTY_FILE)) {
+                loadedProperties.store(fileOutputStream,
+                        "BlauSQL universal database client connection configurations");
+            }
 
-			}
-		},
-		password {
-			@Override
-			String getValue(ConnectionDefinition cd) {
-				return cd.getPassword();
-			}
+        }
+    }
 
-			@Override
-			void setValue(ConnectionDefinition cd, String value) {
-				cd.setPassword(value);
+    private static enum PropertyMapping {
+        connectionName {
+            @Override
+            String getValue(ConnectionDefinition cd) {
+                return cd.getConnectionName();
+            }
 
-			}
-		};
-		
-		private String getQualifiedUniquePropertyName(ConnectionDefinition cd) {
-			return String.format("%s.%s", cd.getConnectionName(), PropertyMapping.this.name());
-		}
-		
-		private void putPropertyKeyValue(ConnectionDefinition cd, Properties properties) {
-			if(PropertyMapping.connectionName != PropertyMapping.this) {
-				String propertyKey = this.getQualifiedUniquePropertyName(cd);
-				String propertyValue = this.getValue(cd);
-				
-				
-				properties.put(propertyKey, propertyValue);
-			}
-		}
+            @Override
+            void setValue(ConnectionDefinition cd, String value) {
+                cd.setConnectionName(value);
+            }
+        },
 
-		abstract String getValue(ConnectionDefinition cd);
+        driverClassName {
+            @Override
+            String getValue(ConnectionDefinition cd) {
+                return cd.getDriverClassName();
+            }
 
-		abstract void setValue(ConnectionDefinition cd, String value);
-	}
+            @Override
+            void setValue(ConnectionDefinition cd, String value) {
+                cd.setDriverClassName(value);
 
-	public ConnectionDefinition findConnectionDefinitionByName(
-			String connectionName) {
-		
-		Preconditions.checkNotNull(connectionName, "connectionName cannot be null");
-		
-		List<ConnectionDefinition> connectionDefinitions = getConnectionDefinitions();
-		for (ConnectionDefinition connectionDefinition : connectionDefinitions) {
-			if(connectionName.equalsIgnoreCase(connectionDefinition.getConnectionName())) {
-				return connectionDefinition;
-			}
-		}
-		
-		return null;
-	}
+            }
+        },
+        jdbcUrl {
+            @Override
+            String getValue(ConnectionDefinition cd) {
+                return cd.getJdbcUrl();
+            }
+
+            @Override
+            void setValue(ConnectionDefinition cd, String value) {
+                cd.setJdbcUrl(value);
+
+            }
+        },
+        loginAutomatically {
+            @Override
+            String getValue(ConnectionDefinition cd) {
+                return Boolean.toString(cd.getLoginAutomatically());
+            }
+
+            @Override
+            void setValue(ConnectionDefinition cd, String value) {
+                cd.setLoginAutomatically(Boolean.parseBoolean(value));
+            }
+        },
+        userName {
+            @Override
+            String getValue(ConnectionDefinition cd) {
+                return cd.getUserName();
+            }
+
+            @Override
+            void setValue(ConnectionDefinition cd, String value) {
+                cd.setUserName(value);
+
+            }
+        },
+        password {
+            @Override
+            String getValue(ConnectionDefinition cd) {
+                return cd.getPassword();
+            }
+
+            @Override
+            void setValue(ConnectionDefinition cd, String value) {
+                cd.setPassword(value);
+
+            }
+        };
+
+        private String getQualifiedUniquePropertyName(ConnectionDefinition cd) {
+            return String.format("%s.%s", cd.getConnectionName(), PropertyMapping.this.name());
+        }
+
+        private void putPropertyKeyValue(ConnectionDefinition cd, Properties properties) {
+            if (PropertyMapping.connectionName != PropertyMapping.this) {
+                String propertyKey = this.getQualifiedUniquePropertyName(cd);
+                String propertyValue = this.getValue(cd);
+
+
+                properties.put(propertyKey, propertyValue);
+            }
+        }
+
+        abstract String getValue(ConnectionDefinition cd);
+
+        abstract void setValue(ConnectionDefinition cd, String value);
+    }
+
+    public ConnectionDefinition findConnectionDefinitionByName(
+            String connectionName) {
+
+        Preconditions.checkNotNull(connectionName, "connectionName cannot be null");
+
+        List<ConnectionDefinition> connectionDefinitions = getConnectionDefinitions();
+        for (ConnectionDefinition connectionDefinition : connectionDefinitions) {
+            if (connectionName.equalsIgnoreCase(connectionDefinition.getConnectionName())) {
+                return connectionDefinition;
+            }
+        }
+
+        return null;
+    }
 
 }
