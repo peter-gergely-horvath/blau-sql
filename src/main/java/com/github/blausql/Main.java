@@ -9,7 +9,12 @@ import org.springframework.util.Assert;
 
 import java.io.StringWriter;
 
-public class Main {
+public final class Main {
+
+    static {
+        // Disable Apache Commons logging completely
+        System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.NoOpLog");
+    }
 
     private static CommandLineArguments commandLineArguments;
 

@@ -28,16 +28,13 @@ public final class TerminalUI {
     }
 
     public static void showErrorMessageFromThrowable(Throwable throwable) {
-        throwable.printStackTrace(); // ensure exception appears at least on
-                                        // console
+
         StringBuilder sb = new StringBuilder();
 
         final Throwable rootCause = Throwables.getRootCause(throwable);
 
         if(rootCause instanceof ClassNotFoundException) {
-            sb.append(rootCause.toString());
-        } else if (rootCause instanceof SQLException) {
-            sb.append(extractMessageFrom(rootCause));
+            sb.append("Class not found: " + rootCause.getMessage());
         } else if (throwable instanceof SQLException) {
             sb.append(extractMessageFrom(throwable));
         } else {

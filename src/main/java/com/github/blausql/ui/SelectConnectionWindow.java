@@ -14,6 +14,7 @@ import com.google.common.collect.ImmutableList;
 import com.googlecode.lanterna.gui.Action;
 import com.googlecode.lanterna.gui.Window;
 import com.googlecode.lanterna.gui.component.Button;
+import com.googlecode.lanterna.gui.component.Label;
 import com.googlecode.lanterna.gui.listener.WindowAdapter;
 import com.googlecode.lanterna.input.Key;
 import org.springframework.util.Assert;
@@ -40,32 +41,37 @@ public abstract class SelectConnectionWindow extends CloseOnEscapeKeyPressWindow
 		}));
 		
 		
-		List<ConnectionDefinition> connectionDefinitions = ConnectionDefinitionRepository.getInstance().getConnectionDefinitions();
+		List<ConnectionDefinition> connectionDefinitions =
+				ConnectionDefinitionRepository.getInstance().getConnectionDefinitions();
 
-		int index = 0;
+		if (connectionDefinitions.isEmpty()) {
+			addComponent(new Label("(no connections defined)"));
+		} else {
 
-		for(final ConnectionDefinition connectionDefinition : connectionDefinitions) {
-			String connectionName;
+			int index = 0;
 
-			if (index < HOTKEY_CHARACTERS.size()) {
-                Character hotkeyChar = HOTKEY_CHARACTERS.get(index++);
+			for(final ConnectionDefinition connectionDefinition : connectionDefinitions) {
+				String connectionName;
 
-				connectionName = String.format("[%s] %s", hotkeyChar, connectionDefinition.getConnectionName());
+				if (index < HOTKEY_CHARACTERS.size()) {
+					Character hotkeyChar = HOTKEY_CHARACTERS.get(index++);
 
-                hotKeyMap.put(hotkeyChar, connectionDefinition);
+					connectionName = String.format("[%s] %s", hotkeyChar, connectionDefinition.getConnectionName());
 
-			} else {
-				connectionName = connectionDefinition.getConnectionName();
-			}
+					hotKeyMap.put(hotkeyChar, connectionDefinition);
 
-			addComponent(new Button(connectionName, new Action() {
-
-				public void doAction() {
-					SelectConnectionWindow.this.onConnectionSelected(connectionDefinition);
+				} else {
+					connectionName = connectionDefinition.getConnectionName();
 				}
-			}));
+
+				addComponent(new Button(connectionName, new Action() {
+
+					public void doAction() {
+						SelectConnectionWindow.this.onConnectionSelected(connectionDefinition);
+					}
+				}));
+			}
 		}
-		
 	}
 
 	private final class HotKeyWindowListener extends WindowAdapter {
