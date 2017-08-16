@@ -17,10 +17,16 @@
  
 package com.github.blausql.core.connection;
 
+import java.net.MalformedURLException;
+import java.sql.*;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
+
 import com.github.blausql.CommandLineArguments;
-import com.github.blausql.Main;
 import com.github.blausql.core.classloader.ClassLoaderFactory;
 import com.github.blausql.core.classloader.DelegatingDriver;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ColumnMapRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapperResultSetExtractor;
@@ -28,14 +34,7 @@ import org.springframework.jdbc.core.StatementCallback;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import org.springframework.util.Assert;
 
-import java.net.MalformedURLException;
-import java.sql.Driver;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
+import com.github.blausql.Main;
 
 public class Database {
 
@@ -126,34 +125,38 @@ public class Database {
 
         JdbcTemplate jdbcTemplate = currentConnectionHolder.get().jdbcTemplate;
 
-        return jdbcTemplate.execute((StatementCallback<StatementResult>) stmt -> {
+        return jdbcTemplate.execute(new StatementCallback<StatementResult>() {
 
-            List<Map<String, Object>> queryResult = null;
-            int updateCount = -1;
+            public StatementResult doInStatement(Statement stmt)
+                    throws SQLException, DataAccessException {
 
-            final boolean yieldedResultSet = stmt.execute(sql);
-            if (yieldedResultSet) {
-                ResultSet resultSet = stmt.getResultSet();
-                try {
+                List<Map<String, Object>> queryResult = null;
+                int updateCount = -1;
 
-                    queryResult = ROW_MAPPER_RESULT_SET_EXTRACTOR
-                            .extractData(resultSet);
+                final boolean yieldedResultSet = stmt.execute(sql);
+                if (yieldedResultSet) {
+                    ResultSet resultSet = stmt.getResultSet();
+                    try {
 
-                } catch (SQLException e) {
+                        queryResult = ROW_MAPPER_RESULT_SET_EXTRACTOR
+                                .extractData(resultSet);
 
-                    throw new RuntimeException(
-                            "ResultSet processing failed", e);
+                    } catch (SQLException e) {
 
-                } finally {
-                    resultSet.close();
+                        throw new RuntimeException(
+                                "ResultSet processing failed", e);
+
+                    } finally {
+                        resultSet.close();
+                    }
+                } else {
+                    updateCount = stmt.getUpdateCount();
+
                 }
-            } else {
-                updateCount = stmt.getUpdateCount();
 
+                return new StatementResult(yieldedResultSet, queryResult,
+                        updateCount);
             }
-
-            return new StatementResult(yieldedResultSet, queryResult,
-                    updateCount);
         });
 
     }

@@ -4,4 +4,15 @@
         <Bug pattern="SIC_INNER_SHOULD_BE_STATIC_ANON" />
         <!-- Windows may have Action classes as members -->
     </Match>
+    <Match>
+        <Class name="com.github.blausql.core.connection.Database$1" />
+        <Bug pattern="SIC_INNER_SHOULD_BE_STATIC_ANON" />
+        <!-- Inline Spring StatementCallback -->
+    </Match>
+    <Match>
+        <Class name="com.github.blausql.core.connection.Database$1" />
+        <Method name="doInStatement" />
+        <Bug pattern="SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE" />
+        <!-- The passed string is coming from the user -->
+    </Match>
 </FindBugsFilter>
