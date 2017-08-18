@@ -82,7 +82,7 @@ public class ConnectionSettingsWindow extends Window {
 
         addComponent(new Label("Connection name:"));
         addComponent(connectionNameTextBox =
-                new TextBox(cd != null ? cd.getConnectionName() : null, 25));
+                new TextBox(cd != null ? cd.getConnectionName() : null, 50));
 
         addComponent(new Label("Driver class:"));
         addComponent(driverClassTextBox =
@@ -97,11 +97,11 @@ public class ConnectionSettingsWindow extends Window {
 
         addComponent(new Label("User name:"));
         addComponent(userNameTextBox =
-                new TextBox(cd != null ? cd.getUserName() : null, 20));
+                new TextBox(cd != null ? cd.getUserName() : null, 50));
 
         addComponent(new Label("Password:"));
         addComponent(passwordPasswordBox =
-                new PasswordBox(cd != null ? cd.getPassword() : null, 20));
+                new PasswordBox(cd != null ? cd.getPassword() : null, 40));
 
 
         addComponent(new Button("SAVE CONNECTION", new Action() {
