@@ -18,9 +18,6 @@
 package com.github.blausql.core.preferences;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -41,6 +38,8 @@ public class ConnectionDefinitionRepository {
 
     private static final File PROPERTY_FILE = new File(new File(System.getProperty("user.home")), PROPERTY_FILE_NAME);
 
+    private PropertyStore connectionsPropertyStore = new PropertyStore(PROPERTY_FILE);
+
     public static ConnectionDefinitionRepository getInstance() {
         return InstanceHolder.INSTANCE;
     }
@@ -52,9 +51,9 @@ public class ConnectionDefinitionRepository {
     public List<ConnectionDefinition> getConnectionDefinitions() {
         try {
 
-            LinkedHashMap<String, ConnectionDefinition> map = new LinkedHashMap<String, ConnectionDefinition>();
+            LinkedHashMap<String, ConnectionDefinition> map = new LinkedHashMap<>();
 
-            Properties properties = PropertyStore.loadProperties();
+            Properties properties = connectionsPropertyStore.loadProperties();
 
             for (Map.Entry<Object, Object> entry : properties.entrySet()) {
                 final String key = entry.getKey().toString();
@@ -80,7 +79,7 @@ public class ConnectionDefinitionRepository {
                 propertyMapping.setValue(cd, value);
             }
 
-            return new ArrayList<ConnectionDefinition>(map.values());
+            return new ArrayList<>(map.values());
 
         } catch (IOException e) {
             throw new RuntimeException("Failed to load connection definitions", e);
@@ -91,22 +90,17 @@ public class ConnectionDefinitionRepository {
     public void saveConnectionDefinition(ConnectionDefinition cd) {
 
         try {
-            Properties properties = PropertyStore.loadProperties();
+            Properties properties = connectionsPropertyStore.loadProperties();
 
             for (PropertyMapping propertyMapping : PropertyMapping.values()) {
                 propertyMapping.putPropertyKeyValue(cd, properties);
             }
 
-            PropertyStore.persistProperties();
+            connectionsPropertyStore.persistProperties(properties);
         } catch (IOException e) {
             throw new RuntimeException("Failed to save connection definition", e);
         }
 
-    }
-
-    public void updateConnectionDefinition(ConnectionDefinition cd) {
-
-        saveConnectionDefinition(cd);
     }
 
     public void deleteConnectionDefinitionByName(String connectionName) {
@@ -115,7 +109,7 @@ public class ConnectionDefinitionRepository {
 
             boolean foundInProperties = false;
 
-            Properties properties = PropertyStore.loadProperties();
+            Properties properties = connectionsPropertyStore.loadProperties();
 
             for (Iterator<Object> itetator = properties.keySet().iterator();
                  itetator.hasNext(); ) {
@@ -132,7 +126,7 @@ public class ConnectionDefinitionRepository {
                 throw new IllegalStateException("Connection definition not found:" + connectionName);
             }
 
-            PropertyStore.persistProperties();
+            connectionsPropertyStore.persistProperties(properties);
         } catch (IOException e) {
             throw new RuntimeException("Failed to delete connection definition", e);
         }
@@ -140,41 +134,7 @@ public class ConnectionDefinitionRepository {
     }
 
 
-    private static final class PropertyStore {
-
-        private static Properties loadedProperties;
-
-        private synchronized static Properties loadProperties()
-                throws FileNotFoundException, IOException {
-
-            if (loadedProperties == null) {
-                loadedProperties = new Properties();
-                if (PROPERTY_FILE.exists()) {
-                    try (FileInputStream inStream = new FileInputStream(PROPERTY_FILE)) {
-                        loadedProperties.load(inStream);
-                    }
-                }
-            }
-
-            return loadedProperties;
-        }
-
-        private synchronized static void persistProperties()
-                throws FileNotFoundException, IOException {
-
-            if (loadedProperties == null) {
-                throw new IllegalStateException("Cannot persist properties: not loaded yet");
-            }
-
-            try (FileOutputStream fileOutputStream = new FileOutputStream(PROPERTY_FILE)) {
-                loadedProperties.store(fileOutputStream,
-                        "BlauSQL universal database client connection configurations");
-            }
-
-        }
-    }
-
-    private static enum PropertyMapping {
+    private enum PropertyMapping {
         connectionName {
             @Override
             String getValue(ConnectionDefinition cd) {
