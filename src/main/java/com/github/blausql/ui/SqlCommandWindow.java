@@ -17,12 +17,6 @@
  
 package com.github.blausql.ui;
 
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -46,15 +40,6 @@ import com.googlecode.lanterna.terminal.TerminalSize;
 public class SqlCommandWindow extends Window {
 
 	private final EditArea sqlEditArea;
-
-	private Button executeSqlButton = new Button("Execute Query (CTRL+E)", new Action() {
-
-		public void doAction() {
-			onExecuteQueryButtonSelected();
-
-		}
-	});
-
 	private final String connectionName;
 
 	public SqlCommandWindow(ConnectionDefinition connectionDefinition) {
@@ -69,15 +54,8 @@ public class SqlCommandWindow extends Window {
 
 		bottomPanel.addComponent(new Label(">>> Press TAB >>>"));
 
-		bottomPanel.addComponent(executeSqlButton);
-
-		bottomPanel.addComponent(new Button("Close connection (ESC)", new Action() {
-
-			public void doAction() {
-				SqlCommandWindow.this.onCloseConnectionButtonSelected();
-			}
-
-		}));
+		bottomPanel.addComponent(new Button("Execute Query (CTRL+E)", onExecuteSqlButtonSelectedAction));
+		bottomPanel.addComponent(new Button("Close connection (ESC)", onCloseConnectionButtonSelectedAction));
 
 		TerminalSize screenTerminalSize = TerminalUI.getTerminalSize();
 
@@ -92,35 +70,45 @@ public class SqlCommandWindow extends Window {
 
 		addComponent(verticalPanel);
 	}
+
+	private final Action onExecuteSqlButtonSelectedAction = new Action() {
+
+		public void doAction() {
+            executeQuery(sqlEditArea.getData());
+
+        }
+	};
+
+    private final Action onCloseConnectionButtonSelectedAction = new Action() {
+
+        public void doAction() {
+            Database.getInstance().disconnect();
+
+            SqlCommandWindow.this.close();
+        }
+
+    };
 	
 	public void onKeyPressed(Key key) {
 		
 		if(Kind.NormalKey.equals(key.getKind()) && 
 				(key.getCharacter() == 'E' || key.getCharacter() == 'e') &&   
 				key.isCtrlPressed()) {
-			
-			onExecuteQueryButtonSelected();
-			
-		} else if(Kind.Escape.equals(key.getKind())) {
-			
-			onCloseConnectionButtonSelected();
-			
-		} else {
+
+            executeQuery(sqlEditArea.getData());
+
+        } else if(Kind.Escape.equals(key.getKind())) {
+
+            Database.getInstance().disconnect();
+
+            this.close();
+
+        } else {
 			super.onKeyPressed(key);
 		}
 	}
-	
-	protected void onExecuteQueryButtonSelected() {
-		executeQuery(sqlEditArea.getData());
-	}
-	
-	protected void onCloseConnectionButtonSelected() {
-		Database.getInstance().disconnect();
 
-		this.close();
-	}
-
-	protected void executeQuery(final String sqlCommand) {
+    protected void executeQuery(final String sqlCommand) {
 		
 		final Window showWaitDialog = TerminalUI.showWaitDialog("Please wait",
 				String.format("Executing statement against %s ..." , connectionName));
@@ -166,54 +154,5 @@ public class SqlCommandWindow extends Window {
 		}.start();
 		
 	}
-
-
-	protected void onStatementYieldsResults(ResultSet resultSet)
-			throws SQLException {
-		
-		final List<Map<String, String>> queryResult = new LinkedList<Map<String, String>>();
-		
-		synchronized (queryResult) {
-			
-			final ResultSetMetaData metaData = resultSet.getMetaData();
-			final int columnCount = metaData.getColumnCount();
-
-			ArrayList<String> columnLabels = new ArrayList<String>();
-
-			for (int i = 0; i < columnCount; i++) {
-				String columnLabel = metaData.getColumnLabel(i + 1);
-				columnLabels.add(columnLabel);
-			}
-
-			while (resultSet.next()) {
-
-				HashMap<String, String> lineMap = new HashMap<String, String>();
-
-				for (int i = 0; i < columnCount; i++) {
-
-					String columnLabel = columnLabels.get(i);
-					String displayValues = resultSet.getString(i + 1);
-
-					lineMap.put(columnLabel, displayValues);
-				}
-
-				queryResult.add(lineMap);
-			}
-
-
-		}
-		
-	}
-
-	
-	protected void onStatementYieldsUpdateCount(int updateCount) {
-		
-
-		
-		
-		
-	}
-
-
 
 }

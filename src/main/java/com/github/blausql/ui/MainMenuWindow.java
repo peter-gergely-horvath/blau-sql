@@ -36,15 +36,17 @@ public class MainMenuWindow extends Window {
 
         addComponent(new Button("[C]onnect to database", onConnectToDatabaseButtonSelectedAction));
         addComponent(new Button("[M]anage Connections", onManageConnectionButtonSelectedAction));
+        addComponent(new Button("[S]et classpath", onSetApplicationClasspathButtonSelectedAction));
         addComponent(new Button("[A]bout", onAboutButtonSelectedAction));
-        addComponent(new Button("[E]xit Application", onExitApplicationButtonSelected));
+        addComponent(new Button("[Q]uit Application", onQuitApplicationButtonSelected));
 
         addWindowListener(new HotKeySupportListener(
                 ImmutableMap.<Character, Action>builder()
                         .put('C', onConnectToDatabaseButtonSelectedAction)
                         .put('M', onManageConnectionButtonSelectedAction)
+                        .put('S', onSetApplicationClasspathButtonSelectedAction)
                         .put('A', onAboutButtonSelectedAction)
-                        .put('E', onExitApplicationButtonSelected)
+                        .put('Q', onQuitApplicationButtonSelected)
                         .build(), false));
     }
 
@@ -63,6 +65,14 @@ public class MainMenuWindow extends Window {
 
     };
 
+    private final Action onSetApplicationClasspathButtonSelectedAction = new Action() {
+
+        public void doAction() {
+            //TerminalUI.showWindowCenter(new ManageConnectionsWindow());
+        }
+
+    };
+
     private final Action onAboutButtonSelectedAction = new Action() {
 
         public void doAction() {
@@ -70,7 +80,7 @@ public class MainMenuWindow extends Window {
         }
     };
 
-    private final Action onExitApplicationButtonSelected = new Action() {
+    private final Action onQuitApplicationButtonSelected = new Action() {
 
         public void doAction() {
             Main.exitApplication(0);
