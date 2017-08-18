@@ -68,7 +68,7 @@ public class MainMenuWindow extends Window {
     private final Action onSetApplicationClasspathButtonSelectedAction = new Action() {
 
         public void doAction() {
-            //TerminalUI.showWindowCenter(new ManageConnectionsWindow());
+            TerminalUI.showWindowCenter(new SetClasspathWindow());
         }
 
     };
