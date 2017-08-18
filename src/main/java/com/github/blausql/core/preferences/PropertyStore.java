@@ -35,6 +35,8 @@ final class PropertyStore {
             throw new IllegalStateException("Cannot persist properties: not loaded yet");
         }
 
+        propertyFile.getParentFile().mkdirs();
+
         try (FileOutputStream fileOutputStream = new FileOutputStream(propertyFile)) {
             properties.store(fileOutputStream, "");
             loadedProperties = properties;

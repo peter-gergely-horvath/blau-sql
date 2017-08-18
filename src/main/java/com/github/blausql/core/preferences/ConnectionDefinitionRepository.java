@@ -34,19 +34,19 @@ public class ConnectionDefinitionRepository {
 
     private static final String PROPERTY_SEPARATOR = "\\.";
 
-    private static final String PROPERTY_FILE_NAME = ".blauSQL.properties";
+    private static final File USER_HOME = new File(System.getProperty("user.home"));
 
-    private static final File PROPERTY_FILE = new File(new File(System.getProperty("user.home")), PROPERTY_FILE_NAME);
+    private static final File BLAU_SQL_DIR = new File(USER_HOME, ".blauSQL");
 
-    private PropertyStore connectionsPropertyStore = new PropertyStore(PROPERTY_FILE);
+    private static final File CONNECTIONS_PROPERTIES_FILE = new File(BLAU_SQL_DIR, "connections.properties");
+
+    private PropertyStore connectionsPropertyStore = new PropertyStore(CONNECTIONS_PROPERTIES_FILE);
 
     public static ConnectionDefinitionRepository getInstance() {
-        return InstanceHolder.INSTANCE;
+        return INSTANCE;
     }
 
-    private static final class InstanceHolder {
-        private static final ConnectionDefinitionRepository INSTANCE = new ConnectionDefinitionRepository();
-    }
+    private static final ConnectionDefinitionRepository INSTANCE = new ConnectionDefinitionRepository();
 
     public List<ConnectionDefinition> getConnectionDefinitions() {
         try {
