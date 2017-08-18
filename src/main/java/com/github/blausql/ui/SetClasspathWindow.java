@@ -14,14 +14,17 @@
  * limitations under the License.
  */
 
- 
+
 package com.github.blausql.ui;
 
 import com.github.blausql.TerminalUI;
 import com.github.blausql.core.classloader.ClassLoaderFactory;
 import com.github.blausql.core.classloader.ClasspathHelper;
 import com.github.blausql.core.connection.Database;
+import com.github.blausql.core.preferences.ConfigurationRepository;
 import com.github.blausql.ui.util.BackgroundWorker;
+import com.github.blausql.ui.util.LanternaUtilities;
+import com.github.blausql.util.TextUtils;
 import com.googlecode.lanterna.gui.Action;
 import com.googlecode.lanterna.gui.Border;
 import com.googlecode.lanterna.gui.Window;
@@ -33,49 +36,58 @@ import com.googlecode.lanterna.input.Key;
 import com.googlecode.lanterna.input.Key.Kind;
 import com.googlecode.lanterna.terminal.TerminalSize;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.net.MalformedURLException;
+import java.net.URL;
 
 public class SetClasspathWindow extends Window {
 
-	private final EditArea classpathEditArea;
+    private static final String lineSeparator = System.getProperty("line.separator");
 
-	public SetClasspathWindow() {
-		super("Set JDBC Driver Classpath");
-		
-		Panel bottomPanel = new Panel(new Border.Bevel(true),
-				Panel.Orientation.HORISONTAL);
-		Panel verticalPanel = new Panel(new Border.Invisible(),
-				Panel.Orientation.VERTICAL);
 
-		bottomPanel.addComponent(new Label(">>> Press TAB >>>"));
+    private final EditArea classpathEditArea;
 
-		bottomPanel.addComponent(new Button("Save Changes (CTRL+S)", onSaveChangesButtonSelectedAction));
-		bottomPanel.addComponent(new Button("Cancel (ESC)", onCancelButtonSelectedAction));
+    public SetClasspathWindow(String[] classpath) {
 
-		TerminalSize screenTerminalSize = TerminalUI.getTerminalSize();
+        super("Set JDBC Driver Classpath");
 
-		final int sqlEditorPanelColumns = screenTerminalSize.getColumns() - 4;
-		final int sqlEditorPanelRows = screenTerminalSize.getRows() - 4;
+        Panel bottomPanel = new Panel(new Border.Bevel(true),
+                Panel.Orientation.HORISONTAL);
+        Panel verticalPanel = new Panel(new Border.Invisible(),
+                Panel.Orientation.VERTICAL);
 
-		classpathEditArea = new EditArea(new TerminalSize(sqlEditorPanelColumns,
-				sqlEditorPanelRows));
+        bottomPanel.addComponent(new Label(">>> Press TAB >>>"));
+
+        bottomPanel.addComponent(new Button("Save Changes (CTRL+S)", onSaveChangesButtonSelectedAction));
+        bottomPanel.addComponent(new Button("Cancel (ESC)", onCancelButtonSelectedAction));
+
+        TerminalSize screenTerminalSize = TerminalUI.getTerminalSize();
+
+        final int sqlEditorPanelColumns = screenTerminalSize.getColumns() - 4;
+        final int sqlEditorPanelRows = screenTerminalSize.getRows() - 4;
+
+        String classpathText = TextUtils.separateLines(classpath);
+
+        TerminalSize preferredSizeForTextArea = new TerminalSize(sqlEditorPanelColumns, sqlEditorPanelRows);
+        classpathEditArea = new EditArea(preferredSizeForTextArea, classpathText);
 
         verticalPanel.addComponent(new Label("Enter Classpath entries - each on a new line:"));
 
-		verticalPanel.addComponent(classpathEditArea);
+        verticalPanel.addComponent(classpathEditArea);
 
-		verticalPanel.addComponent(bottomPanel);
+        verticalPanel.addComponent(bottomPanel);
 
-		addComponent(verticalPanel);
-	}
+        addComponent(verticalPanel);
+    }
 
-	private final Action onSaveChangesButtonSelectedAction = new Action() {
+    private final Action onSaveChangesButtonSelectedAction = new Action() {
 
-		public void doAction() {
+        public void doAction() {
             saveClasspath(classpathEditArea.getData());
 
         }
-	};
+    };
 
     private final Action onCancelButtonSelectedAction = new Action() {
 
@@ -84,69 +96,67 @@ public class SetClasspathWindow extends Window {
         }
 
     };
-	
-	public void onKeyPressed(Key key) {
 
-		if(Kind.NormalKey.equals(key.getKind()) &&
-				(key.getCharacter() == 'S' || key.getCharacter() == 's') &&
-				key.isCtrlPressed()) {
+    public void onKeyPressed(Key key) {
+
+        if (Kind.NormalKey.equals(key.getKind()) &&
+                (key.getCharacter() == 'S' || key.getCharacter() == 's') &&
+                key.isCtrlPressed()) {
 
             onSaveChangesButtonSelectedAction.doAction();
 
 
-        } else if(Kind.Escape.equals(key.getKind())) {
+        } else if (Kind.Escape.equals(key.getKind())) {
 
             onCancelButtonSelectedAction.doAction();
 
 
         } else {
-			super.onKeyPressed(key);
-		}
-	}
+            super.onKeyPressed(key);
+        }
+    }
 
     protected void saveClasspath(final String newLineSeparatedClasspathString) {
-		
-		final Window showWaitDialog = TerminalUI.showWaitDialog("Please wait", "Validating Classpath settings ...");
 
-		new BackgroundWorker<Void>() {
+        final Window showWaitDialog = TerminalUI.showWaitDialog("Please wait", "Validating Classpath settings ...");
 
-			@Override
-			protected Void doBackgroundTask() {
+        new BackgroundWorker<Void>() {
 
-                try {
-                    String lineSeparator = System.getProperty("line.separator");
-                    String pathSeparator = System.getProperty("path.separator");
-
-                    String pathSeparatorSeparatedPathEntries =
-                            newLineSeparatedClasspathString.replace(lineSeparator, pathSeparator);
+            @Override
+            protected Void doBackgroundTask() {
 
 
-                    ClasspathHelper.getUrlsFromClasspathString(pathSeparatorSeparatedPathEntries);
+                String[] classPathStrings = newLineSeparatedClasspathString.split(lineSeparator);
 
-                    return null;
-
-                } catch (MalformedURLException e) {
-                    throw new RuntimeException("Malformed URL : " + e.getMessage());
+                for (String path : classPathStrings) {
+                    if (!"".equals(path.trim()) && !new File(path).exists()) {
+                        throw new RuntimeException("Not found: " + path);
+                    }
                 }
 
-			}
+                ConfigurationRepository.getInstance().saveClasspath(classPathStrings);
 
-			@Override
-			protected void onBackgroundTaskFailed(Throwable t) {
-				showWaitDialog.close();
-				TerminalUI.showErrorMessageFromThrowable(t);
-				setFocus(classpathEditArea);
+                return null;
 
-			}
 
-			@Override
-			protected void onBackgroundTaskCompleted(Void voidResult) {
-				showWaitDialog.close();
+            }
+
+            @Override
+            protected void onBackgroundTaskFailed(Throwable t) {
+                showWaitDialog.close();
+                TerminalUI.showErrorMessageFromThrowable(t);
+                setFocus(classpathEditArea);
+
+            }
+
+            @Override
+            protected void onBackgroundTaskCompleted(Void voidResult) {
+                showWaitDialog.close();
 
                 SetClasspathWindow.this.close();
-			}
-		}.start();
-		
-	}
+            }
+        }.start();
+
+    }
 
 }

@@ -21,6 +21,7 @@ package com.github.blausql.ui;
 import com.github.blausql.Main;
 import com.github.blausql.TerminalUI;
 import com.github.blausql.core.Constants;
+import com.github.blausql.core.preferences.ConfigurationRepository;
 import com.github.blausql.ui.util.HotKeySupportListener;
 import com.google.common.collect.ImmutableMap;
 
@@ -68,7 +69,10 @@ public class MainMenuWindow extends Window {
     private final Action onSetApplicationClasspathButtonSelectedAction = new Action() {
 
         public void doAction() {
-            TerminalUI.showWindowCenter(new SetClasspathWindow());
+
+            String[] classpath = ConfigurationRepository.getInstance().getClasspath();
+
+            TerminalUI.showWindowCenter(new SetClasspathWindow(classpath));
         }
 
     };

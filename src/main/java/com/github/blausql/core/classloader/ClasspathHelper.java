@@ -17,11 +17,15 @@ public final class ClasspathHelper {
 
         String[] entriesFromClasspathString = classpathString.split(FILE_SEPARATOR);
 
-        URL[] urlList = new URL[entriesFromClasspathString.length];
+        return convertToURLs(entriesFromClasspathString);
+    }
 
-        for (int i = 0; i < entriesFromClasspathString.length; i++) {
+    public static URL[] convertToURLs(String[] urlStrings) throws MalformedURLException {
+        URL[] urlList = new URL[urlStrings.length];
 
-            URL url = new File(entriesFromClasspathString[i]).toURI().toURL();
+        for (int i = 0; i < urlStrings.length; i++) {
+
+            URL url = new File(urlStrings[i]).toURI().toURL();
 
             urlList[i] = url;
         }

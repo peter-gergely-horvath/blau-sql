@@ -31,11 +31,11 @@ public final class ClassLoaderFactory {
         // no external instances
     }
 
-    public static ClassLoader getClassLoaderForClasspathString(String classpathString) throws MalformedURLException {
+    public static ClassLoader getClassLoaderForClasspath(String[] classPathStrings) throws MalformedURLException {
 
-        Assert.notNull(classpathString, "argument classpathString cannot be null");
+        Assert.notNull(classPathStrings, "argument classPathStrings cannot be null");
 
-        final URL[] urls = ClasspathHelper.getUrlsFromClasspathString(classpathString);
+        final URL[] urls = ClasspathHelper.convertToURLs(classPathStrings);
 
         ClassLoader classLoader = AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
 

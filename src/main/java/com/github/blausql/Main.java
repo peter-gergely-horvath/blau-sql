@@ -18,31 +18,12 @@
 package com.github.blausql;
 
 import com.github.blausql.ui.MainMenuWindow;
-import com.github.blausql.util.TextUtils;
-import org.kohsuke.args4j.CmdLineException;
-import org.kohsuke.args4j.CmdLineParser;
-import org.kohsuke.args4j.OptionHandlerFilter;
-import org.springframework.util.Assert;
-
-import java.io.StringWriter;
 
 public final class Main {
 
     static {
         // Disable Apache Commons logging completely
         System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.NoOpLog");
-    }
-
-    private static CommandLineArguments commandLineArguments;
-
-    public static synchronized void setCommandLineArguments(CommandLineArguments commandLineArguments) {
-        Main.commandLineArguments = commandLineArguments;
-    }
-
-    public static synchronized CommandLineArguments getCommandLineArguments() {
-        Assert.notNull(Main.commandLineArguments, "commandLineArguments is null");
-
-        return Main.commandLineArguments;
     }
 
 	public static void exitApplication(int exitCode) {
@@ -54,39 +35,9 @@ public final class Main {
 
 		Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler());
 
-		CommandLineArguments commandLineArguments = new CommandLineArguments();
-		CmdLineParser parser = new CmdLineParser(commandLineArguments);
+        TerminalUI.init();
 
-		try {
-			TerminalUI.init();
-
-			parser.parseArgument(args);
-
-            Main.setCommandLineArguments(commandLineArguments);
-			
-
-			TerminalUI.showWindowCenter(new MainMenuWindow());
-
-		} catch( CmdLineException e ) {
-
-            StringWriter stringWriter = new StringWriter();
-            parser.printUsage(stringWriter, null, OptionHandlerFilter.ALL);
-            String usageString = stringWriter.toString();
-
-            String errorMessage = TextUtils.separateLines(
-                            "The application cannot start due to invalid command line arguments!",
-                            "",
-                            "ERROR:",
-                            e.getMessage(),
-                            "java -jar <JAR FILE> [options...] arguments...",
-                            usageString);
-
-            TerminalUI.showErrorMessageFromString("Invalid command line argument(s)", errorMessage);
-
-            exitApplication(1);
-		}
-
-
+        TerminalUI.showWindowCenter(new MainMenuWindow());
 	}
 
 

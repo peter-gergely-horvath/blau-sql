@@ -23,9 +23,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.github.blausql.CommandLineArguments;
 import com.github.blausql.core.classloader.ClassLoaderFactory;
 import com.github.blausql.core.classloader.DelegatingDriver;
+import com.github.blausql.core.preferences.ConfigurationRepository;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ColumnMapRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -33,8 +33,6 @@ import org.springframework.jdbc.core.RowMapperResultSetExtractor;
 import org.springframework.jdbc.core.StatementCallback;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import org.springframework.util.Assert;
-
-import com.github.blausql.Main;
 
 public class Database {
 
@@ -63,11 +61,11 @@ public class Database {
 
         ClassLoader originalContextClassLoader = Thread.currentThread().getContextClassLoader();
         try {
-            CommandLineArguments commandLineArguments = Main.getCommandLineArguments();
-            String classpath = commandLineArguments.getClasspath();
+            String[] classpath = ConfigurationRepository.getInstance().getClasspath();
 
-            if (classpath != null) {
-                ClassLoader classLoader = ClassLoaderFactory.getClassLoaderForClasspathString(classpath);
+            if (classpath.length != 0) {
+
+                ClassLoader classLoader = ClassLoaderFactory.getClassLoaderForClasspath(classpath);
                 Thread.currentThread().setContextClassLoader(classLoader);
             }
 

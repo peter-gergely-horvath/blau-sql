@@ -32,7 +32,7 @@ final class PropertyStore {
             throws FileNotFoundException, IOException {
 
         if (properties == null) {
-            throw new IllegalStateException("Cannot persist properties: not loaded yet");
+            throw new IllegalStateException("Cannot persist null properties");
         }
 
         propertyFile.getParentFile().mkdirs();
