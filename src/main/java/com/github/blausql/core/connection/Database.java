@@ -34,12 +34,12 @@ import org.springframework.jdbc.core.StatementCallback;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import org.springframework.util.Assert;
 
-public class Database {
+public final class Database {
 
-    private final AtomicReference<DatabaseConnection> currentConnectionHolder = new AtomicReference<DatabaseConnection>();
+    private final AtomicReference<DatabaseConnection> currentConnectionHolder = new AtomicReference<>();
 
     private static final RowMapperResultSetExtractor<Map<String, Object>> ROW_MAPPER_RESULT_SET_EXTRACTOR =
-            new RowMapperResultSetExtractor<Map<String, Object>>(new ColumnMapRowMapper());
+            new RowMapperResultSetExtractor<>(new ColumnMapRowMapper());
 
     private static final Database INSTANCE = new Database();
 
@@ -77,7 +77,7 @@ public class Database {
 
             DatabaseConnection databaseConnection = DatabaseConnection.fromConnectionDefinition(cd);
 
-            databaseConnection.estabilish();
+            databaseConnection.establishConnection();
 
             currentConnectionHolder.set(databaseConnection);
 
@@ -101,6 +101,7 @@ public class Database {
             throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
         ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
 
+        @SuppressWarnings("unchecked")
         Class<Driver> driverClass = (Class<Driver>) Class.forName(driverClassName, true, contextClassLoader);
         Driver d = driverClass.newInstance();
         DriverManager.registerDriver(new DelegatingDriver(d));
@@ -133,8 +134,7 @@ public class Database {
 
                 final boolean yieldedResultSet = stmt.execute(sql);
                 if (yieldedResultSet) {
-                    ResultSet resultSet = stmt.getResultSet();
-                    try {
+                    try (ResultSet resultSet = stmt.getResultSet()) {
 
                         queryResult = ROW_MAPPER_RESULT_SET_EXTRACTOR
                                 .extractData(resultSet);
@@ -144,8 +144,6 @@ public class Database {
                         throw new RuntimeException(
                                 "ResultSet processing failed", e);
 
-                    } finally {
-                        resultSet.close();
                     }
                 } else {
                     updateCount = stmt.getUpdateCount();
@@ -159,7 +157,7 @@ public class Database {
 
     }
 
-    public static class StatementResult {
+    public static final class StatementResult {
 
         private final boolean isResultSet;
         private final List<Map<String, Object>> queryResult;
@@ -188,7 +186,7 @@ public class Database {
         }
     }
 
-    private static class DatabaseConnection {
+    private static final class DatabaseConnection {
 
         private final JdbcTemplate jdbcTemplate;
 
@@ -216,7 +214,7 @@ public class Database {
             this.jdbcTemplate = new JdbcTemplate(dataSource);
         }
 
-        private void estabilish() {
+        private void establishConnection() {
             try {
 
                 ((SingleConnectionDataSource) jdbcTemplate.getDataSource()).initConnection();

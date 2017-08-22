@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
- 
+
 package com.github.blausql.ui;
 
 import com.github.blausql.TerminalUI;
@@ -27,71 +27,71 @@ import com.googlecode.lanterna.gui.dialog.DialogResult;
 
 final class SelectConnectionForQueryWindow extends SelectConnectionWindow {
 
-	public SelectConnectionForQueryWindow() {
-		super("Select connection to Connect to");
-	}
+    SelectConnectionForQueryWindow() {
+        super("Select connection to Connect to");
+    }
 
-	@Override
-	protected void onConnectionSelected(
-			ConnectionDefinition connectionDefinition) {
+    @Override
+    protected void onConnectionSelected(
+            ConnectionDefinition connectionDefinition) {
 
-		this.close();
+        this.close();
 
-		if (!connectionDefinition.getLoginAutomatically()) {
+        if (!connectionDefinition.getLoginAutomatically()) {
 
-			CredentialsDialog credentialsDialog = 
-					new CredentialsDialog(connectionDefinition);
+            CredentialsDialog credentialsDialog =
+                    new CredentialsDialog(connectionDefinition);
 
-			TerminalUI.showWindowCenter(credentialsDialog);
-			
-			if(DialogResult.CANCEL ==
-					credentialsDialog.getDialogResult()) {
-				
-				return;
-			}
+            TerminalUI.showWindowCenter(credentialsDialog);
 
-			ConnectionDefinition actualConnectionDefinition = 
-					new ConnectionDefinition(connectionDefinition);
+            DialogResult dialogResult = credentialsDialog.getDialogResult();
+            if (dialogResult == DialogResult.CANCEL) {
 
-			actualConnectionDefinition.setUserName(
-					credentialsDialog.getUserName());
-			actualConnectionDefinition.setPassword(
-					credentialsDialog.getPassword());
-			
-			connectionDefinition = actualConnectionDefinition;
-		}
+                return;
+            }
 
-		establishConnection(connectionDefinition);
-	}
+            ConnectionDefinition actualConnectionDefinition =
+                    new ConnectionDefinition(connectionDefinition);
 
-	protected void establishConnection(
-			final ConnectionDefinition connectionDefinition) {
-		final Window showWaitDialog = TerminalUI.showWaitDialog("Please wait",
-				"Connecting to " + connectionDefinition.getConnectionName()
-						+ "... ");
+            actualConnectionDefinition.setUserName(
+                    credentialsDialog.getUserName());
+            actualConnectionDefinition.setPassword(
+                    credentialsDialog.getPassword());
 
-		new BackgroundWorker<Void>() {
+            connectionDefinition = actualConnectionDefinition;
+        }
 
-			@Override
-			protected Void doBackgroundTask() {
-				Database.getInstance()
-						.establishConnection(connectionDefinition);
-				return null;
-			}
+        establishConnection(connectionDefinition);
+    }
 
-			@Override
-			protected void onBackgroundTaskFailed(Throwable t) {
-				showWaitDialog.close();
-				TerminalUI.showErrorMessageFromThrowable(t);
+    private void establishConnection(
+            final ConnectionDefinition connectionDefinition) {
+        final Window showWaitDialog = TerminalUI.showWaitDialog("Please wait",
+                "Connecting to " + connectionDefinition.getConnectionName()
+                        + "... ");
 
-			}
+        new BackgroundWorker<Void>() {
 
-			@Override
-			protected void onBackgroundTaskCompleted(Void result) {
-				showWaitDialog.close();
-				TerminalUI.showWindowFullScreen(new SqlCommandWindow(connectionDefinition));
+            @Override
+            protected Void doBackgroundTask() {
+                Database.getInstance()
+                        .establishConnection(connectionDefinition);
+                return null;
+            }
 
-			}
-		}.start();
-	}
+            @Override
+            protected void onBackgroundTaskFailed(Throwable t) {
+                showWaitDialog.close();
+                TerminalUI.showErrorMessageFromThrowable(t);
+
+            }
+
+            @Override
+            protected void onBackgroundTaskCompleted(Void result) {
+                showWaitDialog.close();
+                TerminalUI.showWindowFullScreen(new SqlCommandWindow(connectionDefinition));
+
+            }
+        }.start();
+    }
 }

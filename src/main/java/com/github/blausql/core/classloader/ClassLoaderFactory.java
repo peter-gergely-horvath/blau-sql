@@ -37,14 +37,12 @@ public final class ClassLoaderFactory {
 
         final URL[] urls = ClasspathHelper.convertToURLs(classPathStrings);
 
-        ClassLoader classLoader = AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
+        return AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
 
             public ClassLoader run() {
                 return new URLClassLoader(urls);
             }
         });
-
-        return classLoader;
     }
 
 

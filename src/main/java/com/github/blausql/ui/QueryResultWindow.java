@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
- 
+
 package com.github.blausql.ui;
 
 import java.util.ArrayList;
@@ -29,68 +29,67 @@ import com.googlecode.lanterna.gui.listener.WindowAdapter;
 import com.googlecode.lanterna.input.Key;
 import com.googlecode.lanterna.input.Key.Kind;
 
-public class QueryResultWindow extends Window {
+class QueryResultWindow extends Window {
 
-	public QueryResultWindow(List<Map<String, Object>> queryResult) {
-		super("Query result (press Enter/ESC to close)");
+    @SuppressWarnings("FieldCanBeLocal")
+    private final WindowAdapter closeOnEscOrEnterWindowListener = new WindowAdapter() {
 
-		addWindowListener(new WindowAdapter() {
+        @Override
+        public void onUnhandledKeyboardInteraction(Window window, Key key) {
 
-			@Override
-			public void onUnhandledKeyboardInteraction(Window window, Key key) {
+            if (Kind.Escape.equals(key.getKind())
+                    || Kind.Enter.equals(key.getKind())) {
 
-				if (Kind.Escape.equals(key.getKind())
-						|| Kind.Enter.equals(key.getKind())) {
-					QueryResultWindow.this.closeResultWindow();
-				}
-			}
+                QueryResultWindow.this.close();
+            }
+        }
+    };
 
-		});
+    //CHECKSTYLE.OFF: AvoidInlineConditionals
+    public QueryResultWindow(List<Map<String, Object>> queryResult) {
+        super("Query result (press Enter/ESC to close)");
 
-		if (queryResult.size() == 0) {
-			addComponent(new Label("(query yielded no results)"));
-		} else {
+        addWindowListener(closeOnEscOrEnterWindowListener);
 
-			Map<String, Object> firstRow = queryResult.get(0);
+        if (queryResult.size() == 0) {
+            addComponent(new Label("(query yielded no results)"));
+        } else {
 
-			final ArrayList<String> columnLabels = new ArrayList<String>(
-					firstRow.keySet());
-			final int numberOfColumns = columnLabels.size();
+            Map<String, Object> firstRow = queryResult.get(0);
 
-			Table table = new Table(numberOfColumns);
+            final ArrayList<String> columnLabels = new ArrayList<>(
+                    firstRow.keySet());
+            final int numberOfColumns = columnLabels.size();
 
-			Component[] components = new Component[numberOfColumns];
+            Table table = new Table(numberOfColumns);
 
-			for (int i = 0; i < numberOfColumns; i++) {
-				components[i] = new Label(columnLabels.get(i));
-			}
-			table.addRow(components);
+            Component[] components = new Component[numberOfColumns];
 
-			for (Map<String, Object> row : queryResult) {
+            for (int i = 0; i < numberOfColumns; i++) {
+                components[i] = new Label(columnLabels.get(i));
+            }
+            table.addRow(components);
 
-				for (int i = 0; i < numberOfColumns; i++) {
-					final String currentColumLabel = columnLabels.get(i);
-					final Object valueForCurrentColumn = row
-							.get(currentColumLabel);
+            for (Map<String, Object> row : queryResult) {
 
-					final Label labelForCurrentColumnValue = (valueForCurrentColumn != null) ? 
-									new Label(valueForCurrentColumn.toString()) : 
-										new Label("null", true);
+                for (int i = 0; i < numberOfColumns; i++) {
+                    final String currentColumnLabel = columnLabels.get(i);
+                    final Object valueForCurrentColumn = row.get(currentColumnLabel);
 
-					components[i] = labelForCurrentColumnValue;
-				}
+                    final Label labelForCurrentColumnValue = (valueForCurrentColumn != null)
+                            ? new Label(valueForCurrentColumn.toString()) : new Label("null", true);
 
-				table.addRow(components);
-			}
+                    components[i] = labelForCurrentColumnValue;
+                }
 
-			addComponent(table);
+                table.addRow(components);
+            }
 
-		}
+            addComponent(table);
 
-	}
+        }
 
-	protected void closeResultWindow() {
-		this.close();
-	}
+    }
+    //CHECKSTYLE.ON
 
 }

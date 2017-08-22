@@ -17,12 +17,13 @@
 
 package com.github.blausql.core.preferences;
 
+import com.github.blausql.util.TextUtils;
+
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Properties;
 
-public class ConfigurationRepository {
+public final class ConfigurationRepository {
 
     private static final File USER_HOME = new File(System.getProperty("user.home"));
 
@@ -30,7 +31,7 @@ public class ConfigurationRepository {
 
     private static final File SETTINGS_PROPERTIES_FILE = new File(BLAU_SQL_DIR, "settings.properties");
 
-    private PropertyStore settingsPropertyStore = new PropertyStore(SETTINGS_PROPERTIES_FILE);
+    private final PropertyStore settingsPropertyStore = new PropertyStore(SETTINGS_PROPERTIES_FILE);
 
     public static ConfigurationRepository getInstance() {
         return INSTANCE;
@@ -49,7 +50,7 @@ public class ConfigurationRepository {
         try {
             Properties properties = settingsPropertyStore.loadProperties();
 
-            String classpathString = String.join(CLASSPATH_SEPARATOR_CHAR, entries);
+            String classpathString = TextUtils.joinStringsWithSeparator(CLASSPATH_SEPARATOR_CHAR, entries);
 
             properties.put(Keys.CLASSPATH, classpathString);
 
@@ -66,11 +67,9 @@ public class ConfigurationRepository {
         try {
             Properties properties = settingsPropertyStore.loadProperties();
 
-            String classpath = (String)properties.getOrDefault(Keys.CLASSPATH, "");
+            String classpath = properties.getProperty(Keys.CLASSPATH, "");
 
-            String[] classpathEntries = classpath.split("\\" + CLASSPATH_SEPARATOR_CHAR);
-
-            return classpathEntries;
+            return classpath.split("\\" + CLASSPATH_SEPARATOR_CHAR);
 
         } catch (IOException e) {
             throw new RuntimeException("Failed to read configuration", e);

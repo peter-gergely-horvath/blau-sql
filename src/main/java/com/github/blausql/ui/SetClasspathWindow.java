@@ -18,12 +18,8 @@
 package com.github.blausql.ui;
 
 import com.github.blausql.TerminalUI;
-import com.github.blausql.core.classloader.ClassLoaderFactory;
-import com.github.blausql.core.classloader.ClasspathHelper;
-import com.github.blausql.core.connection.Database;
 import com.github.blausql.core.preferences.ConfigurationRepository;
 import com.github.blausql.ui.util.BackgroundWorker;
-import com.github.blausql.ui.util.LanternaUtilities;
 import com.github.blausql.util.TextUtils;
 import com.googlecode.lanterna.gui.Action;
 import com.googlecode.lanterna.gui.Border;
@@ -37,13 +33,10 @@ import com.googlecode.lanterna.input.Key.Kind;
 import com.googlecode.lanterna.terminal.TerminalSize;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.net.MalformedURLException;
-import java.net.URL;
 
-public class SetClasspathWindow extends Window {
+final class SetClasspathWindow extends Window {
 
-    private static final String lineSeparator = System.getProperty("line.separator");
+    private static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
 
     private final EditArea classpathEditArea;
@@ -67,7 +60,7 @@ public class SetClasspathWindow extends Window {
         final int sqlEditorPanelColumns = screenTerminalSize.getColumns() - 4;
         final int sqlEditorPanelRows = screenTerminalSize.getRows() - 4;
 
-        String classpathText = TextUtils.separateLines(classpath);
+        String classpathText = TextUtils.joinStringsWithNewLine(classpath);
 
         TerminalSize preferredSizeForTextArea = new TerminalSize(sqlEditorPanelColumns, sqlEditorPanelRows);
         classpathEditArea = new EditArea(preferredSizeForTextArea, classpathText);
@@ -99,9 +92,9 @@ public class SetClasspathWindow extends Window {
 
     public void onKeyPressed(Key key) {
 
-        if (Kind.NormalKey.equals(key.getKind()) &&
-                (key.getCharacter() == 'S' || key.getCharacter() == 's') &&
-                key.isCtrlPressed()) {
+        if (Kind.NormalKey.equals(key.getKind())
+                && (key.getCharacter() == 'S' || key.getCharacter() == 's')
+                && key.isCtrlPressed()) {
 
             onSaveChangesButtonSelectedAction.doAction();
 
@@ -116,7 +109,7 @@ public class SetClasspathWindow extends Window {
         }
     }
 
-    protected void saveClasspath(final String newLineSeparatedClasspathString) {
+    private void saveClasspath(final String newLineSeparatedClasspathString) {
 
         final Window showWaitDialog = TerminalUI.showWaitDialog("Please wait", "Validating Classpath settings ...");
 
@@ -126,7 +119,7 @@ public class SetClasspathWindow extends Window {
             protected Void doBackgroundTask() {
 
 
-                String[] classPathStrings = newLineSeparatedClasspathString.split(lineSeparator);
+                String[] classPathStrings = newLineSeparatedClasspathString.split(LINE_SEPARATOR);
 
                 for (String path : classPathStrings) {
                     if (!"".equals(path.trim()) && !new File(path).exists()) {

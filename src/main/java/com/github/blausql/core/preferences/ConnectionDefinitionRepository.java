@@ -30,7 +30,7 @@ import com.github.blausql.core.connection.ConnectionDefinition;
 
 import com.google.common.base.Preconditions;
 
-public class ConnectionDefinitionRepository {
+public final class ConnectionDefinitionRepository {
 
     private static final String PROPERTY_SEPARATOR = "\\.";
 
@@ -40,7 +40,7 @@ public class ConnectionDefinitionRepository {
 
     private static final File CONNECTIONS_PROPERTIES_FILE = new File(BLAU_SQL_DIR, "connections.properties");
 
-    private PropertyStore connectionsPropertyStore = new PropertyStore(CONNECTIONS_PROPERTIES_FILE);
+    private final PropertyStore connectionsPropertyStore = new PropertyStore(CONNECTIONS_PROPERTIES_FILE);
 
     public static ConnectionDefinitionRepository getInstance() {
         return INSTANCE;
@@ -111,13 +111,13 @@ public class ConnectionDefinitionRepository {
 
             Properties properties = connectionsPropertyStore.loadProperties();
 
-            for (Iterator<Object> itetator = properties.keySet().iterator();
-                 itetator.hasNext(); ) {
+            Iterator<Object> iterator = properties.keySet().iterator();
+            while (iterator.hasNext()) {
 
-                String key = itetator.next().toString();
+                String key = iterator.next().toString();
 
                 if (key.split(PROPERTY_SEPARATOR)[0].equals(connectionName)) {
-                    itetator.remove();
+                    iterator.remove();
                     foundInProperties = true;
                 }
             }

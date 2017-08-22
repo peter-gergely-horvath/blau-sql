@@ -37,7 +37,7 @@ public class MainMenuWindow extends Window {
 
         addComponent(new Button("[C]onnect to database", onConnectToDatabaseButtonSelectedAction));
         addComponent(new Button("[M]anage Connections", onManageConnectionButtonSelectedAction));
-        addComponent(new Button("[S]et classpath", onSetApplicationClasspathButtonSelectedAction));
+        addComponent(new Button("[S]et Classpath", onSetApplicationClasspathButtonSelectedAction));
         addComponent(new Button("[A]bout", onAboutButtonSelectedAction));
         addComponent(new Button("[Q]uit Application", onQuitApplicationButtonSelected));
 

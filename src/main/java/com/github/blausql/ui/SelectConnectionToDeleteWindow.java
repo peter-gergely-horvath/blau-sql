@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
- 
+
 package com.github.blausql.ui;
 
 import com.github.blausql.TerminalUI;
@@ -28,55 +28,53 @@ import com.googlecode.lanterna.gui.dialog.DialogResult;
 
 final class SelectConnectionToDeleteWindow extends SelectConnectionWindow {
 
-	public SelectConnectionToDeleteWindow() {
-		super("Select Connection to Delete");
-	}
+    SelectConnectionToDeleteWindow() {
+        super("Select Connection to Delete");
+    }
 
-	@Override
-	protected void onConnectionSelected(
-			final ConnectionDefinition cd) {
+    @Override
+    protected void onConnectionSelected(
+            final ConnectionDefinition cd) {
 
-		
-		
-		DialogResult dialogResult = TerminalUI.showMessageBox(
-				"Confirm deletion of connection", 
-				"Delete connection: " + cd.getConnectionName(),
-				DialogButtons.OK_CANCEL);
 
-		if(DialogResult.OK.equals(dialogResult)) {
-			final Window showWaitDialog = TerminalUI.showWaitDialog("Please wait",
-					"Deleting " + cd.getConnectionName() + "... ");
-			
-			new BackgroundWorker<Void>() {
-			
-				@Override
-				protected Void doBackgroundTask() {
-					ConnectionDefinitionRepository.getInstance()
-						.deleteConnectionDefinitionByName(cd.getConnectionName());
-					
-					return null;
-					
-					
-				}
-			
-				@Override
-				protected void onBackgroundTaskFailed(Throwable t) {
-					showWaitDialog.close();
-					TerminalUI.showErrorMessageFromThrowable(t);
-			
-				}
-			
-				@Override
-				protected void onBackgroundTaskCompleted(Void result) {
-					showWaitDialog.close();
-					SelectConnectionToDeleteWindow.this.close();
-				}
-			}.start();
-		} else {
-			SelectConnectionToDeleteWindow.this.close();
-		}
-		
-		
+        DialogResult dialogResult = TerminalUI.showMessageBox(
+                "Confirm deletion of connection",
+                "Delete connection: " + cd.getConnectionName(),
+                DialogButtons.OK_CANCEL);
 
-	}
+        if (DialogResult.OK.equals(dialogResult)) {
+            final Window showWaitDialog = TerminalUI.showWaitDialog("Please wait",
+                    "Deleting " + cd.getConnectionName() + "... ");
+
+            new BackgroundWorker<Void>() {
+
+                @Override
+                protected Void doBackgroundTask() {
+                    ConnectionDefinitionRepository.getInstance()
+                            .deleteConnectionDefinitionByName(cd.getConnectionName());
+
+                    return null;
+
+
+                }
+
+                @Override
+                protected void onBackgroundTaskFailed(Throwable t) {
+                    showWaitDialog.close();
+                    TerminalUI.showErrorMessageFromThrowable(t);
+
+                }
+
+                @Override
+                protected void onBackgroundTaskCompleted(Void result) {
+                    showWaitDialog.close();
+                    SelectConnectionToDeleteWindow.this.close();
+                }
+            }.start();
+        } else {
+            SelectConnectionToDeleteWindow.this.close();
+        }
+
+
+    }
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
- 
+
 package com.github.blausql.ui;
 
 import com.github.blausql.TerminalUI;
@@ -25,63 +25,64 @@ import com.google.common.collect.ImmutableMap;
 import com.googlecode.lanterna.gui.Action;
 import com.googlecode.lanterna.gui.component.Button;
 
-public class ManageConnectionsWindow extends CloseOnEscapeKeyPressWindow {
+@SuppressWarnings("FieldCanBeLocal")
+class ManageConnectionsWindow extends CloseOnEscapeKeyPressWindow {
 
 
-	public ManageConnectionsWindow() {
-		
-		super("Manage Connections");
+    public ManageConnectionsWindow() {
 
-		addComponent(new Button("BACK (ESC)", new Action() {
+        super("Manage Connections");
 
-			public void doAction() {
-				ManageConnectionsWindow.this.close();
-			}
-		}));
-		addComponent(new Button("[A]dd connection", onAddConnectionButtonSelectedAction));
-		addComponent(new Button("[E]dit connection", onEditConnectionButtonSelectedAction));
-		addComponent(new Button("[C]opy connection", onCopyConnectionButtonSelectedAction));
-		addComponent(new Button("[D]elete connection", onDeleteConnectionButtonSelectedAction));
-		
-		addWindowListener(new HotKeySupportListener(
-				ImmutableMap.<Character, Action>builder()
-				.put('A', onAddConnectionButtonSelectedAction)
-				.put('E', onEditConnectionButtonSelectedAction)
-				.put('C', onCopyConnectionButtonSelectedAction)
-				.put('D', onDeleteConnectionButtonSelectedAction)
-				.build(), true));
-	}
-	
-	
-	private final Action onAddConnectionButtonSelectedAction = new Action() {
+        addComponent(new Button("BACK (ESC)", new Action() {
 
-		public void doAction() {
-			ManageConnectionsWindow.this.close();
+            public void doAction() {
+                ManageConnectionsWindow.this.close();
+            }
+        }));
+        addComponent(new Button("[A]dd connection", onAddConnectionButtonSelectedAction));
+        addComponent(new Button("[E]dit connection", onEditConnectionButtonSelectedAction));
+        addComponent(new Button("[C]opy connection", onCopyConnectionButtonSelectedAction));
+        addComponent(new Button("[D]elete connection", onDeleteConnectionButtonSelectedAction));
+
+        addWindowListener(new HotKeySupportListener(
+                ImmutableMap.<Character, Action>builder()
+                        .put('A', onAddConnectionButtonSelectedAction)
+                        .put('E', onEditConnectionButtonSelectedAction)
+                        .put('C', onCopyConnectionButtonSelectedAction)
+                        .put('D', onDeleteConnectionButtonSelectedAction)
+                        .build(), true));
+    }
+
+
+    private final Action onAddConnectionButtonSelectedAction = new Action() {
+
+        public void doAction() {
+            ManageConnectionsWindow.this.close();
             TerminalUI.showWindowCenter(new ConnectionSettingsWindow());
-		}
-	};
+        }
+    };
 
-	private final Action onCopyConnectionButtonSelectedAction = new Action() {
+    private final Action onCopyConnectionButtonSelectedAction = new Action() {
 
-		public void doAction() {
-			ManageConnectionsWindow.this.close();
-			TerminalUI.showWindowCenter(new SelectConnectionToCopyWindow());
-		}
-	};
+        public void doAction() {
+            ManageConnectionsWindow.this.close();
+            TerminalUI.showWindowCenter(new SelectConnectionToCopyWindow());
+        }
+    };
 
-	private final Action onEditConnectionButtonSelectedAction = new Action() {
+    private final Action onEditConnectionButtonSelectedAction = new Action() {
 
-		public void doAction() {
-			ManageConnectionsWindow.this.close();
-			TerminalUI.showWindowCenter(new SelectConnectionToEditWindow());
-		}
-	};
-	
-	private final Action onDeleteConnectionButtonSelectedAction = new Action() {
+        public void doAction() {
+            ManageConnectionsWindow.this.close();
+            TerminalUI.showWindowCenter(new SelectConnectionToEditWindow());
+        }
+    };
 
-		public void doAction() {
-			ManageConnectionsWindow.this.close();
-			TerminalUI.showWindowCenter(new SelectConnectionToDeleteWindow());
-		}
-	};	
+    private final Action onDeleteConnectionButtonSelectedAction = new Action() {
+
+        public void doAction() {
+            ManageConnectionsWindow.this.close();
+            TerminalUI.showWindowCenter(new SelectConnectionToDeleteWindow());
+        }
+    };
 }

@@ -36,6 +36,10 @@ public final class TerminalUI {
 
     private static final GUIScreen SCREEN = TerminalFacade.createGUIScreen();
 
+    private TerminalUI() {
+        // no instances
+    }
+
     static void init() {
         SCREEN.getScreen().startScreen();
     }
@@ -50,8 +54,8 @@ public final class TerminalUI {
 
         final Throwable rootCause = Throwables.getRootCause(throwable);
 
-        if(rootCause instanceof ClassNotFoundException) {
-            sb.append("Class not found: " + rootCause.getMessage());
+        if (rootCause instanceof ClassNotFoundException) {
+            sb.append("Class not found: ").append(rootCause.getMessage());
         } else if (throwable instanceof SQLException) {
             sb.append(extractMessageFrom(throwable));
         } else {

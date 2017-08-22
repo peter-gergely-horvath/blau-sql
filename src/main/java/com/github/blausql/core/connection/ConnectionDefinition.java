@@ -114,7 +114,7 @@ public final class ConnectionDefinition {
         this.password = password;
     }
 
-    //CHECKSTYLE.OFF: AvoidInlineConditionals : IDE generated hashCode() implementation
+    //CHECKSTYLE.OFF: AvoidInlineConditionals|MagicNumber: IDE generated hashCode() implementation
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -134,7 +134,7 @@ public final class ConnectionDefinition {
     //CHECKSTYLE.ON
 
 
-
+    //CHECKSTYLE.OFF: NeedBraces: IDE generated hashCode() implementation
     @Override
     public boolean equals(Object obj) {
         if (this == obj)
@@ -173,6 +173,7 @@ public final class ConnectionDefinition {
             return false;
         return true;
     }
+    //CHECKSTYLE.ON
 
 
 

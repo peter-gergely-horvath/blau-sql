@@ -14,7 +14,7 @@ final class PropertyStore {
 
 
     synchronized Properties loadProperties()
-            throws FileNotFoundException, IOException {
+            throws IOException {
 
         if (loadedProperties == null) {
             loadedProperties = new Properties();
@@ -29,13 +29,19 @@ final class PropertyStore {
     }
 
     synchronized void persistProperties(Properties properties)
-            throws FileNotFoundException, IOException {
+            throws IOException {
 
         if (properties == null) {
             throw new IllegalStateException("Cannot persist null properties");
         }
 
-        propertyFile.getParentFile().mkdirs();
+        File containerDirectory = propertyFile.getParentFile();
+        boolean createdParent = containerDirectory.mkdirs();
+        if (!createdParent && !containerDirectory.exists()) {
+            throw new RuntimeException("Directory does not exist and could not be created: "
+                    + containerDirectory.getAbsolutePath());
+
+        }
 
         try (FileOutputStream fileOutputStream = new FileOutputStream(propertyFile)) {
             properties.store(fileOutputStream, "");

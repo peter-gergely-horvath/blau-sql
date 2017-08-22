@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
- 
+
 package com.github.blausql;
 
 import com.github.blausql.ui.MainMenuWindow;
@@ -26,19 +26,23 @@ public final class Main {
         System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.NoOpLog");
     }
 
-	public static void exitApplication(int exitCode) {
-		TerminalUI.close();
-		System.exit(exitCode);
-	}
+    public static void exitApplication(int exitCode) {
+        TerminalUI.close();
+        System.exit(exitCode);
+    }
+
+    private Main() {
+        // no instances allowed
+    }
 
     public static void main(String[] args) {
 
-		Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler());
+        Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler());
 
         TerminalUI.init();
 
         TerminalUI.showWindowCenter(new MainMenuWindow());
-	}
+    }
 
 
     private static final class UncaughtExceptionHandler implements Thread.UncaughtExceptionHandler {

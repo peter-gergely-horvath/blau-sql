@@ -14,22 +14,21 @@
  * limitations under the License.
  */
 
- 
+
 package com.github.blausql.ui;
 
 import com.github.blausql.TerminalUI;
 import com.github.blausql.core.connection.ConnectionDefinition;
 
-final class SelectConnectionToCopyWindow extends
-		SelectConnectionWindow {
+final class SelectConnectionToCopyWindow extends SelectConnectionWindow {
 
-    public SelectConnectionToCopyWindow() {
+    SelectConnectionToCopyWindow() {
         super("Select Connection to Copy");
     }
 
     @Override
-	protected void onConnectionSelected(
-			final ConnectionDefinition cd) {
+    protected void onConnectionSelected(
+            final ConnectionDefinition cd) {
 
         ConnectionDefinition copyOfConnectionDefinition = new ConnectionDefinition(cd);
 
@@ -40,5 +39,5 @@ final class SelectConnectionToCopyWindow extends
         SelectConnectionToCopyWindow.this.close();
         TerminalUI.showWindowCenter(
                 new ConnectionSettingsWindow(copyOfConnectionDefinition, ConnectionSettingsWindow.Mode.COPY));
-	}
+    }
 }

@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public abstract class SelectConnectionWindow extends CloseOnEscapeKeyPressWindow {
+abstract class SelectConnectionWindow extends CloseOnEscapeKeyPressWindow {
 
     private static final ImmutableList<Character> HOTKEY_CHARACTERS = ImmutableList.<Character>builder().add(
             '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
@@ -42,7 +42,7 @@ public abstract class SelectConnectionWindow extends CloseOnEscapeKeyPressWindow
 
     private final Map<Character, ConnectionDefinition> hotKeyMap = new ConcurrentHashMap<>();
 
-    public SelectConnectionWindow(String title) {
+    SelectConnectionWindow(String title) {
         super(title);
 
         addWindowListener(new HotKeyWindowListener());
@@ -98,9 +98,8 @@ public abstract class SelectConnectionWindow extends CloseOnEscapeKeyPressWindow
 
             if (keyKind == Key.Kind.NormalKey) {
                 final char characterKey = key.getCharacter();
-                Character mapKey = Character.valueOf(characterKey);
 
-                ConnectionDefinition connectionDefinition = hotKeyMap.get(mapKey);
+                ConnectionDefinition connectionDefinition = hotKeyMap.get(characterKey);
                 if (connectionDefinition != null) {
                     SelectConnectionWindow.this.onConnectionSelected(connectionDefinition);
                 }

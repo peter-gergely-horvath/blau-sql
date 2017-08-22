@@ -30,7 +30,8 @@ import com.googlecode.lanterna.gui.component.Label;
 import com.googlecode.lanterna.gui.component.PasswordBox;
 import com.googlecode.lanterna.gui.component.TextBox;
 
-public class ConnectionSettingsWindow extends Window {
+@SuppressWarnings("FieldCanBeLocal")
+public final class ConnectionSettingsWindow extends Window {
 
     public enum Mode {
         ADD("Add connection"), EDIT("Edit connection"), COPY("Copy connection");
@@ -41,6 +42,12 @@ public class ConnectionSettingsWindow extends Window {
             this.description = description;
         }
     }
+
+    private static final int CONNECTION_NAME_BOX_LEN = 50;
+    private static final int DRIVER_CLASS_BOX_LEN = 150;
+    private static final int JDBC_URL_BOX_LEN = 150;
+    private static final int USERNAME_BOX_LEN = 50;
+    private static final int PASSWORD_BOX_LEN = 40;
 
     private final Mode dialogMode;
 
@@ -55,15 +62,21 @@ public class ConnectionSettingsWindow extends Window {
 
     private final String originalNameOfExistingConnectionDefinition;
 
+    private final Action onSaveConnectionButtonSelectedAction = new Action() {
+
+        public void doAction() {
+            ConnectionSettingsWindow.this.onSaveButtonSelected();
+        }
+    };
+
 
     public ConnectionSettingsWindow() {
         this(null, Mode.ADD);
     }
 
+    //CHECKSTYLE.OFF: AvoidInlineConditionals: such conditionals make code here easier to follow
     public ConnectionSettingsWindow(ConnectionDefinition cd, Mode mode) {
-
         super(mode.description);
-
         this.dialogMode = mode;
 
         if (dialogMode == Mode.EDIT) {
@@ -81,42 +94,40 @@ public class ConnectionSettingsWindow extends Window {
         }));
 
         addComponent(new Label("Connection name:"));
-        addComponent(connectionNameTextBox =
-                new TextBox(cd != null ? cd.getConnectionName() : null, 50));
+        connectionNameTextBox = new TextBox(cd != null ? cd.getConnectionName() : null, CONNECTION_NAME_BOX_LEN);
+        addComponent(connectionNameTextBox);
 
         addComponent(new Label("Driver class:"));
-        addComponent(driverClassTextBox =
-                new TextBox(cd != null ? cd.getDriverClassName() : null, 150));
+        driverClassTextBox = new TextBox(cd != null ? cd.getDriverClassName() : null, DRIVER_CLASS_BOX_LEN);
+        addComponent(driverClassTextBox);
 
         addComponent(new Label("JDBC URL:"));
-        addComponent(jdbcUrlTextBox =
-                new TextBox(cd != null ? cd.getJdbcUrl() : null, 150));
+        jdbcUrlTextBox =
+                new TextBox(cd != null ? cd.getJdbcUrl() : null, JDBC_URL_BOX_LEN);
+        addComponent(jdbcUrlTextBox);
 
-        addComponent(loginAutomaticallyCheckBox =
-                new CheckBox("Log in automatically", cd != null ? cd.getLoginAutomatically() : false));
+        loginAutomaticallyCheckBox =
+                new CheckBox("Log in automatically", cd != null && cd.getLoginAutomatically());
+        addComponent(loginAutomaticallyCheckBox);
 
         addComponent(new Label("User name:"));
-        addComponent(userNameTextBox =
-                new TextBox(cd != null ? cd.getUserName() : null, 50));
+        userNameTextBox =
+                new TextBox(cd != null ? cd.getUserName() : null, USERNAME_BOX_LEN);
+        addComponent(userNameTextBox);
 
         addComponent(new Label("Password:"));
-        addComponent(passwordPasswordBox =
-                new PasswordBox(cd != null ? cd.getPassword() : null, 40));
+        passwordPasswordBox = new PasswordBox(cd != null ? cd.getPassword() : null, PASSWORD_BOX_LEN);
+        addComponent(passwordPasswordBox);
 
-
-        addComponent(new Button("SAVE CONNECTION", new Action() {
-
-            public void doAction() {
-                ConnectionSettingsWindow.this.onSaveButtonSelected();
-            }
-        }));
+        addComponent(new Button("SAVE CONNECTION", onSaveConnectionButtonSelectedAction));
     }
+    //CHECKSTYLE.ON
 
-    protected void onCancelButtonSelected() {
+    private void onCancelButtonSelected() {
         this.close();
     }
 
-    protected void onSaveButtonSelected() {
+    private void onSaveButtonSelected() {
 
         try {
 

@@ -14,18 +14,14 @@
  * limitations under the License.
  */
 
- 
-package com.github.blausql.ui;
 
-import java.util.List;
-import java.util.Map;
+package com.github.blausql.ui;
 
 import com.github.blausql.TerminalUI;
 import com.github.blausql.core.connection.ConnectionDefinition;
 import com.github.blausql.core.connection.Database;
 import com.github.blausql.core.connection.Database.StatementResult;
 import com.github.blausql.ui.util.BackgroundWorker;
-
 import com.googlecode.lanterna.gui.Action;
 import com.googlecode.lanterna.gui.Border;
 import com.googlecode.lanterna.gui.Window;
@@ -37,47 +33,51 @@ import com.googlecode.lanterna.input.Key;
 import com.googlecode.lanterna.input.Key.Kind;
 import com.googlecode.lanterna.terminal.TerminalSize;
 
-public class SqlCommandWindow extends Window {
+import java.util.List;
+import java.util.Map;
 
-	private final EditArea sqlEditArea;
-	private final String connectionName;
+final class SqlCommandWindow extends Window {
 
-	public SqlCommandWindow(ConnectionDefinition connectionDefinition) {
-		super(connectionDefinition.getConnectionName());
-		
-		connectionName = connectionDefinition.getConnectionName();
+    private final EditArea sqlEditArea;
+    private final String connectionName;
 
-		Panel bottomPanel = new Panel(new Border.Bevel(true),
-				Panel.Orientation.HORISONTAL);
-		Panel verticalPanel = new Panel(new Border.Invisible(),
-				Panel.Orientation.VERTICAL);
 
-		bottomPanel.addComponent(new Label(">>> Press TAB >>>"));
+    SqlCommandWindow(ConnectionDefinition connectionDefinition) {
+        super(connectionDefinition.getConnectionName());
 
-		bottomPanel.addComponent(new Button("Execute Query (CTRL+E)", onExecuteSqlButtonSelectedAction));
-		bottomPanel.addComponent(new Button("Close connection (ESC)", onCloseConnectionButtonSelectedAction));
+        connectionName = connectionDefinition.getConnectionName();
 
-		TerminalSize screenTerminalSize = TerminalUI.getTerminalSize();
+        Panel bottomPanel = new Panel(new Border.Bevel(true),
+                Panel.Orientation.HORISONTAL);
+        Panel verticalPanel = new Panel(new Border.Invisible(),
+                Panel.Orientation.VERTICAL);
 
-		final int sqlEditorPanelColumns = screenTerminalSize.getColumns() - 4;
-		final int sqlEditorPanelRows = screenTerminalSize.getRows() - 4;
+        bottomPanel.addComponent(new Label(">>> Press TAB >>>"));
 
-		sqlEditArea = new EditArea(new TerminalSize(sqlEditorPanelColumns,
-				sqlEditorPanelRows));
-		verticalPanel.addComponent(sqlEditArea);
+        bottomPanel.addComponent(new Button("Execute Query (CTRL+E)", onExecuteSqlButtonSelectedAction));
+        bottomPanel.addComponent(new Button("Close connection (ESC)", onCloseConnectionButtonSelectedAction));
 
-		verticalPanel.addComponent(bottomPanel);
+        TerminalSize screenTerminalSize = TerminalUI.getTerminalSize();
 
-		addComponent(verticalPanel);
-	}
+        final int sqlEditorPanelColumns = screenTerminalSize.getColumns() - 4;
+        final int sqlEditorPanelRows = screenTerminalSize.getRows() - 4;
 
-	private final Action onExecuteSqlButtonSelectedAction = new Action() {
+        sqlEditArea = new EditArea(new TerminalSize(sqlEditorPanelColumns,
+                sqlEditorPanelRows));
+        verticalPanel.addComponent(sqlEditArea);
 
-		public void doAction() {
+        verticalPanel.addComponent(bottomPanel);
+
+        addComponent(verticalPanel);
+    }
+
+    private final Action onExecuteSqlButtonSelectedAction = new Action() {
+
+        public void doAction() {
             executeQuery(sqlEditArea.getData());
 
         }
-	};
+    };
 
     private final Action onCloseConnectionButtonSelectedAction = new Action() {
 
@@ -88,71 +88,71 @@ public class SqlCommandWindow extends Window {
         }
 
     };
-	
-	public void onKeyPressed(Key key) {
-		
-		if(Kind.NormalKey.equals(key.getKind()) && 
-				(key.getCharacter() == 'E' || key.getCharacter() == 'e') &&   
-				key.isCtrlPressed()) {
+
+    public void onKeyPressed(Key key) {
+
+        if (Kind.NormalKey.equals(key.getKind())
+                && (key.getCharacter() == 'E' || key.getCharacter() == 'e')
+                && key.isCtrlPressed()) {
 
             executeQuery(sqlEditArea.getData());
 
-        } else if(Kind.Escape.equals(key.getKind())) {
+        } else if (Kind.Escape.equals(key.getKind())) {
 
             Database.getInstance().disconnect();
 
             this.close();
 
         } else {
-			super.onKeyPressed(key);
-		}
-	}
+            super.onKeyPressed(key);
+        }
+    }
 
-    protected void executeQuery(final String sqlCommand) {
-		
-		final Window showWaitDialog = TerminalUI.showWaitDialog("Please wait",
-				String.format("Executing statement against %s ..." , connectionName));
-		
-		new BackgroundWorker<StatementResult>() {
+    private void executeQuery(final String sqlCommand) {
 
-			@Override
-			protected StatementResult doBackgroundTask() {
-				return Database.getInstance().executeStatement(sqlCommand);
-			}
+        final Window showWaitDialog = TerminalUI.showWaitDialog("Please wait",
+                String.format("Executing statement against %s ...", connectionName));
 
-			@Override
-			protected void onBackgroundTaskFailed(Throwable t) {
-				showWaitDialog.close();
-				TerminalUI.showErrorMessageFromThrowable(t);
-				setFocus(sqlEditArea);
+        new BackgroundWorker<StatementResult>() {
 
-			}
+            @Override
+            protected StatementResult doBackgroundTask() {
+                return Database.getInstance().executeStatement(sqlCommand);
+            }
 
-			@Override
-			protected void onBackgroundTaskCompleted(StatementResult statementResult) {
-				
-				showWaitDialog.close();
+            @Override
+            protected void onBackgroundTaskFailed(Throwable t) {
+                showWaitDialog.close();
+                TerminalUI.showErrorMessageFromThrowable(t);
+                setFocus(sqlEditArea);
 
-				setFocus(sqlEditArea);
-				
-				if(statementResult.isResultSet()) {
-					
-					final List<Map<String,Object>> queryResult = statementResult.getQueryResult();
-					
-					TerminalUI.showWindowFullScreen(new QueryResultWindow(queryResult));
+            }
 
-				} else {
-					
-					final int updateCount = statementResult.getUpdateCount();
-					
-					final String message = String.format("%s row(s) changed", updateCount);
-					
-					TerminalUI.showMessageBox("Statement executed", message);
+            @Override
+            protected void onBackgroundTaskCompleted(StatementResult statementResult) {
 
-				}
-			}
-		}.start();
-		
-	}
+                showWaitDialog.close();
+
+                setFocus(sqlEditArea);
+
+                if (statementResult.isResultSet()) {
+
+                    final List<Map<String, Object>> queryResult = statementResult.getQueryResult();
+
+                    TerminalUI.showWindowFullScreen(new QueryResultWindow(queryResult));
+
+                } else {
+
+                    final int updateCount = statementResult.getUpdateCount();
+
+                    final String message = String.format("%s row(s) changed", updateCount);
+
+                    TerminalUI.showMessageBox("Statement executed", message);
+
+                }
+            }
+        }.start();
+
+    }
 
 }

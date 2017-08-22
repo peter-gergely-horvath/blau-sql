@@ -27,7 +27,7 @@ import com.googlecode.lanterna.gui.listener.WindowAdapter;
 import com.googlecode.lanterna.input.Key;
 import com.googlecode.lanterna.input.Key.Kind;
 
-public class HotKeySupportListener extends WindowAdapter {
+public final class HotKeySupportListener extends WindowAdapter {
 
     private final Map<Character, Action> hotkeyToActionMap;
     private final boolean closeOnEscape;

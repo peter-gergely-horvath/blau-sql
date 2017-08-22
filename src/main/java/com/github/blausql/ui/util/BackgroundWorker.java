@@ -17,6 +17,9 @@
 
 package com.github.blausql.ui.util;
 
+import com.github.blausql.TerminalUI;
+import com.googlecode.lanterna.gui.Action;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -25,7 +28,7 @@ public abstract class BackgroundWorker<R> {
     private static final ExecutorService EXECUTOR_SERVICE =
             Executors.newSingleThreadExecutor();
 
-    public void start() {
+    public final void start() {
 
         EXECUTOR_SERVICE.execute(new Runnable() {
 
@@ -43,16 +46,16 @@ public abstract class BackgroundWorker<R> {
             }
 
             private void dispatchFailure(final Throwable t) {
-                LanternaUtilities.invokeLater(new Runnable() {
-                    public void run() {
+                TerminalUI.runInEventThread(new Action() {
+                    public void doAction() {
                         onBackgroundTaskFailed(t);
                     }
                 });
             }
 
             private void dispatchCompleted(final R result) {
-                LanternaUtilities.invokeLater(new Runnable() {
-                    public void run() {
+                TerminalUI.runInEventThread(new Action() {
+                    public void doAction() {
                         onBackgroundTaskCompleted(result);
                     }
                 });
