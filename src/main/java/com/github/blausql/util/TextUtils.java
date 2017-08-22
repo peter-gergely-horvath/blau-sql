@@ -37,14 +37,18 @@ public final class TextUtils {
         return multilineStringBuilder.toString();
     }
 
-    public static String separateLines(String... lines) {
-        StringBuilder multilineStringBuilder = new StringBuilder();
+    public static String joinStringsWithNewLine(String... lines) {
+        return joinStringsWithSeparator(LINE_SEPARATOR, lines);
+    }
+
+    public static String joinStringsWithSeparator(String separator, String... lines) {
+        StringBuilder stringBuilder = new StringBuilder();
 
         for (String aLine : lines) {
-            multilineStringBuilder.append(aLine);
-            multilineStringBuilder.append(LINE_SEPARATOR);
+            stringBuilder.append(aLine);
+            stringBuilder.append(separator);
         }
 
-        return multilineStringBuilder.toString();
+        return stringBuilder.toString();
     }
 }

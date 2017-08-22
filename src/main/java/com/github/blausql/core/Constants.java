@@ -17,6 +17,7 @@
  
 package com.github.blausql.core;
 
+import com.github.blausql.Version;
 import com.github.blausql.util.TextUtils;
 
 public final class Constants {
@@ -25,8 +26,8 @@ public final class Constants {
         // no external instances
     }
 
-    public static final String ABOUT_TEXT = TextUtils.separateLines(
-            "BlauSQL version 1.0",
+    public static final String ABOUT_TEXT = TextUtils.joinStringsWithNewLine(
+            "BlauSQL version " + Version.getVersionString(),
             "",
             "Copyright 2017 Peter G. Horvath",
             "",
