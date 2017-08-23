@@ -29,7 +29,7 @@ import com.googlecode.lanterna.gui.component.Button;
 class ManageConnectionsWindow extends CloseOnEscapeKeyPressWindow {
 
 
-    public ManageConnectionsWindow() {
+    ManageConnectionsWindow() {
 
         super("Manage Connections");
 

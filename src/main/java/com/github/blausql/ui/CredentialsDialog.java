@@ -40,7 +40,7 @@ final class CredentialsDialog extends CloseOnEscapeKeyPressWindow {
 
     private DialogResult dialogResult = DialogResult.CANCEL;
 
-    public CredentialsDialog(ConnectionDefinition cd) {
+    CredentialsDialog(ConnectionDefinition cd) {
 
         super("Enter credentials for " + cd.getConnectionName());
 

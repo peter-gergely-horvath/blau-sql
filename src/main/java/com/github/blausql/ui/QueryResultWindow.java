@@ -46,7 +46,7 @@ class QueryResultWindow extends Window {
     };
 
     //CHECKSTYLE.OFF: AvoidInlineConditionals
-    public QueryResultWindow(List<Map<String, Object>> queryResult) {
+    QueryResultWindow(List<Map<String, Object>> queryResult) {
         super("Query result (press Enter/ESC to close)");
 
         addWindowListener(closeOnEscOrEnterWindowListener);

@@ -41,7 +41,7 @@ final class SetClasspathWindow extends Window {
 
     private final EditArea classpathEditArea;
 
-    public SetClasspathWindow(String[] classpath) {
+    SetClasspathWindow(String[] classpath) {
 
         super("Set JDBC Driver Classpath");
 
