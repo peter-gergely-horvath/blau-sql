@@ -21,7 +21,7 @@ import com.github.blausql.TerminalUI;
 import com.github.blausql.core.connection.ConnectionDefinition;
 import com.github.blausql.core.preferences.ConnectionDefinitionRepository;
 
-import com.google.common.base.Objects;
+
 import com.googlecode.lanterna.gui.Action;
 import com.googlecode.lanterna.gui.Window;
 import com.googlecode.lanterna.gui.component.Button;
@@ -29,6 +29,8 @@ import com.googlecode.lanterna.gui.component.CheckBox;
 import com.googlecode.lanterna.gui.component.Label;
 import com.googlecode.lanterna.gui.component.PasswordBox;
 import com.googlecode.lanterna.gui.component.TextBox;
+
+import java.util.Objects;
 
 @SuppressWarnings("FieldCanBeLocal")
 public final class ConnectionSettingsWindow extends Window {
@@ -175,7 +177,7 @@ public final class ConnectionSettingsWindow extends Window {
     private void updateConnectionDefinition(ConnectionDefinition connectionDefinitionToUpdate) {
         String connectionName = connectionDefinitionToUpdate.getConnectionName();
 
-        final boolean nameChanged = !Objects.equal(connectionName, originalNameOfExistingConnectionDefinition);
+        final boolean nameChanged = !Objects.equals(connectionName, originalNameOfExistingConnectionDefinition);
 
         ConnectionDefinitionRepository.getInstance()
                 .saveConnectionDefinition(connectionDefinitionToUpdate);
