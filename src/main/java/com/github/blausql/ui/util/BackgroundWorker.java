@@ -25,8 +25,7 @@ import java.util.concurrent.Executors;
 
 public abstract class BackgroundWorker<R> {
 
-    private static final ExecutorService EXECUTOR_SERVICE =
-            Executors.newSingleThreadExecutor();
+    private static final ExecutorService EXECUTOR_SERVICE = Executors.newCachedThreadPool();
 
     public final void start() {
 
