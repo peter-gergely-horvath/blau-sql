@@ -19,116 +19,48 @@ package com.github.blausql;
 
 import java.io.InputStream;
 import java.util.Properties;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public final class Version {
 
-    private static final int VERSION_MAJOR;
-    private static final int VERSION_MINOR;
-    private static final int VERSION_PATCH;
+    public static final String VERSION_STRING;
 
-    private static final String VERSION_PROPERTIES = "version.properties";
 
-    private static final String VERSION = "version";
-
-    private static final String VERSION_SEPARATOR = "\\.";
-
-    private static final int ZERO_VERSION_NUMBER = 0;
-
-    private static final int VERSION_INDEX_MAJOR = 0;
-    private static final int VERSION_INDEX_MINOR = 1;
-    private static final int VERSION_INDEX_PATCH = 2;
+    private static final String VERSION_PROPERTIES_FILE = "version.properties";
+    private static final String VERSION_STRING_KEY = "version";
+    private static final String UNKNOWN_VERSION_STRING = "(unknown)";
 
     private static final Logger LOGGER = Logger.getLogger(Version.class.getName());
 
     static {
-        Properties props = null;
 
-        String versionString = tryGetVersionStringFromManifest();
-        if (versionString == null) {
-            props = tryLoadPropertiesFromClasspath();
+        Properties properties = new Properties();
+
+        try (InputStream is = Version.class.getResourceAsStream(VERSION_PROPERTIES_FILE)) {
+
+            if (is != null) {
+
+                properties.load(is);
+
+            } else {
+                LOGGER.log(Level.SEVERE,
+                        "Cannot establish version. File not found on classpath: "
+                                + VERSION_PROPERTIES_FILE);
+            }
+
+        } catch (Throwable t) {
+            LOGGER.log(Level.SEVERE,
+                    "Cannot establish version. Could not load properties file from classpath: "
+                            + VERSION_PROPERTIES_FILE, t);
+
         }
 
-        versionString = tryGetVersionStringFromProperties(props);
-
-        if (versionString != null) {
-
-            String[] splitVersionString = versionString.split(VERSION_SEPARATOR);
-
-            VERSION_MAJOR = safeParseToVersion(splitVersionString, VERSION_INDEX_MAJOR);
-            VERSION_MINOR = safeParseToVersion(splitVersionString, VERSION_INDEX_MINOR);
-            VERSION_PATCH = safeParseToVersion(splitVersionString, VERSION_INDEX_PATCH);
-
-        } else {
-            VERSION_MAJOR = ZERO_VERSION_NUMBER;
-            VERSION_MINOR = ZERO_VERSION_NUMBER;
-            VERSION_PATCH = ZERO_VERSION_NUMBER;
-        }
-
-
+        VERSION_STRING = properties.getProperty(Version.VERSION_STRING_KEY, UNKNOWN_VERSION_STRING);
     }
 
     private Version() {
         // static utility class -- no instances allowed
-    }
-
-    public static String getVersionString() {
-        return String.format("%s.%s.%s", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
-    }
-
-    private static int safeParseToVersion(String[] versionStrings, int index) {
-        try {
-            if (versionStrings.length <= index) {
-                return ZERO_VERSION_NUMBER;
-            }
-
-            return Integer.parseInt(versionStrings[index]);
-        } catch (NumberFormatException nfe) {
-            return -1;
-        }
-    }
-
-    private static String tryGetVersionStringFromManifest() {
-        String version = null;
-
-        Package aPackage = Version.class.getPackage();
-        if (aPackage != null) {
-            version = aPackage.getImplementationVersion();
-            if (version == null) {
-                version = aPackage.getSpecificationVersion();
-            }
-        }
-
-        return version;
-    }
-
-    private static Properties tryLoadPropertiesFromClasspath() {
-
-        Properties properties = null;
-
-        try (InputStream is = Version.class.getResourceAsStream(VERSION_PROPERTIES)) {
-
-            if (is != null) {
-                properties = new Properties();
-                properties.load(is);
-            }
-
-        } catch (Throwable t) {
-            LOGGER.warning("Could not load properties file: " + t.getMessage());
-        }
-
-        return properties;
-    }
-
-    private static String tryGetVersionStringFromProperties(Properties props) {
-
-        String returnValue = null;
-
-        if (props != null) {
-            returnValue = props.getProperty(Version.VERSION, null);
-        }
-
-        return returnValue;
     }
 
 

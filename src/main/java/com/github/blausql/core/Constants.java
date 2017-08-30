@@ -27,7 +27,7 @@ public final class Constants {
     }
 
     public static final String ABOUT_TEXT = TextUtils.joinStringsWithNewLine(
-            "BlauSQL version " + Version.getVersionString(),
+            "BlauSQL version " + Version.VERSION_STRING,
             "",
             "Copyright 2017 Peter G. Horvath",
             "",
