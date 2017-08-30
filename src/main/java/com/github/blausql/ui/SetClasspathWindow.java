@@ -121,8 +121,14 @@ final class SetClasspathWindow extends Window {
 
                 String[] classPathStrings = newLineSeparatedClasspathString.split(LINE_SEPARATOR);
 
+                for (int i = 0; i < classPathStrings.length; i++) {
+                    // the user might enter the classpath entry with leading or trailing spaces,
+                    // e.g. " /foo/bar.jar  ", so trim each string to ensure it can be resolved as a path
+                    classPathStrings[i] = classPathStrings[i].trim();
+                }
+
                 for (String path : classPathStrings) {
-                    if (!"".equals(path.trim()) && !new File(path).exists()) {
+                    if (!"".equals(path) && !new File(path).exists()) {
                         throw new RuntimeException("Not found: " + path);
                     }
                 }
