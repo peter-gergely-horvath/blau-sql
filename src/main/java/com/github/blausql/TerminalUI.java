@@ -17,6 +17,7 @@
  
 package com.github.blausql;
 
+import com.github.blausql.ui.components.WaitDialog;
 import com.github.blausql.util.TextUtils;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
@@ -27,7 +28,6 @@ import com.googlecode.lanterna.gui.Window;
 import com.googlecode.lanterna.gui.dialog.DialogButtons;
 import com.googlecode.lanterna.gui.dialog.DialogResult;
 import com.googlecode.lanterna.gui.dialog.MessageBox;
-import com.googlecode.lanterna.gui.dialog.WaitingDialog;
 import com.googlecode.lanterna.terminal.TerminalSize;
 
 import java.sql.SQLException;
@@ -148,7 +148,7 @@ public final class TerminalUI {
 
     public static Window showWaitDialog(String title, String text) {
 
-        final Window w = new WaitingDialog(title, text);
+        final Window w = new WaitDialog(title, text);
 
         SCREEN.runInEventThread(new Action() {
 
