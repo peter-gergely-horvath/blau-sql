@@ -32,20 +32,27 @@ import com.googlecode.lanterna.terminal.TerminalSize;
 
 import java.sql.SQLException;
 
-public final class TerminalUI {
-
-    private static final GUIScreen SCREEN = TerminalFacade.createGUIScreen();
+//CHECKSTYLE.OFF: FinalClass: must be extensible for the testing frameworks
+public class TerminalUI {
 
     private TerminalUI() {
         // no instances
     }
 
-    static void init() {
-        SCREEN.getScreen().startScreen();
+    private static GUIScreen getScreen() {
+        return LazyHolder.INSTANCE;
+    }
+
+    private static class LazyHolder {
+        static final GUIScreen INSTANCE = TerminalFacade.createGUIScreen();
+    }
+
+    public static void init() {
+        getScreen().getScreen().startScreen();
     }
 
     static void close() {
-        SCREEN.getScreen().stopScreen();
+        getScreen().getScreen().stopScreen();
     }
 
     public static void showErrorMessageFromThrowable(Throwable throwable) {
@@ -83,13 +90,13 @@ public final class TerminalUI {
     }
 
     public static void showErrorMessageFromString(String dialogTitle, String errorMessage) {
-        final int columns = SCREEN.getScreen().getTerminalSize().getColumns();
+        final int columns = getScreen().getScreen().getTerminalSize().getColumns();
         final int maxLineLen = columns - 8;
 
         String multilineErrorMsgString = TextUtils.breakLine(errorMessage, maxLineLen);
 
 
-        MessageBox.showMessageBox(SCREEN, dialogTitle, multilineErrorMsgString);
+        MessageBox.showMessageBox(getScreen(), dialogTitle, multilineErrorMsgString);
     }
 
     public static String extractMessageFrom(Throwable t) {
@@ -126,23 +133,23 @@ public final class TerminalUI {
 
     public static void showMessageBox(String title, String messageText) {
 
-        MessageBox.showMessageBox(SCREEN, title, messageText);
+        MessageBox.showMessageBox(getScreen(), title, messageText);
 
     }
 
     public static DialogResult showMessageBox(String title,
                                               String message, DialogButtons buttons) {
 
-        return MessageBox.showMessageBox(SCREEN, title, message, buttons);
+        return MessageBox.showMessageBox(getScreen(), title, message, buttons);
 
     }
 
     public static void showWindowCenter(Window w) {
-        SCREEN.showWindow(w, GUIScreen.Position.CENTER);
+        getScreen().showWindow(w, GUIScreen.Position.CENTER);
     }
 
     public static void showWindowFullScreen(Window w) {
-        SCREEN.showWindow(w, GUIScreen.Position.FULL_SCREEN);
+        getScreen().showWindow(w, GUIScreen.Position.FULL_SCREEN);
 
     }
 
@@ -150,7 +157,7 @@ public final class TerminalUI {
 
         final Window w = new WaitDialog(title, text);
 
-        SCREEN.runInEventThread(new Action() {
+        getScreen().runInEventThread(new Action() {
 
             public void doAction() {
                 showWindowCenter(w);
@@ -162,10 +169,11 @@ public final class TerminalUI {
     }
 
     public static void runInEventThread(Action action) {
-        SCREEN.runInEventThread(action);
+        getScreen().runInEventThread(action);
     }
 
     public static TerminalSize getTerminalSize() {
-        return SCREEN.getScreen().getTerminalSize();
+        return getScreen().getScreen().getTerminalSize();
     }
 }
+//CHECKSTYLE.ON

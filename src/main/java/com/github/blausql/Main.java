@@ -19,7 +19,8 @@ package com.github.blausql;
 
 import com.github.blausql.ui.MainMenuWindow;
 
-public final class Main {
+//CHECKSTYLE.OFF: FinalClass: must be extensible for the testing frameworks
+public class Main {
 
     static {
         // Disable Apache Commons logging completely
@@ -58,3 +59,4 @@ public final class Main {
         }
     }
 }
+//CHECKSTYLE.ON

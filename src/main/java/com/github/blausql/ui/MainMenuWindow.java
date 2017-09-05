@@ -23,6 +23,7 @@ import com.github.blausql.TerminalUI;
 import com.github.blausql.core.Constants;
 import com.github.blausql.core.preferences.ConfigurationRepository;
 import com.github.blausql.ui.util.HotKeySupportListener;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 
 import com.googlecode.lanterna.gui.Action;
@@ -51,14 +52,16 @@ public class MainMenuWindow extends Window {
                         .build(), false));
     }
 
-    private final Action onConnectToDatabaseButtonSelectedAction = new Action() {
+    @VisibleForTesting
+    final Action onConnectToDatabaseButtonSelectedAction = new Action() {
 
         public void doAction() {
             TerminalUI.showWindowCenter(new SelectConnectionForQueryWindow());
         }
     };
 
-    private final Action onManageConnectionButtonSelectedAction = new Action() {
+    @VisibleForTesting
+    final Action onManageConnectionButtonSelectedAction = new Action() {
 
         public void doAction() {
             TerminalUI.showWindowCenter(new ManageConnectionsWindow());
@@ -66,7 +69,8 @@ public class MainMenuWindow extends Window {
 
     };
 
-    private final Action onSetApplicationClasspathButtonSelectedAction = new Action() {
+    @VisibleForTesting
+    final Action onSetApplicationClasspathButtonSelectedAction = new Action() {
 
         public void doAction() {
 
@@ -77,14 +81,16 @@ public class MainMenuWindow extends Window {
 
     };
 
-    private final Action onAboutButtonSelectedAction = new Action() {
+    @VisibleForTesting
+    final Action onAboutButtonSelectedAction = new Action() {
 
         public void doAction() {
             TerminalUI.showMessageBox("About BlauSQL", Constants.ABOUT_TEXT);
         }
     };
 
-    private final Action onQuitApplicationButtonSelected = new Action() {
+    @VisibleForTesting
+    final Action onQuitApplicationButtonSelected = new Action() {
 
         public void doAction() {
             Main.exitApplication(0);
@@ -93,3 +99,4 @@ public class MainMenuWindow extends Window {
     };
 
 }
+//CHECKSTYLE.ON
