@@ -1,4 +1,4 @@
-# BlauSQL: a menu-oriented TEXT mode JDBC database client
+# BlauSQL: a TEXT mode, menu-oriented JDBC database client
 
 BlauSQL is a lightweight, TEXT mode, universal JDBC database client, 
 with an easy to use menu-oriented user interface.
