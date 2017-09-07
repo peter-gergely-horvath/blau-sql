@@ -26,6 +26,8 @@ public final class Constants {
         // no external instances
     }
 
+    public static final String APPLICATION_BANNER = "BLAU SQL UNIVERSAL DATABASE CLIENT";
+
     public static final String ABOUT_TEXT = TextUtils.joinStringsWithNewLine(
             "BlauSQL version " + Version.VERSION_STRING,
             "",

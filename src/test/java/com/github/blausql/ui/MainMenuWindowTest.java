@@ -17,63 +17,200 @@
 
 package com.github.blausql.ui;
 
-import com.github.blausql.TerminalUI;
+import com.github.blausql.core.Constants;
+import com.github.blausql.core.preferences.ConfigurationRepository;
+import com.googlecode.lanterna.gui.component.EditArea;
 import org.easymock.Capture;
-import org.easymock.EasyMock;
 import org.powermock.api.easymock.PowerMock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
-import org.testng.Assert;
+
 import org.testng.annotations.Test;
 
-import java.lang.reflect.Method;
+import java.io.IOException;
 
+import static org.testng.Assert.*;
 import static org.easymock.EasyMock.*;
 
-@PrepareForTest({com.github.blausql.Main.class, TerminalUI.class})
-public class MainMenuWindowTest extends PowerMockTestCase {
+@PrepareForTest({ConfigurationRepository.class, ConfigurationRepository.class})
+public class MainMenuWindowTest extends BlauSQLTestCase {
 
+
+    public static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
     @Test
-    public void testQuitButton() throws NoSuchMethodException {
+    public void testQuit() {
 
-        Method exitApplicationMethod = com.github.blausql.Main.class.getDeclaredMethod("exitApplication", int.class);
+        Capture<MainMenuWindow> mainMenuWindowCapture = expectWindowIsShownCenter(MainMenuWindow.class);
 
-        PowerMock.mockStaticStrict(com.github.blausql.Main.class, exitApplicationMethod);
-        PowerMock.mockStatic(TerminalUI.class);
+        expectApplicationExitRequest(0);
 
+        // --- REPLAY
+        replaySystemClasses();
 
-        Capture<MainMenuWindow> capturedArgument = newCapture();
+        invokeMain();
 
-        TerminalUI.init();
-        EasyMock.expectLastCall().once();
+        MainMenuWindow mainMenuWindow = mainMenuWindowCapture.getValue();
+        assertNotNull(mainMenuWindow);
 
-        TerminalUI.showWindowCenter(and(capture(capturedArgument), anyObject(MainMenuWindow.class)));
-        EasyMock.expectLastCall().once();
+        pressEnterOn(getComponent(mainMenuWindow, "quitApplicationButton"));
 
-
-        com.github.blausql.Main.exitApplication(0);
-        EasyMock.expectLastCall().once();
-
-        PowerMock.replay(com.github.blausql.Main.class, TerminalUI.class);
-
-        com.github.blausql.Main.main(new String[] {});
-
-        MainMenuWindow mainMenuWindow = capturedArgument.getValue();
-        Assert.assertNotNull(mainMenuWindow);
-
-        mainMenuWindow.onQuitApplicationButtonSelected.doAction();
-
-
-        PowerMock.verify(com.github.blausql.Main.class, TerminalUI.class);
-
-
-
-
-
-
+        // --- VERIFY
+        verifyCoreClasses();
     }
 
+    @Test
+    public void testAbout() {
+
+        Capture<MainMenuWindow> mainMenuWindowCapture = expectWindowIsShownCenter(MainMenuWindow.class);
+
+        expectMessageBoxIsShown("About BlauSQL", Constants.ABOUT_TEXT);
+
+        // --- REPLAY
+        replaySystemClasses();
+
+        invokeMain();
+
+        MainMenuWindow mainMenuWindow = mainMenuWindowCapture.getValue();
+        assertNotNull(mainMenuWindow);
+
+        pressEnterOn(getComponent(mainMenuWindow, "aboutButton"));
+
+        // --- VERIFY
+        verifyCoreClasses();
+    }
+
+    @Test
+    public void testSetApplicationClasspathNormalCase() {
+
+        PowerMock.mockStatic(ConfigurationRepository.class);
+
+        ConfigurationRepository mockConfigurationRepository = createMock(ConfigurationRepository.class);
+        expect(ConfigurationRepository.getInstance()).andReturn(mockConfigurationRepository);
+
+
+        expect(mockConfigurationRepository.getClasspath())
+                .andReturn(new String[]{ "foo", "bar" });
+
+
+        Capture<MainMenuWindow> capturedMainMenuWindow = expectWindowIsShownCenter(MainMenuWindow.class);
+
+        Capture<SetClasspathWindow> capturedSetClasspathWindow = expectWindowIsShownCenter(SetClasspathWindow.class);
+
+
+        // --- REPLAY
+        PowerMock.replay(ConfigurationRepository.class);
+        replay(mockConfigurationRepository);
+        replaySystemClasses();
+        replay();
+
+        invokeMain();
+
+        MainMenuWindow mainMenuWindow = capturedMainMenuWindow.getValue();
+        assertNotNull(mainMenuWindow);
+
+
+        pressEnterOn(getComponent(mainMenuWindow, "setApplicationClasspathButton"));
+
+
+        SetClasspathWindow setClasspathWindow = capturedSetClasspathWindow.getValue();
+        assertNotNull(setClasspathWindow);
+
+        EditArea classpathEditArea = getComponent(setClasspathWindow, "classpathEditArea");
+        String classPathEntries = classpathEditArea.getData();
+
+        String expected = String.format("foo%sbar%s", LINE_SEPARATOR, LINE_SEPARATOR);
+        assertEquals(classPathEntries, expected);
+
+        // --- VERIFY
+        verifyCoreClasses();
+        PowerMock.verify(ConfigurationRepository.class);
+        verify(mockConfigurationRepository);
+    }
+
+    @Test
+    public void testSetApplicationClasspathEmpty() {
+
+        PowerMock.mockStatic(ConfigurationRepository.class);
+
+        ConfigurationRepository mockConfigurationRepository = createMock(ConfigurationRepository.class);
+        expect(ConfigurationRepository.getInstance()).andReturn(mockConfigurationRepository);
+
+
+        expect(mockConfigurationRepository.getClasspath())
+                .andReturn(new String[0]);
+
+
+        Capture<MainMenuWindow> capturedMainMenuWindow = expectWindowIsShownCenter(MainMenuWindow.class);
+
+        Capture<SetClasspathWindow> capturedSetClasspathWindow = expectWindowIsShownCenter(SetClasspathWindow.class);
+
+
+        // --- REPLAY
+        PowerMock.replay(ConfigurationRepository.class);
+        replay(mockConfigurationRepository);
+        replaySystemClasses();
+        replay();
+
+        invokeMain();
+
+        MainMenuWindow mainMenuWindow = capturedMainMenuWindow.getValue();
+        assertNotNull(mainMenuWindow);
+
+
+        pressEnterOn(getComponent(mainMenuWindow, "setApplicationClasspathButton"));
+
+
+        SetClasspathWindow setClasspathWindow = capturedSetClasspathWindow.getValue();
+        assertNotNull(setClasspathWindow);
+
+        EditArea classpathEditArea = getComponent(setClasspathWindow, "classpathEditArea");
+        String classPathEntries = classpathEditArea.getData();
+
+        assertEquals(classPathEntries, "");
+
+        // --- VERIFY
+        verifyCoreClasses();
+        PowerMock.verify(ConfigurationRepository.class);
+        verify(mockConfigurationRepository);
+    }
+
+    @Test
+    public void testSetApplicationClasspathLoadThrowsException() {
+
+        PowerMock.mockStatic(ConfigurationRepository.class);
+
+        ConfigurationRepository mockConfigurationRepository = createMock(ConfigurationRepository.class);
+        expect(ConfigurationRepository.getInstance()).andReturn(mockConfigurationRepository);
+
+
+        RuntimeException dummyException = new RuntimeException("Failed to fetch classpath repository");
+        expect(mockConfigurationRepository.getClasspath())
+                .andThrow(dummyException);
+
+
+        Capture<MainMenuWindow> capturedMainMenuWindow = expectWindowIsShownCenter(MainMenuWindow.class);
+
+        expectErrorMessageBoxIsShownFrom(dummyException);
+
+        // --- REPLAY
+        PowerMock.replay(ConfigurationRepository.class);
+        replay(mockConfigurationRepository);
+        replaySystemClasses();
+        replay();
+
+        invokeMain();
+
+        MainMenuWindow mainMenuWindow = capturedMainMenuWindow.getValue();
+        assertNotNull(mainMenuWindow);
+
+
+        pressEnterOn(getComponent(mainMenuWindow, "setApplicationClasspathButton"));
+
+        // --- VERIFY
+        verifyCoreClasses();
+        PowerMock.verify(ConfigurationRepository.class);
+        verify(mockConfigurationRepository);
+    }
 
 
 }

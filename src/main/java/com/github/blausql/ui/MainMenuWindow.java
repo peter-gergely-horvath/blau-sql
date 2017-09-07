@@ -22,81 +22,86 @@ import com.github.blausql.Main;
 import com.github.blausql.TerminalUI;
 import com.github.blausql.core.Constants;
 import com.github.blausql.core.preferences.ConfigurationRepository;
+import com.github.blausql.ui.components.ActionButton;
 import com.github.blausql.ui.util.HotKeySupportListener;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 
 import com.googlecode.lanterna.gui.Action;
 import com.googlecode.lanterna.gui.Window;
-import com.googlecode.lanterna.gui.component.Button;
 
 public class MainMenuWindow extends Window {
 
     public MainMenuWindow() {
 
-        super("BLAU SQL UNIVERSAL DATABASE CLIENT");
+        super(Constants.APPLICATION_BANNER);
 
-        addComponent(new Button("[C]onnect to database", onConnectToDatabaseButtonSelectedAction));
-        addComponent(new Button("[M]anage Connections", onManageConnectionButtonSelectedAction));
-        addComponent(new Button("[S]et Classpath", onSetApplicationClasspathButtonSelectedAction));
-        addComponent(new Button("[A]bout", onAboutButtonSelectedAction));
-        addComponent(new Button("[Q]uit Application", onQuitApplicationButtonSelected));
+        addComponent(connectToDatabaseButton);
+        addComponent(manageConnectionButton);
+        addComponent(setApplicationClasspathButton);
+
+        addComponent(aboutButton);
+
+        addComponent(quitApplicationButton);
 
         addWindowListener(new HotKeySupportListener(
                 ImmutableMap.<Character, Action>builder()
-                        .put('C', onConnectToDatabaseButtonSelectedAction)
-                        .put('M', onManageConnectionButtonSelectedAction)
-                        .put('S', onSetApplicationClasspathButtonSelectedAction)
-                        .put('A', onAboutButtonSelectedAction)
-                        .put('Q', onQuitApplicationButtonSelected)
+                        .put('C', connectToDatabaseButton)
+                        .put('M', manageConnectionButton)
+                        .put('S', setApplicationClasspathButton)
+                        .put('A', aboutButton)
+                        .put('Q', quitApplicationButton)
                         .build(), false));
     }
 
-    @VisibleForTesting
-    final Action onConnectToDatabaseButtonSelectedAction = new Action() {
 
-        public void doAction() {
-            TerminalUI.showWindowCenter(new SelectConnectionForQueryWindow());
-        }
-    };
 
-    @VisibleForTesting
-    final Action onManageConnectionButtonSelectedAction = new Action() {
+    private final ActionButton connectToDatabaseButton =
+            new ActionButton("[C]onnect to database", new Action() {
+
+                public void doAction() {
+                    TerminalUI.showWindowCenter(new SelectConnectionForQueryWindow());
+                }
+            });
+
+    private final ActionButton manageConnectionButton = new ActionButton("[M]anage Connections", new Action() {
 
         public void doAction() {
             TerminalUI.showWindowCenter(new ManageConnectionsWindow());
         }
 
-    };
+    });
 
-    @VisibleForTesting
-    final Action onSetApplicationClasspathButtonSelectedAction = new Action() {
+    private final ActionButton setApplicationClasspathButton = new ActionButton("[S]et Classpath", new Action() {
 
         public void doAction() {
 
-            String[] classpath = ConfigurationRepository.getInstance().getClasspath();
+            try {
 
-            TerminalUI.showWindowCenter(new SetClasspathWindow(classpath));
+                String[] classpath = ConfigurationRepository.getInstance().getClasspath();
+
+                TerminalUI.showWindowCenter(new SetClasspathWindow(classpath));
+
+            } catch (RuntimeException re) {
+
+                TerminalUI.showErrorMessageFromThrowable(re);
+            }
+
         }
 
-    };
+    });
 
-    @VisibleForTesting
-    final Action onAboutButtonSelectedAction = new Action() {
+    private final ActionButton aboutButton = new ActionButton("[A]bout", new Action() {
 
         public void doAction() {
             TerminalUI.showMessageBox("About BlauSQL", Constants.ABOUT_TEXT);
         }
-    };
+    });
 
-    @VisibleForTesting
-    final Action onQuitApplicationButtonSelected = new Action() {
+    private final ActionButton quitApplicationButton = new ActionButton("[Q]uit Application", new Action() {
 
         public void doAction() {
             Main.exitApplication(0);
 
         }
-    };
-
+    });
 }
-//CHECKSTYLE.ON

@@ -26,6 +26,14 @@ import java.util.logging.Logger;
 
 public final class DelegatingDriver implements java.sql.Driver {
 
+    private final java.sql.Driver delegate;
+
+    public DelegatingDriver(java.sql.Driver delegate) {
+        this.delegate = delegate;
+    }
+
+    // --- Delegate methods ---
+
     public Connection connect(String url, Properties info) throws SQLException {
         return delegate.connect(url, info);
     }
@@ -54,9 +62,5 @@ public final class DelegatingDriver implements java.sql.Driver {
         return delegate.getParentLogger();
     }
 
-    private final java.sql.Driver delegate;
 
-    public DelegatingDriver(java.sql.Driver delegate) {
-        this.delegate = delegate;
-    }
 }
