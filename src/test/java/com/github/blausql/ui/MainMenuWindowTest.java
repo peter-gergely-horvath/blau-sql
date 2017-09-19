@@ -19,6 +19,7 @@ package com.github.blausql.ui;
 
 import com.github.blausql.core.Constants;
 import com.github.blausql.core.preferences.ConfigurationRepository;
+import com.github.blausql.core.preferences.LoadException;
 import com.googlecode.lanterna.gui.component.EditArea;
 import org.easymock.Capture;
 import org.powermock.api.easymock.PowerMock;
@@ -80,7 +81,7 @@ public class MainMenuWindowTest extends BlauSQLTestCase {
     }
 
     @Test
-    public void testSetApplicationClasspathNormalCase() {
+    public void testSetApplicationClasspathNormalCase() throws LoadException {
 
         PowerMock.mockStatic(ConfigurationRepository.class);
 
@@ -128,7 +129,7 @@ public class MainMenuWindowTest extends BlauSQLTestCase {
     }
 
     @Test
-    public void testSetApplicationClasspathEmpty() {
+    public void testSetApplicationClasspathEmpty() throws LoadException {
 
         PowerMock.mockStatic(ConfigurationRepository.class);
 
@@ -175,7 +176,7 @@ public class MainMenuWindowTest extends BlauSQLTestCase {
     }
 
     @Test
-    public void testSetApplicationClasspathLoadThrowsException() {
+    public void testSetApplicationClasspathLoadThrowsException() throws LoadException {
 
         PowerMock.mockStatic(ConfigurationRepository.class);
 

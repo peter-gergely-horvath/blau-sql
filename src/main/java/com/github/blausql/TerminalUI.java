@@ -35,6 +35,8 @@ import java.sql.SQLException;
 //CHECKSTYLE.OFF: FinalClass: must be extensible for the testing frameworks
 public class TerminalUI {
 
+    private static final int LINE_SIZE_DIFF = 8;
+
     private TerminalUI() {
         // no instances
     }
@@ -91,7 +93,7 @@ public class TerminalUI {
 
     public static void showErrorMessageFromString(String dialogTitle, String errorMessage) {
         final int columns = getScreen().getScreen().getTerminalSize().getColumns();
-        final int maxLineLen = columns - 8;
+        final int maxLineLen = columns - LINE_SIZE_DIFF;
 
         String multilineErrorMsgString = TextUtils.breakLine(errorMessage, maxLineLen);
 

@@ -25,10 +25,12 @@ import com.github.blausql.ui.util.BackgroundWorker;
 import com.googlecode.lanterna.gui.Window;
 import com.googlecode.lanterna.gui.dialog.DialogResult;
 
+import java.util.List;
+
 final class SelectConnectionForQueryWindow extends SelectConnectionWindow {
 
-    SelectConnectionForQueryWindow() {
-        super("Select connection to Connect to");
+    SelectConnectionForQueryWindow(List<ConnectionDefinition> connectionDefinitions) {
+        super("Select connection to Connect to", connectionDefinitions);
     }
 
     @Override
@@ -51,7 +53,7 @@ final class SelectConnectionForQueryWindow extends SelectConnectionWindow {
             }
 
             ConnectionDefinition actualConnectionDefinition =
-                    new ConnectionDefinition(connectionDefinition);
+                    ConnectionDefinition.copyOf(connectionDefinition);
 
             actualConnectionDefinition.setUserName(
                     credentialsDialog.getUserName());
@@ -67,8 +69,7 @@ final class SelectConnectionForQueryWindow extends SelectConnectionWindow {
     private void establishConnection(
             final ConnectionDefinition connectionDefinition) {
         final Window showWaitDialog = TerminalUI.showWaitDialog("Please wait",
-                "Connecting to " + connectionDefinition.getConnectionName()
-                        + "... ");
+                "Connecting to " + connectionDefinition.getConnectionName() + "... ");
 
         new BackgroundWorker<Void>() {
 

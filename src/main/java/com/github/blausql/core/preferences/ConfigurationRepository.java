@@ -45,7 +45,7 @@ public final class ConfigurationRepository {
         private static final String CLASSPATH = "classpath";
     }
 
-    public void saveClasspath(String[] entries) {
+    public void saveClasspath(String[] entries) throws SaveException {
 
         try {
             Properties properties = settingsPropertyStore.loadProperties();
@@ -57,12 +57,12 @@ public final class ConfigurationRepository {
             settingsPropertyStore.persistProperties(properties);
 
         } catch (IOException e) {
-            throw new RuntimeException("Failed to save configuration", e);
+            throw new SaveException("Failed to save configuration", e);
         }
     }
 
 
-    public String[] getClasspath() {
+    public String[] getClasspath() throws LoadException {
 
         try {
             Properties properties = settingsPropertyStore.loadProperties();
@@ -72,7 +72,7 @@ public final class ConfigurationRepository {
             return classpath.split("\\" + CLASSPATH_SEPARATOR_CHAR);
 
         } catch (IOException e) {
-            throw new RuntimeException("Failed to read configuration", e);
+            throw new LoadException("Failed to read configuration", e);
         }
     }
 

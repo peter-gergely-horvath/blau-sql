@@ -18,12 +18,18 @@
 package com.github.blausql.ui;
 
 import com.github.blausql.TerminalUI;
+import com.github.blausql.core.connection.ConnectionDefinition;
+import com.github.blausql.core.preferences.ConnectionDefinitionRepository;
+import com.github.blausql.core.preferences.LoadException;
 import com.github.blausql.ui.components.CloseOnEscapeKeyPressWindow;
+import com.github.blausql.ui.util.DefaultErrorHandlerAction;
 import com.github.blausql.ui.util.HotKeySupportListener;
 
 import com.google.common.collect.ImmutableMap;
 import com.googlecode.lanterna.gui.Action;
 import com.googlecode.lanterna.gui.component.Button;
+
+import java.util.List;
 
 @SuppressWarnings("FieldCanBeLocal")
 class ManageConnectionsWindow extends CloseOnEscapeKeyPressWindow {
@@ -62,27 +68,39 @@ class ManageConnectionsWindow extends CloseOnEscapeKeyPressWindow {
         }
     };
 
-    private final Action onCopyConnectionButtonSelectedAction = new Action() {
+    private final Action onCopyConnectionButtonSelectedAction = new DefaultErrorHandlerAction() {
 
-        public void doAction() {
+        public void doActionWithErrorHandler() throws LoadException {
             ManageConnectionsWindow.this.close();
-            TerminalUI.showWindowCenter(new SelectConnectionToCopyWindow());
+
+            List<ConnectionDefinition> connectionDefinitions =
+                    ConnectionDefinitionRepository.getInstance().getConnectionDefinitions();
+
+            TerminalUI.showWindowCenter(new SelectConnectionToCopyWindow(connectionDefinitions));
         }
     };
 
-    private final Action onEditConnectionButtonSelectedAction = new Action() {
+    private final Action onEditConnectionButtonSelectedAction = new DefaultErrorHandlerAction() {
 
-        public void doAction() {
+        public void doActionWithErrorHandler() throws LoadException {
             ManageConnectionsWindow.this.close();
-            TerminalUI.showWindowCenter(new SelectConnectionToEditWindow());
+
+            List<ConnectionDefinition> connectionDefinitions =
+                    ConnectionDefinitionRepository.getInstance().getConnectionDefinitions();
+
+            TerminalUI.showWindowCenter(new SelectConnectionToEditWindow(connectionDefinitions));
         }
     };
 
-    private final Action onDeleteConnectionButtonSelectedAction = new Action() {
+    private final Action onDeleteConnectionButtonSelectedAction = new DefaultErrorHandlerAction() {
 
-        public void doAction() {
+        public void doActionWithErrorHandler() throws LoadException {
             ManageConnectionsWindow.this.close();
-            TerminalUI.showWindowCenter(new SelectConnectionToDeleteWindow());
+
+            List<ConnectionDefinition> connectionDefinitions =
+                    ConnectionDefinitionRepository.getInstance().getConnectionDefinitions();
+
+            TerminalUI.showWindowCenter(new SelectConnectionToDeleteWindow(connectionDefinitions));
         }
     };
 }

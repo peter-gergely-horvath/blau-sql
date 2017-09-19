@@ -15,29 +15,22 @@
  */
 
  
-package com.github.blausql.core.classloader;
+package com.github.blausql.ui.util;
 
-import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URL;
+import com.github.blausql.TerminalUI;
+import com.googlecode.lanterna.gui.Action;
 
-public final class ClasspathHelper {
+public abstract class DefaultErrorHandlerAction implements Action {
 
+    @Override
+    public final void doAction() {
 
-    private ClasspathHelper() {
-        // no instances
-    }
-
-    public static URL[] convertToURLs(String[] urlStrings) throws MalformedURLException {
-        URL[] urlList = new URL[urlStrings.length];
-
-        for (int i = 0; i < urlStrings.length; i++) {
-
-            URL url = new File(urlStrings[i]).toURI().toURL();
-
-            urlList[i] = url;
+        try {
+            doActionWithErrorHandler();
+        } catch (Exception e) {
+            TerminalUI.showErrorMessageFromThrowable(e);
         }
-
-        return urlList;
     }
+
+    protected abstract void doActionWithErrorHandler() throws Exception;
 }

@@ -20,10 +20,12 @@ package com.github.blausql.ui;
 import com.github.blausql.TerminalUI;
 import com.github.blausql.core.connection.ConnectionDefinition;
 
+import java.util.List;
+
 final class SelectConnectionToEditWindow extends SelectConnectionWindow {
 
-    SelectConnectionToEditWindow() {
-        super("Select Connection to Edit");
+    SelectConnectionToEditWindow(List<ConnectionDefinition> connectionDefinitions) {
+        super("Select Connection to Edit", connectionDefinitions);
     }
 
     @Override

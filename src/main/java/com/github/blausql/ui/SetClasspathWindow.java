@@ -19,6 +19,7 @@ package com.github.blausql.ui;
 
 import com.github.blausql.TerminalUI;
 import com.github.blausql.core.preferences.ConfigurationRepository;
+import com.github.blausql.core.preferences.SaveException;
 import com.github.blausql.ui.util.BackgroundWorker;
 import com.github.blausql.util.TextUtils;
 import com.googlecode.lanterna.gui.Action;
@@ -116,7 +117,7 @@ final class SetClasspathWindow extends Window {
         new BackgroundWorker<Void>() {
 
             @Override
-            protected Void doBackgroundTask() {
+            protected Void doBackgroundTask() throws SaveException {
 
 
                 String[] classPathStrings = newLineSeparatedClasspathString.split(LINE_SEPARATOR);

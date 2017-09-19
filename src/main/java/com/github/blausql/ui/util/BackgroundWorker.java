@@ -63,7 +63,7 @@ public abstract class BackgroundWorker<R> {
 
     }
 
-    protected abstract R doBackgroundTask();
+    protected abstract R doBackgroundTask() throws Exception;
 
     protected abstract void onBackgroundTaskFailed(Throwable t);
 

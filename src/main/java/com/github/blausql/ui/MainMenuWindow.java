@@ -21,13 +21,19 @@ package com.github.blausql.ui;
 import com.github.blausql.Main;
 import com.github.blausql.TerminalUI;
 import com.github.blausql.core.Constants;
+import com.github.blausql.core.connection.ConnectionDefinition;
 import com.github.blausql.core.preferences.ConfigurationRepository;
+import com.github.blausql.core.preferences.ConnectionDefinitionRepository;
+import com.github.blausql.core.preferences.LoadException;
 import com.github.blausql.ui.components.ActionButton;
+import com.github.blausql.ui.util.DefaultErrorHandlerAction;
 import com.github.blausql.ui.util.HotKeySupportListener;
 import com.google.common.collect.ImmutableMap;
 
 import com.googlecode.lanterna.gui.Action;
 import com.googlecode.lanterna.gui.Window;
+
+import java.util.List;
 
 public class MainMenuWindow extends Window {
 
@@ -56,10 +62,14 @@ public class MainMenuWindow extends Window {
 
 
     private final ActionButton connectToDatabaseButton =
-            new ActionButton("[C]onnect to database", new Action() {
+            new ActionButton("[C]onnect to database", new DefaultErrorHandlerAction() {
 
-                public void doAction() {
-                    TerminalUI.showWindowCenter(new SelectConnectionForQueryWindow());
+                public void doActionWithErrorHandler() throws LoadException {
+
+                    List<ConnectionDefinition> connectionDefinitions =
+                            ConnectionDefinitionRepository.getInstance().getConnectionDefinitions();
+
+                    TerminalUI.showWindowCenter(new SelectConnectionForQueryWindow(connectionDefinitions));
                 }
             });
 
@@ -71,21 +81,14 @@ public class MainMenuWindow extends Window {
 
     });
 
-    private final ActionButton setApplicationClasspathButton = new ActionButton("[S]et Classpath", new Action() {
+    private final ActionButton setApplicationClasspathButton = new ActionButton("[S]et Classpath",
+            new DefaultErrorHandlerAction() {
 
-        public void doAction() {
+        public void doActionWithErrorHandler() throws LoadException {
 
-            try {
+            String[] classpath = ConfigurationRepository.getInstance().getClasspath();
 
-                String[] classpath = ConfigurationRepository.getInstance().getClasspath();
-
-                TerminalUI.showWindowCenter(new SetClasspathWindow(classpath));
-
-            } catch (RuntimeException re) {
-
-                TerminalUI.showErrorMessageFromThrowable(re);
-            }
-
+            TerminalUI.showWindowCenter(new SetClasspathWindow(classpath));
         }
 
     });

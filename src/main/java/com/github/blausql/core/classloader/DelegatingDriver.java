@@ -21,6 +21,7 @@ import java.sql.Connection;
 import java.sql.DriverPropertyInfo;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -29,6 +30,7 @@ public final class DelegatingDriver implements java.sql.Driver {
     private final java.sql.Driver delegate;
 
     public DelegatingDriver(java.sql.Driver delegate) {
+        Objects.requireNonNull(delegate, "argument delegate cannot be null");
         this.delegate = delegate;
     }
 

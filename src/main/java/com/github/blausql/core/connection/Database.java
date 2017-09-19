@@ -14,18 +14,13 @@
  * limitations under the License.
  */
 
- 
-package com.github.blausql.core.connection;
 
-import java.net.MalformedURLException;
-import java.sql.*;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
+package com.github.blausql.core.connection;
 
 import com.github.blausql.core.classloader.ClassLoaderFactory;
 import com.github.blausql.core.classloader.DelegatingDriver;
 import com.github.blausql.core.preferences.ConfigurationRepository;
+import com.github.blausql.core.preferences.LoadException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ColumnMapRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -33,6 +28,12 @@ import org.springframework.jdbc.core.RowMapperResultSetExtractor;
 import org.springframework.jdbc.core.StatementCallback;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import org.springframework.util.Assert;
+
+import java.net.MalformedURLException;
+import java.sql.*;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 public final class Database {
 
@@ -89,7 +90,9 @@ public final class Database {
         } catch (IllegalAccessException | InstantiationException | SQLException e) {
             throw new RuntimeException("Problem loading the driver", e);
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Class not found: " + e.getMessage(),  e);
+            throw new RuntimeException("Could not load JDBC Driver class: " + e.getMessage(), e);
+        } catch (LoadException e) {
+            throw new RuntimeException("Failed to load Configuration", e);
         } finally {
             Thread.currentThread().setContextClassLoader(originalContextClassLoader);
         }
@@ -103,8 +106,8 @@ public final class Database {
 
         @SuppressWarnings("unchecked")
         Class<Driver> driverClass = (Class<Driver>) Class.forName(driverClassName, true, contextClassLoader);
-        Driver d = driverClass.newInstance();
-        DriverManager.registerDriver(new DelegatingDriver(d));
+        Driver driver = driverClass.newInstance();
+        DriverManager.registerDriver(new DelegatingDriver(driver));
     }
 
     public void disconnect() {
@@ -136,13 +139,11 @@ public final class Database {
                 if (yieldedResultSet) {
                     try (ResultSet resultSet = stmt.getResultSet()) {
 
-                        queryResult = ROW_MAPPER_RESULT_SET_EXTRACTOR
-                                .extractData(resultSet);
+                        queryResult = ROW_MAPPER_RESULT_SET_EXTRACTOR.extractData(resultSet);
 
                     } catch (SQLException e) {
 
-                        throw new RuntimeException(
-                                "ResultSet processing failed", e);
+                        throw new RuntimeException("ResultSet processing failed", e);
 
                     }
                 } else {
@@ -150,8 +151,7 @@ public final class Database {
 
                 }
 
-                return new StatementResult(yieldedResultSet, queryResult,
-                        updateCount);
+                return new StatementResult(yieldedResultSet, queryResult, updateCount);
             }
         });
 
@@ -196,9 +196,7 @@ public final class Database {
                     cd.getJdbcUrl(), cd.getUserName(), cd.getPassword());
         }
 
-        private DatabaseConnection(String driverClassName, String url,
-                                   String username, String password) {
-            super();
+        private DatabaseConnection(String driverClassName, String url, String username, String password) {
 
             SingleConnectionDataSource dataSource = new SingleConnectionDataSource();
             if (driverClassName != null && !"".equals(driverClassName.trim())) {

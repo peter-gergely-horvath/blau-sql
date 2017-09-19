@@ -18,7 +18,6 @@
 package com.github.blausql.ui;
 
 import com.github.blausql.core.connection.ConnectionDefinition;
-import com.github.blausql.core.preferences.ConnectionDefinitionRepository;
 import com.github.blausql.ui.components.CloseOnEscapeKeyPressWindow;
 import com.google.common.collect.ImmutableList;
 import com.googlecode.lanterna.gui.Action;
@@ -42,7 +41,7 @@ abstract class SelectConnectionWindow extends CloseOnEscapeKeyPressWindow {
 
     private final Map<Character, ConnectionDefinition> hotKeyMap = new ConcurrentHashMap<>();
 
-    SelectConnectionWindow(String title) {
+    SelectConnectionWindow(String title, List<ConnectionDefinition> connectionDefinitions) {
         super(title);
 
         addWindowListener(new HotKeyWindowListener());
@@ -54,9 +53,6 @@ abstract class SelectConnectionWindow extends CloseOnEscapeKeyPressWindow {
             }
         }));
 
-
-        List<ConnectionDefinition> connectionDefinitions =
-                ConnectionDefinitionRepository.getInstance().getConnectionDefinitions();
 
         if (connectionDefinitions.isEmpty()) {
             addComponent(new Label("(no connections defined)"));

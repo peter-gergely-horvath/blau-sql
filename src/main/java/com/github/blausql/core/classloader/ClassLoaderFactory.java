@@ -24,6 +24,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.Objects;
 
 public final class ClassLoaderFactory {
 
@@ -33,7 +34,7 @@ public final class ClassLoaderFactory {
 
     public static ClassLoader getClassLoaderForClasspath(String[] classPathStrings) throws MalformedURLException {
 
-        Assert.notNull(classPathStrings, "argument classPathStrings cannot be null");
+        Objects.requireNonNull(classPathStrings, "argument classPathStrings cannot be null");
 
         final URL[] urls = ClasspathHelper.convertToURLs(classPathStrings);
 

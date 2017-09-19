@@ -22,6 +22,8 @@ import com.github.blausql.core.connection.ConnectionDefinition;
 import com.github.blausql.core.preferences.ConnectionDefinitionRepository;
 
 
+import com.github.blausql.core.preferences.LoadException;
+import com.github.blausql.core.preferences.SaveException;
 import com.googlecode.lanterna.gui.Action;
 import com.googlecode.lanterna.gui.Window;
 import com.googlecode.lanterna.gui.component.Button;
@@ -168,7 +170,7 @@ public final class ConnectionSettingsWindow extends Window {
             }
 
             this.close();
-        } catch (Exception e) {
+        } catch (RuntimeException | SaveException e) {
             TerminalUI.showErrorMessageFromThrowable(e);
         }
 
@@ -190,20 +192,27 @@ public final class ConnectionSettingsWindow extends Window {
 
     }
 
-    private void saveConnectionDefinition(ConnectionDefinition connectionDefinitionToSave) {
+    private void saveConnectionDefinition(ConnectionDefinition connectionDefinitionToSave) throws SaveException {
 
-        String connectionName = connectionDefinitionToSave.getConnectionName();
 
-        ConnectionDefinition existingConnectionDefinition =
-                ConnectionDefinitionRepository.getInstance()
-                        .findConnectionDefinitionByName(connectionName);
+        try {
 
-        if (existingConnectionDefinition != null) {
-            throw new IllegalStateException("Connection with name '" + connectionName + "' already exists");
+            String connectionName = connectionDefinitionToSave.getConnectionName();
+
+            ConnectionDefinition existingConnectionDefinition = ConnectionDefinitionRepository.getInstance()
+                    .findConnectionDefinitionByName(connectionName);
+
+            if (existingConnectionDefinition != null) {
+                throw new IllegalStateException("Connection with name '" + connectionName + "' already exists");
+            }
+
+            ConnectionDefinitionRepository.getInstance().saveConnectionDefinition(connectionDefinitionToSave);
+
+        } catch (LoadException e) {
+            throw new SaveException("Failed to save connection definition", e);
         }
 
-        ConnectionDefinitionRepository.getInstance()
-                .saveConnectionDefinition(connectionDefinitionToSave);
+
 
     }
 }

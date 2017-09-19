@@ -17,18 +17,11 @@
 
 package com.github.blausql.core.preferences;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-
 import com.github.blausql.core.connection.ConnectionDefinition;
 
-import com.google.common.base.Preconditions;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
 
 public final class ConnectionDefinitionRepository {
 
@@ -48,7 +41,7 @@ public final class ConnectionDefinitionRepository {
 
     private static final ConnectionDefinitionRepository INSTANCE = new ConnectionDefinitionRepository();
 
-    public List<ConnectionDefinition> getConnectionDefinitions() {
+    public List<ConnectionDefinition> getConnectionDefinitions() throws LoadException {
         try {
 
             LinkedHashMap<String, ConnectionDefinition> map = new LinkedHashMap<>();
@@ -61,8 +54,7 @@ public final class ConnectionDefinitionRepository {
 
                 final String[] splitString = key.split(PROPERTY_SEPARATOR);
                 if (splitString.length != 2) {
-                    throw new IllegalStateException("Unknown property found: "
-                            + key);
+                    throw new IllegalStateException("Unknown property found: " + key);
                 }
 
                 final String connectionDefinitionName = splitString[0];
@@ -82,7 +74,7 @@ public final class ConnectionDefinitionRepository {
             return new ArrayList<>(map.values());
 
         } catch (IOException e) {
-            throw new RuntimeException("Failed to load connection definitions", e);
+            throw new LoadException("Failed to load connection definitions", e);
         }
 
     }
@@ -227,9 +219,9 @@ public final class ConnectionDefinitionRepository {
     }
 
     public ConnectionDefinition findConnectionDefinitionByName(
-            String connectionName) {
+            String connectionName) throws LoadException {
 
-        Preconditions.checkNotNull(connectionName, "connectionName cannot be null");
+        Objects.requireNonNull(connectionName, "connectionName cannot be null");
 
         List<ConnectionDefinition> connectionDefinitions = getConnectionDefinitions();
         for (ConnectionDefinition connectionDefinition : connectionDefinitions) {

@@ -15,29 +15,16 @@
  */
 
  
-package com.github.blausql.core.classloader;
+package com.github.blausql.core.preferences;
 
-import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URL;
-
-public final class ClasspathHelper {
+public class LoadException extends Exception {
 
 
-    private ClasspathHelper() {
-        // no instances
+    public LoadException(String message) {
+        super(message);
     }
 
-    public static URL[] convertToURLs(String[] urlStrings) throws MalformedURLException {
-        URL[] urlList = new URL[urlStrings.length];
-
-        for (int i = 0; i < urlStrings.length; i++) {
-
-            URL url = new File(urlStrings[i]).toURI().toURL();
-
-            urlList[i] = url;
-        }
-
-        return urlList;
+    public LoadException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

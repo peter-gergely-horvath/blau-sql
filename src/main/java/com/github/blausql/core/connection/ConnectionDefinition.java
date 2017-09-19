@@ -45,8 +45,9 @@ public final class ConnectionDefinition {
     }
 
 
-    public ConnectionDefinition(ConnectionDefinition connectionDefinition) {
-        this(connectionDefinition.getConnectionName(),
+    public static ConnectionDefinition copyOf(ConnectionDefinition connectionDefinition) {
+        return new ConnectionDefinition(
+                connectionDefinition.getConnectionName(),
                 connectionDefinition.getDriverClassName(),
                 connectionDefinition.getJdbcUrl(),
                 connectionDefinition.getLoginAutomatically(),
