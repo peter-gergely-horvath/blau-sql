@@ -111,7 +111,10 @@ public final class WaitDialog extends Window {
 
                 }
             } catch (InterruptedException e) {
-                // stop task on Thread interrupt
+                // stop task on Thread interrupt and
+                // restore the interrupted status
+                Thread.currentThread().interrupt();
+
             }
         }
     }
