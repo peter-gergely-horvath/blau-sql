@@ -35,6 +35,26 @@ public final class ConnectionDefinitionRepository {
 
     private final PropertyStore connectionsPropertyStore = new PropertyStore(CONNECTIONS_PROPERTIES_FILE);
 
+    private static final Comparator<ConnectionDefinition> CONNECTION_DEFINITION_COMPARATOR =
+            new Comparator<ConnectionDefinition>() {
+
+                @Override
+                public int compare(ConnectionDefinition left, ConnectionDefinition right) {
+                    if (left == null || right == null) {
+                        return 0;
+                    }
+
+                    String leftConnectionName = left.getConnectionName();
+                    String rightConnectionName = right.getConnectionName();
+
+                    if (leftConnectionName == null || rightConnectionName == null) {
+                        return 0;
+                    }
+
+                    return leftConnectionName.compareTo(rightConnectionName);
+                }
+            };
+
     public static ConnectionDefinitionRepository getInstance() {
         return INSTANCE;
     }
@@ -71,7 +91,11 @@ public final class ConnectionDefinitionRepository {
                 propertyMapping.setValue(cd, value);
             }
 
-            return new ArrayList<>(map.values());
+            ArrayList<ConnectionDefinition> connectionDefinitions = new ArrayList<>(map.values());
+
+            Collections.sort(connectionDefinitions, CONNECTION_DEFINITION_COMPARATOR);
+
+            return connectionDefinitions;
 
         } catch (IOException e) {
             throw new LoadException("Failed to load connection definitions", e);
