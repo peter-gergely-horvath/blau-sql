@@ -52,8 +52,7 @@ final class SelectConnectionForQueryWindow extends SelectConnectionWindow {
                 return;
             }
 
-            ConnectionDefinition actualConnectionDefinition =
-                    ConnectionDefinition.copyOf(connectionDefinition);
+            ConnectionDefinition actualConnectionDefinition = new ConnectionDefinition(connectionDefinition);
 
             actualConnectionDefinition.setUserName(
                     credentialsDialog.getUserName());

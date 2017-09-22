@@ -55,7 +55,7 @@ final class PropertyStore {
         File containerDirectory = propertyFile.getParentFile();
         boolean createdParent = containerDirectory.mkdirs();
         if (!createdParent && !containerDirectory.exists()) {
-            throw new RuntimeException("Directory does not exist and could not be created: "
+            throw new IOException("Directory does not exist and could not be created: "
                     + containerDirectory.getAbsolutePath());
 
         }

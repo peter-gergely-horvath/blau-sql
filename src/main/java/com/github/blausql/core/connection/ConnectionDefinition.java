@@ -45,9 +45,13 @@ public final class ConnectionDefinition {
     }
 
 
-    public static ConnectionDefinition copyOf(ConnectionDefinition connectionDefinition) {
-        return new ConnectionDefinition(
-                connectionDefinition.getConnectionName(),
+    /**
+     * Copy constructor: constructs an object with the same field values as the parameter
+     *
+     * @param connectionDefinition the object to copy from, can <b>NOT</b> be {@code null}
+     */
+    public ConnectionDefinition(ConnectionDefinition connectionDefinition) {
+        this(connectionDefinition.getConnectionName(),
                 connectionDefinition.getDriverClassName(),
                 connectionDefinition.getJdbcUrl(),
                 connectionDefinition.getLoginAutomatically(),

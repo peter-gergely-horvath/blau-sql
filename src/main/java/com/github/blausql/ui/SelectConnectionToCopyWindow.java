@@ -32,7 +32,7 @@ final class SelectConnectionToCopyWindow extends SelectConnectionWindow {
     protected void onConnectionSelected(
             final ConnectionDefinition cd) {
 
-        ConnectionDefinition copyOfConnectionDefinition = ConnectionDefinition.copyOf(cd);
+        ConnectionDefinition copyOfConnectionDefinition = new ConnectionDefinition(cd);
 
         String connectionName = copyOfConnectionDefinition.getConnectionName();
 

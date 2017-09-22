@@ -17,8 +17,6 @@
  
 package com.github.blausql.core.classloader;
 
-import org.springframework.util.Assert;
-
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;

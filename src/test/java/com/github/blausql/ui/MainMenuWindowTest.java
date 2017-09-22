@@ -27,13 +27,11 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 
 import org.testng.annotations.Test;
 
-import java.io.IOException;
-
 import static org.testng.Assert.*;
 import static org.easymock.EasyMock.*;
 
 @PrepareForTest({ConfigurationRepository.class, ConfigurationRepository.class})
-public class MainMenuWindowTest extends BlauSQLTestCase {
+public class MainMenuWindowTest extends BlauSQLTestCaseBase {
 
 
     public static final String LINE_SEPARATOR = System.getProperty("line.separator");

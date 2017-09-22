@@ -35,7 +35,7 @@ import java.lang.reflect.Method;
 import static org.easymock.EasyMock.*;
 
 @PrepareForTest({com.github.blausql.Main.class, TerminalUI.class})
-public class BlauSQLTestCase extends PowerMockTestCase {
+public abstract class BlauSQLTestCaseBase extends PowerMockTestCase {
 
     private static final TerminalSize DEFAULT_TERMINAL_SIZE = new TerminalSize(80, 24);
 
