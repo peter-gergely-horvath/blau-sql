@@ -37,18 +37,47 @@ public final class WaitDialog extends Window {
 
     private final Label spinLabel;
 
-    private static final String[] SPIN_STEPS = new String[]{"-", "\\", "|", "-"};
+    //private static final String[] SPIN_STEPS = new String[]{"-", "\\", "|", "-"};
+    private static final String[] SPIN_STEPS = new String[] {
+            "[#     ]",
+            "[##    ]",
+            "[###   ]",
+            "[####  ]",
+            "[ #### ]",
+            "[  ####]",
+            "[   ###]",
+            "[    ##]",
+            "[     #]" };
 
     private final AtomicInteger currentSpinnerStepIndex = new AtomicInteger(0);
     private final AtomicBoolean isClosed = new AtomicBoolean(false);
 
     public WaitDialog(String title, String text) {
+        this(title, text, null);
+    }
+
+    public WaitDialog(String title, String text, final Action onCancel) {
         super(title);
         spinLabel = new Label(SPIN_STEPS[currentSpinnerStepIndex.get()]);
         final Panel panel = new Panel(Panel.Orientation.HORISONTAL);
         panel.addComponent(new Label(text));
         panel.addComponent(spinLabel);
+
+        if (onCancel != null) {
+            panel.addComponent(new Label("   "));
+
+            panel.addComponent(new ActionButton("Cancel",
+                    new Action() {
+                        @Override
+                        public void doAction() {
+                            WaitDialog.this.close();
+                            onCancel.doAction();
+                        }
+                    }));
+        }
+
         addComponent(panel);
+
     }
 
     @Override
