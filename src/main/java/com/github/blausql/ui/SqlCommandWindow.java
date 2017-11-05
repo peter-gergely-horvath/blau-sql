@@ -20,7 +20,7 @@ package com.github.blausql.ui;
 import com.github.blausql.TerminalUI;
 import com.github.blausql.core.connection.ConnectionDefinition;
 import com.github.blausql.core.connection.Database;
-import com.github.blausql.core.connection.Database.StatementResult;
+import com.github.blausql.core.connection.StatementResult;
 import com.github.blausql.ui.util.BackgroundWorker;
 import com.googlecode.lanterna.gui.Action;
 import com.googlecode.lanterna.gui.Border;
