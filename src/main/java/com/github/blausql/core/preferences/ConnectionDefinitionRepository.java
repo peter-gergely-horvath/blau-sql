@@ -44,6 +44,14 @@ public final class ConnectionDefinitionRepository {
                         return 0;
                     }
 
+                    // If order is provided, sort them accordingly;
+                    // otherwise, sort based on names
+                    Integer leftOrder = left.getOrder();
+                    Integer rightOrder = right.getOrder();
+                    if (leftOrder != null && rightOrder != null) {
+                        return leftOrder.compareTo(rightOrder);
+                    }
+
                     String leftConnectionName = left.getConnectionName();
                     String rightConnectionName = right.getConnectionName();
 
@@ -82,7 +90,7 @@ public final class ConnectionDefinitionRepository {
 
                 ConnectionDefinition cd = map.get(connectionDefinitionName);
                 if (cd == null) {
-                    cd = new ConnectionDefinition(connectionDefinitionName, null, null, false, null, null);
+                    cd = new ConnectionDefinition(connectionDefinitionName, null, null, false, null, null, null, null);
                     map.put(connectionDefinitionName, cd);
                 }
 
@@ -103,7 +111,29 @@ public final class ConnectionDefinitionRepository {
 
     }
 
-    public void saveConnectionDefinition(ConnectionDefinition cd) {
+    public void saveConnectionDefinition(ConnectionDefinition cd) throws SaveException {
+
+        Character hotkey = cd.getHotkey();
+        if (hotkey != null) {
+            List<ConnectionDefinition> existingConnectionDefinitions;
+            try {
+                existingConnectionDefinitions = getConnectionDefinitions();
+            } catch (LoadException e) {
+                existingConnectionDefinitions = Collections.emptyList();
+            }
+
+            for(ConnectionDefinition existingConnectionDefinition : existingConnectionDefinitions) {
+                if (!Objects.equals(existingConnectionDefinition.getConnectionName(), cd.getConnectionName())) {
+                    if(Objects.equals(
+                            Character.toUpperCase(hotkey),
+                            Character.toUpperCase(existingConnectionDefinition.getHotkey()))) {
+
+                        String connectionName = existingConnectionDefinition.getConnectionName();
+                        throw new SaveException("Hotkey '" + hotkey + "' is already used by: " + connectionName);
+                    }
+                }
+            }
+        }
 
         try {
             Properties properties = connectionsPropertyStore.loadProperties();
@@ -114,7 +144,7 @@ public final class ConnectionDefinitionRepository {
 
             connectionsPropertyStore.persistProperties(properties);
         } catch (IOException e) {
-            throw new RuntimeException("Failed to save connection definition", e);
+            throw new SaveException("Failed to save connection definition", e);
         }
 
     }
@@ -221,7 +251,58 @@ public final class ConnectionDefinitionRepository {
                 cd.setPassword(value);
 
             }
-        };
+        },
+        hotkey {
+            @Override
+            String getValue(ConnectionDefinition cd) {
+                Character hotkey = cd.getHotkey();
+                String stringRepresentation;
+                if(hotkey != null) {
+                    stringRepresentation = new String(new char[] { hotkey });
+                } else {
+                    stringRepresentation = "";
+                }
+                return stringRepresentation;
+            }
+
+            @Override
+            void setValue(ConnectionDefinition cd, String value) {
+                if (value != null && value.trim().length() == 1) {
+                    char hotkeyChar = value.charAt(0);
+                    cd.setHotkey(hotkeyChar);
+                } else {
+                    cd.setHotkey(null);
+                }
+            }
+        },
+        order {
+            @Override
+            String getValue(ConnectionDefinition cd) {
+                Integer order = cd.getOrder();
+                if (order != null) {
+                    return order.toString();
+                } else {
+                    return "";
+                }
+            }
+
+            @Override
+            void setValue(ConnectionDefinition cd, String value) {
+                if (value == null || value.trim().isEmpty()) {
+                    cd.setOrder(null);
+                } else {
+                    try {
+                        int parsedIntValue = Integer.parseInt(value.trim());
+                        cd.setOrder(parsedIntValue);
+
+                    } catch (NumberFormatException nfe) {
+                        throw new RuntimeException("Could not map value '" + value + "' to Integer", nfe);
+                    }
+                }
+            }
+        }
+
+        ;
 
         private String getQualifiedUniquePropertyName(ConnectionDefinition cd) {
             return String.format("%s.%s", cd.getConnectionName(), PropertyMapping.this.name());

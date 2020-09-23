@@ -34,11 +34,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 abstract class SelectConnectionWindow extends CloseOnEscapeKeyPressWindow {
 
-    private static final ImmutableList<Character> HOTKEY_CHARACTERS = ImmutableList.<Character>builder().add(
-            '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
-    ).build();
-
-
     private final Map<Character, ConnectionDefinition> hotKeyMap = new ConcurrentHashMap<>();
 
     SelectConnectionWindow(String title, List<ConnectionDefinition> connectionDefinitions) {
@@ -55,21 +50,18 @@ abstract class SelectConnectionWindow extends CloseOnEscapeKeyPressWindow {
 
 
         if (connectionDefinitions.isEmpty()) {
-            addComponent(new Label("(no connections defined)"));
+            addComponent(new Label("No connections defined"));
+            addComponent(new Label("Go to Manage Connections menu and define connections first!"));
         } else {
-
-            int index = 0;
 
             for (final ConnectionDefinition connectionDefinition : connectionDefinitions) {
                 String connectionName;
 
-                if (index < HOTKEY_CHARACTERS.size()) {
-                    Character hotkeyChar = HOTKEY_CHARACTERS.get(index++);
+                Character hotkey = connectionDefinition.getHotkey();
+                if (hotkey != null) {
+                    connectionName = String.format("[%s] %s", hotkey, connectionDefinition.getConnectionName());
 
-                    connectionName = String.format("[%s] %s", hotkeyChar, connectionDefinition.getConnectionName());
-
-                    hotKeyMap.put(hotkeyChar, connectionDefinition);
-
+                    hotKeyMap.put(hotkey, connectionDefinition);
                 } else {
                     connectionName = connectionDefinition.getConnectionName();
                 }
@@ -95,7 +87,11 @@ abstract class SelectConnectionWindow extends CloseOnEscapeKeyPressWindow {
             if (keyKind == Key.Kind.NormalKey) {
                 final char characterKey = key.getCharacter();
 
-                ConnectionDefinition connectionDefinition = hotKeyMap.get(characterKey);
+                ConnectionDefinition connectionDefinition = hotKeyMap.get(Character.toUpperCase(characterKey));
+                if (connectionDefinition == null) {
+                    connectionDefinition = hotKeyMap.get(Character.toLowerCase(characterKey));
+                }
+
                 if (connectionDefinition != null) {
                     SelectConnectionWindow.this.onConnectionSelected(connectionDefinition);
                 }

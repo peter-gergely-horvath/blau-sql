@@ -52,6 +52,8 @@ public final class ConnectionSettingsWindow extends Window {
     private static final int JDBC_URL_BOX_LEN = 150;
     private static final int USERNAME_BOX_LEN = 50;
     private static final int PASSWORD_BOX_LEN = 40;
+    private static final int HOTKEY_BOX_LEN = 4;
+    private static final int ORDER_BOX_LEN = 5;
 
     private final Mode dialogMode;
 
@@ -63,6 +65,9 @@ public final class ConnectionSettingsWindow extends Window {
 
     private final TextBox userNameTextBox;
     private final PasswordBox passwordPasswordBox;
+
+    private final TextBox hotkeyTextBox;
+    private final TextBox orderTextBox;
 
     private final String originalNameOfExistingConnectionDefinition;
 
@@ -123,6 +128,27 @@ public final class ConnectionSettingsWindow extends Window {
         passwordPasswordBox = new PasswordBox(cd != null ? cd.getPassword() : null, PASSWORD_BOX_LEN);
         addComponent(passwordPasswordBox);
 
+        addComponent(new Label("HotKey to select this connection (ONE character, optional):"));
+        String hotkeyString;
+        if (cd != null && cd.getHotkey() != null) {
+            Character hotkey = cd.getHotkey();
+            hotkeyString = new String(new char[] { hotkey });
+        } else {
+            hotkeyString = null;
+        }
+        hotkeyTextBox = new TextBox(hotkeyString, HOTKEY_BOX_LEN);
+        addComponent(hotkeyTextBox);
+
+        addComponent(new Label("Number for ordering in list (number, optional):"));
+        String orderText;
+        if (cd != null && cd.getOrder() != null) {
+            orderText = cd.getOrder().toString();
+        } else {
+            orderText = null;
+        }
+        orderTextBox = new TextBox(orderText, ORDER_BOX_LEN);
+        addComponent(orderTextBox);
+
         addComponent(new Button("SAVE CONNECTION", onSaveConnectionButtonSelectedAction));
     }
     //CHECKSTYLE.ON
@@ -144,6 +170,30 @@ public final class ConnectionSettingsWindow extends Window {
             final String userName = userNameTextBox.getText();
             final String password = passwordPasswordBox.getText();
 
+            final String hotkeyString = hotkeyTextBox.getText();
+            final Character hotkey;
+            if (hotkeyString.trim().isEmpty()) {
+                hotkey = null;
+            } else {
+                final int aSingleCharacterLengthString = 1;
+                if (hotkeyString.trim().length() == aSingleCharacterLengthString) {
+                    hotkey = hotkeyString.charAt(0);
+                } else {
+                    throw new IllegalArgumentException("The Hotkey must be one character long");
+                }
+            }
+
+            final String orderString = orderTextBox.getText();
+            final Integer order;
+            try {
+                if (orderString.trim().isEmpty()) {
+                    order = null;
+                } else {
+                    order = Integer.parseInt(orderString.trim());
+                }
+            } catch (NumberFormatException nfe) {
+                throw new IllegalArgumentException("Order can only be a number");
+            }
 
             ConnectionDefinition connectionDefinition = new ConnectionDefinition(
                     connectionName,
@@ -151,7 +201,9 @@ public final class ConnectionSettingsWindow extends Window {
                     jdbcUrl,
                     loginAutomatically,
                     userName,
-                    password);
+                    password,
+                    hotkey,
+                    order);
 
             switch (dialogMode) {
 
@@ -176,20 +228,19 @@ public final class ConnectionSettingsWindow extends Window {
 
     }
 
-    private void updateConnectionDefinition(ConnectionDefinition connectionDefinitionToUpdate) {
+    private void updateConnectionDefinition(ConnectionDefinition connectionDefinitionToUpdate) throws SaveException {
         String connectionName = connectionDefinitionToUpdate.getConnectionName();
 
+        // In this setup, connection name is the primary key:
+        // we can handle renames, but we have to implement it as delete-then-save
         final boolean nameChanged = !Objects.equals(connectionName, originalNameOfExistingConnectionDefinition);
-
-        ConnectionDefinitionRepository.getInstance()
-                .saveConnectionDefinition(connectionDefinitionToUpdate);
-
         if (nameChanged) {
             ConnectionDefinitionRepository.getInstance()
                     .deleteConnectionDefinitionByName(originalNameOfExistingConnectionDefinition);
         }
 
-
+        ConnectionDefinitionRepository.getInstance()
+                .saveConnectionDefinition(connectionDefinitionToUpdate);
     }
 
     private void saveConnectionDefinition(ConnectionDefinition connectionDefinitionToSave) throws SaveException {

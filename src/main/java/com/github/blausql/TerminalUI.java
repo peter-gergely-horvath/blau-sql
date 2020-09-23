@@ -30,7 +30,10 @@ import com.googlecode.lanterna.gui.dialog.DialogResult;
 import com.googlecode.lanterna.gui.dialog.MessageBox;
 import com.googlecode.lanterna.terminal.TerminalSize;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.sql.SQLException;
+import java.util.LinkedList;
 
 //CHECKSTYLE.OFF: FinalClass: must be extensible for the testing frameworks
 public class TerminalUI {
@@ -73,10 +76,24 @@ public class TerminalUI {
                 sb.append(rootCauseMessage);
             } else {
                 Throwable t = throwable;
+                LinkedList<String> messages = new LinkedList<>();
                 while (t != null) {
-                    sb.append(": ").append(extractMessageFrom(t));
+                    String extractedMessage = extractMessageFrom(t);
+                    if (!extractedMessage.isEmpty()) {
+                        if (sb.length() > 0) {
+                            sb.append(": ");
+                        }
+                        sb.append(extractedMessage);
+                    }
                     t = t.getCause();
                 }
+
+                StringWriter stringWriter = new StringWriter();
+                try (PrintWriter pw = new PrintWriter(stringWriter)) {
+                    rootCause.printStackTrace(pw);
+                }
+                String fullStackTrace = stringWriter.toString();
+                sb.append(fullStackTrace);
             }
         }
 

@@ -22,10 +22,9 @@ import com.github.blausql.core.connection.ConnectionDefinition;
 import com.github.blausql.core.connection.Database;
 import com.github.blausql.core.connection.StatementResult;
 import com.github.blausql.ui.util.BackgroundWorker;
-import com.googlecode.lanterna.gui.Action;
 import com.googlecode.lanterna.gui.Border;
+import com.googlecode.lanterna.gui.Interactable;
 import com.googlecode.lanterna.gui.Window;
-import com.googlecode.lanterna.gui.component.Button;
 import com.googlecode.lanterna.gui.component.EditArea;
 import com.googlecode.lanterna.gui.component.Label;
 import com.googlecode.lanterna.gui.component.Panel;
@@ -33,6 +32,7 @@ import com.googlecode.lanterna.input.Key;
 import com.googlecode.lanterna.input.Key.Kind;
 import com.googlecode.lanterna.terminal.TerminalSize;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -41,53 +41,82 @@ final class SqlCommandWindow extends Window {
     private final EditArea sqlEditArea;
     private final String connectionName;
 
+    private final Map<Character, String> clipboards = new HashMap<>();
+
+    private final class SqlEditArea extends EditArea {
+
+        private SqlEditArea(TerminalSize terminalSize) {
+            super(terminalSize);
+        }
+
+        public Interactable.Result keyboardInteraction(Key key) {
+            if (key.getKind() == Kind.Tab) {
+                // Turn a TAB into 4 characters
+                Key spaceCharacter = new Key(' ');
+
+                super.keyboardInteraction(spaceCharacter);
+                super.keyboardInteraction(spaceCharacter);
+                super.keyboardInteraction(spaceCharacter);
+                return super.keyboardInteraction(spaceCharacter);
+
+            } else if (Kind.NormalKey.equals(key.getKind())
+                    && (key.getCharacter() == 'L' || key.getCharacter() == 'l')
+                    && key.isCtrlPressed()) {
+
+                String data = this.getData();
+                if (data != null) {
+                    int length = data.length();
+                    // A messy work-around for a framework bug, where
+                    // simply setting the data to empty string
+                    // causes the EditArea to fail to detect changes.
+                    for(int i=0; i<length; i++) {
+                        super.keyboardInteraction(new Key(Kind.Backspace));
+                    }
+                }
+
+                return super.keyboardInteraction(new Key(Kind.Backspace));
+            }
+
+            return super.keyboardInteraction(key);
+        }
+    }
 
     SqlCommandWindow(ConnectionDefinition connectionDefinition) {
         super(connectionDefinition.getConnectionName());
 
         connectionName = connectionDefinition.getConnectionName();
 
-        Panel bottomPanel = new Panel(new Border.Bevel(true),
-                Panel.Orientation.HORISONTAL);
-        Panel verticalPanel = new Panel(new Border.Invisible(),
-                Panel.Orientation.VERTICAL);
+        Panel bottomPanel = new Panel(new Border.Invisible(), Panel.Orientation.HORISONTAL);
 
-        bottomPanel.addComponent(new Label(">>> Press TAB >>>"));
-
-        bottomPanel.addComponent(new Button("Execute Query (CTRL+E)", onExecuteSqlButtonSelectedAction));
-        bottomPanel.addComponent(new Button("Close connection (ESC)", onCloseConnectionButtonSelectedAction));
+        bottomPanel.addComponent(new Label("< Execute(CTRL+E) >"));
+        bottomPanel.addComponent(new Label("< Clear(CTRL+L) >"));
+        bottomPanel.addComponent(new Label("< History(CTRL+H) >"));
+        bottomPanel.addComponent(new Label("< Exit(ESC) >"));
 
         TerminalSize screenTerminalSize = TerminalUI.getTerminalSize();
 
         final int sqlEditorPanelColumns = screenTerminalSize.getColumns() - 4;
-        final int sqlEditorPanelRows = screenTerminalSize.getRows() - 4;
+        final int sqlEditorPanelRows = screenTerminalSize.getRows() - 2;
 
-        sqlEditArea = new EditArea(new TerminalSize(sqlEditorPanelColumns,
-                sqlEditorPanelRows));
-        verticalPanel.addComponent(sqlEditArea);
+        sqlEditArea = new SqlEditArea(new TerminalSize(sqlEditorPanelColumns, sqlEditorPanelRows));
 
-        verticalPanel.addComponent(bottomPanel);
-
-        addComponent(verticalPanel);
+        addComponent(sqlEditArea);
+        addComponent(bottomPanel);
     }
 
-    private final Action onExecuteSqlButtonSelectedAction = new Action() {
+    private void executeQuery() {
+        executeQuery(sqlEditArea.getData());
+    }
 
-        public void doAction() {
-            executeQuery(sqlEditArea.getData());
+    private void clearBuffer() {
+        sqlEditArea.setData("");
+    }
 
-        }
-    };
+    private void closeWindow() {
+        Database.getInstance().disconnect();
 
-    private final Action onCloseConnectionButtonSelectedAction = new Action() {
-
-        public void doAction() {
-            Database.getInstance().disconnect();
-
-            SqlCommandWindow.this.close();
-        }
-
-    };
+        SqlCommandWindow.this.close();
+    }
 
     public void onKeyPressed(Key key) {
 
@@ -95,17 +124,32 @@ final class SqlCommandWindow extends Window {
                 && (key.getCharacter() == 'E' || key.getCharacter() == 'e')
                 && key.isCtrlPressed()) {
 
-            executeQuery(sqlEditArea.getData());
+            executeQuery();
+
+        } else if (Kind.NormalKey.equals(key.getKind())
+                && (key.getCharacter() == 'H' || key.getCharacter() == 'h')
+                && key.isCtrlPressed()) {
+
+            showHistory();
 
         } else if (Kind.Escape.equals(key.getKind())) {
 
-            Database.getInstance().disconnect();
+            closeWindow();
 
-            this.close();
+        } else if (key.isCtrlPressed() && Kind.F1.equals(key.getKind())) {
+            char clipboardSelector = key.getKind().getRepresentationKey();
+
+            clipboards.put(clipboardSelector, sqlEditArea.getData());
+
+
 
         } else {
             super.onKeyPressed(key);
         }
+    }
+
+    private void showHistory() {
+        TerminalUI.showWindowCenter(new SqlHistoryWindow());
     }
 
     private void executeQuery(final String sqlCommand) {

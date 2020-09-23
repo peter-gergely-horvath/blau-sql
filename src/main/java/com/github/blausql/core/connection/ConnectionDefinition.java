@@ -18,6 +18,8 @@
 package com.github.blausql.core.connection;
 
 
+import java.util.Objects;
+
 public final class ConnectionDefinition {
 
     private String connectionName;
@@ -26,6 +28,8 @@ public final class ConnectionDefinition {
     private boolean loginAutomatically;
     private String userName;
     private String password;
+    private Character hotkey;
+    private Integer order;
 
 
     public ConnectionDefinition(
@@ -34,7 +38,9 @@ public final class ConnectionDefinition {
             String jdbcUrl,
             boolean loginAutomatically,
             String userName,
-            String password) {
+            String password,
+            Character hotkey,
+            Integer order) {
 
         this.connectionName = connectionName;
         this.driverClassName = driverClassName;
@@ -42,6 +48,8 @@ public final class ConnectionDefinition {
         this.loginAutomatically = loginAutomatically;
         this.userName = userName;
         this.password = password;
+        this.hotkey = hotkey;
+        this.order = order;
     }
 
 
@@ -56,7 +64,9 @@ public final class ConnectionDefinition {
                 connectionDefinition.getJdbcUrl(),
                 connectionDefinition.getLoginAutomatically(),
                 connectionDefinition.getUserName(),
-                connectionDefinition.getPassword());
+                connectionDefinition.getPassword(),
+                connectionDefinition.getHotkey(),
+                connectionDefinition.getOrder());
     }
 
 
@@ -119,78 +129,58 @@ public final class ConnectionDefinition {
         this.password = password;
     }
 
-    //CHECKSTYLE.OFF: AvoidInlineConditionals|MagicNumber: IDE generated hashCode() implementation
+    public Character getHotkey() {
+        return hotkey;
+    }
+
+    public void setHotkey(Character hotkey) {
+        this.hotkey = hotkey;
+    }
+
+    public Integer getOrder() {
+        return order;
+    }
+
+    public void setOrder(Integer order) {
+        this.order = order;
+    }
+
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result
-                + ((connectionName == null) ? 0 : connectionName.hashCode());
-        result = prime * result
-                + ((driverClassName == null) ? 0 : driverClassName.hashCode());
-        result = prime * result + ((jdbcUrl == null) ? 0 : jdbcUrl.hashCode());
-        result = prime * result + (loginAutomatically ? 1231 : 1237);
-        result = prime * result
-                + ((password == null) ? 0 : password.hashCode());
-        result = prime * result
-                + ((userName == null) ? 0 : userName.hashCode());
-        return result;
+        return Objects.hash(connectionName, driverClassName, jdbcUrl, loginAutomatically,
+                userName, password, hotkey, order);
     }
-    //CHECKSTYLE.ON
 
 
     //CHECKSTYLE.OFF: NeedBraces: IDE generated hashCode() implementation
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        ConnectionDefinition other = (ConnectionDefinition) obj;
-        if (connectionName == null) {
-            if (other.connectionName != null)
-                return false;
-        } else if (!connectionName.equals(other.connectionName))
-            return false;
-        if (driverClassName == null) {
-            if (other.driverClassName != null)
-                return false;
-        } else if (!driverClassName.equals(other.driverClassName))
-            return false;
-        if (jdbcUrl == null) {
-            if (other.jdbcUrl != null)
-                return false;
-        } else if (!jdbcUrl.equals(other.jdbcUrl))
-            return false;
-        if (loginAutomatically != other.loginAutomatically)
-            return false;
-        if (password == null) {
-            if (other.password != null)
-                return false;
-        } else if (!password.equals(other.password))
-            return false;
-        if (userName == null) {
-            if (other.userName != null)
-                return false;
-        } else if (!userName.equals(other.userName))
-            return false;
-        return true;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ConnectionDefinition that = (ConnectionDefinition) o;
+        return loginAutomatically == that.loginAutomatically &&
+                Objects.equals(connectionName, that.connectionName) &&
+                Objects.equals(driverClassName, that.driverClassName) &&
+                Objects.equals(jdbcUrl, that.jdbcUrl) &&
+                Objects.equals(userName, that.userName) &&
+                Objects.equals(password, that.password) &&
+                Objects.equals(hotkey, that.hotkey) &&
+                Objects.equals(order, that.order);
     }
     //CHECKSTYLE.ON
 
 
-
     @Override
     public String toString() {
-        return new StringBuilder()
-                .append("ConnectionDefinition [connectionName=")
-                .append(connectionName).append(", driverClassName=")
-                .append(driverClassName).append(", jdbcUrl=").append(jdbcUrl)
-                .append(", loginAutomatically=").append(loginAutomatically)
-                .append(", userName=").append(userName).append(", password=")
-                .append(password).append("]")
-                .toString();
+        return "ConnectionDefinition{" +
+                "connectionName='" + connectionName + '\'' +
+                ", driverClassName='" + driverClassName + '\'' +
+                ", jdbcUrl='" + jdbcUrl + '\'' +
+                ", loginAutomatically=" + loginAutomatically +
+                ", userName='" + userName + '\'' +
+                ", password='" + password + '\'' +
+                ", hotkey=" + hotkey +
+                ", order=" + order +
+                '}';
     }
 }
