@@ -21,7 +21,11 @@ import com.github.blausql.TerminalUI;
 import com.github.blausql.core.connection.ConnectionDefinition;
 import com.github.blausql.core.connection.Database;
 import com.github.blausql.core.connection.StatementResult;
+import com.github.blausql.core.sqlfile.SqlFile;
+import com.github.blausql.core.sqlfile.SqlFileRepository;
+import com.github.blausql.core.util.ExceptionUtils;
 import com.github.blausql.ui.util.BackgroundWorker;
+import com.googlecode.lanterna.gui.Action;
 import com.googlecode.lanterna.gui.Border;
 import com.googlecode.lanterna.gui.Interactable;
 import com.googlecode.lanterna.gui.Window;
@@ -32,21 +36,24 @@ import com.googlecode.lanterna.input.Key;
 import com.googlecode.lanterna.input.Key.Kind;
 import com.googlecode.lanterna.terminal.TerminalSize;
 
-import java.util.HashMap;
+import java.io.InterruptedIOException;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 final class SqlCommandWindow extends Window {
 
-    private final EditArea sqlEditArea;
+    private EditArea sqlEditArea;
     private final String connectionName;
 
-    private final Map<Character, String> clipboards = new HashMap<>();
+    private SqlFileRepository sqlFileRepository = SqlFileRepository.getInstance();
+    private Database database = Database.getInstance();
 
     private final class SqlEditArea extends EditArea {
 
-        private SqlEditArea(TerminalSize terminalSize) {
-            super(terminalSize);
+        private SqlEditArea(TerminalSize terminalSize, String text) {
+            super(terminalSize, text);
         }
 
         public Interactable.Result keyboardInteraction(Key key) {
@@ -60,18 +67,12 @@ final class SqlCommandWindow extends Window {
                 return super.keyboardInteraction(spaceCharacter);
 
             } else if (Kind.NormalKey.equals(key.getKind())
-                    && (key.getCharacter() == 'L' || key.getCharacter() == 'l')
+                    && Character.toUpperCase(key.getCharacter()) == 'R'
                     && key.isCtrlPressed()) {
 
                 String data = this.getData();
                 if (data != null) {
-                    int length = data.length();
-                    // A messy work-around for a framework bug, where
-                    // simply setting the data to empty string
-                    // causes the EditArea to fail to detect changes.
-                    for(int i=0; i<length; i++) {
-                        super.keyboardInteraction(new Key(Kind.Backspace));
-                    }
+                    setEditorContent(" ");
                 }
 
                 return super.keyboardInteraction(new Key(Kind.Backspace));
@@ -86,11 +87,16 @@ final class SqlCommandWindow extends Window {
 
         connectionName = connectionDefinition.getConnectionName();
 
+        initComponents("");
+    }
+
+    private void initComponents(String text) {
         Panel bottomPanel = new Panel(new Border.Invisible(), Panel.Orientation.HORISONTAL);
 
         bottomPanel.addComponent(new Label("< Execute(CTRL+E) >"));
-        bottomPanel.addComponent(new Label("< Clear(CTRL+L) >"));
-        bottomPanel.addComponent(new Label("< History(CTRL+H) >"));
+        bottomPanel.addComponent(new Label("< Clear(CTRL+R) >"));
+        bottomPanel.addComponent(new Label("< Save(CTRL+S) >"));
+        bottomPanel.addComponent(new Label("< Load(CTRL+L) >"));
         bottomPanel.addComponent(new Label("< Exit(ESC) >"));
 
         TerminalSize screenTerminalSize = TerminalUI.getTerminalSize();
@@ -98,9 +104,10 @@ final class SqlCommandWindow extends Window {
         final int sqlEditorPanelColumns = screenTerminalSize.getColumns() - 4;
         final int sqlEditorPanelRows = screenTerminalSize.getRows() - 2;
 
-        sqlEditArea = new SqlEditArea(new TerminalSize(sqlEditorPanelColumns, sqlEditorPanelRows));
+        sqlEditArea = new SqlEditArea(new TerminalSize(sqlEditorPanelColumns, sqlEditorPanelRows), text);
 
         addComponent(sqlEditArea);
+
         addComponent(bottomPanel);
     }
 
@@ -108,12 +115,8 @@ final class SqlCommandWindow extends Window {
         executeQuery(sqlEditArea.getData());
     }
 
-    private void clearBuffer() {
-        sqlEditArea.setData("");
-    }
-
     private void closeWindow() {
-        Database.getInstance().disconnect();
+        database.disconnect();
 
         SqlCommandWindow.this.close();
     }
@@ -121,82 +124,166 @@ final class SqlCommandWindow extends Window {
     public void onKeyPressed(Key key) {
 
         if (Kind.NormalKey.equals(key.getKind())
-                && (key.getCharacter() == 'E' || key.getCharacter() == 'e')
+                && Character.toUpperCase(key.getCharacter()) == 'E'
                 && key.isCtrlPressed()) {
 
             executeQuery();
 
         } else if (Kind.NormalKey.equals(key.getKind())
-                && (key.getCharacter() == 'H' || key.getCharacter() == 'h')
+                && Character.toUpperCase(key.getCharacter()) == 'S'
                 && key.isCtrlPressed()) {
 
-            showHistory();
+            saveSqlFile();
+
+        } else if (Kind.NormalKey.equals(key.getKind())
+                && Character.toUpperCase(key.getCharacter()) == 'L'
+                && key.isCtrlPressed()) {
+
+            selectSqlFileToLoad();
 
         } else if (Kind.Escape.equals(key.getKind())) {
 
             closeWindow();
-
-        } else if (key.isCtrlPressed() && Kind.F1.equals(key.getKind())) {
-            char clipboardSelector = key.getKind().getRepresentationKey();
-
-            clipboards.put(clipboardSelector, sqlEditArea.getData());
-
-
 
         } else {
             super.onKeyPressed(key);
         }
     }
 
-    private void showHistory() {
-        TerminalUI.showWindowCenter(new SqlHistoryWindow());
+    private void saveSqlFile() {
+        String fileName = TerminalUI.showTextInputDialog("Save as Bookmark",
+                "Please enter the name for this SQL bookmark", "", 0);
+
+        if (fileName != null) {
+            String sqlContent = sqlEditArea.getData();
+
+            saveSqlFile(fileName, sqlContent);
+        }
+    }
+
+    private void saveSqlFile(final String fileName, final String sqlContent) {
+
+        try {
+            String sqlFileName = fileName;
+
+            if (!sqlFileName.toLowerCase(Locale.ENGLISH).endsWith(".sql")) {
+                sqlFileName = sqlFileName + ".sql";
+            }
+
+            SqlFile sqlFile = new SqlFile(sqlFileName, sqlContent);
+
+            this.sqlFileRepository.saveSqlFile(sqlFile);
+
+        } catch (RuntimeException e) {
+            TerminalUI.showErrorMessageFromThrowable(e);
+        }
+    }
+
+    private void selectSqlFileToLoad() {
+
+        List<String> fileNames = SqlFileRepository.getInstance().listSqlFileNames();
+
+        TerminalUI.showWindowCenter(new ListSelectorWindow<String>(
+                "Select bookmarked SQL to load",
+                "No bookmarkfound",
+                fileNames) {
+
+            @Override
+            protected void onEntrySelected(String fileName) {
+
+                try {
+                    final String content =
+                            SqlCommandWindow.this.sqlFileRepository.getFileContentBySqlFileName(fileName);
+
+                    setEditorContent(content);
+
+                } catch (RuntimeException e) {
+                    TerminalUI.showErrorMessageFromThrowable(e);
+                }
+            }
+        });
+    }
+
+    private void setEditorContent(String content) {
+        removeAllComponents();
+
+        initComponents(content);
     }
 
     private void executeQuery(final String sqlCommand) {
 
+        final AtomicReference<BackgroundWorker<?>> backgroundWorkerReference = new AtomicReference<>();
+
         final Window showWaitDialog = TerminalUI.showWaitDialog("Please wait",
-                String.format("Executing statement against %s ...", connectionName));
+                String.format("Executing statement against %s ...", connectionName), new Action() {
+                    @Override
+                    public void doAction() {
+                        BackgroundWorker<?> backgroundWorker = backgroundWorkerReference.get();
+                        if (backgroundWorker != null) {
+                            backgroundWorker.cancel();
+                        }
+                    }
+                });
 
-        new BackgroundWorker<StatementResult>() {
+        BackgroundWorker<StatementResult> statementExecutorBackgroundWorker =
+                getStatementExecutorBackgroundWorker(sqlCommand, showWaitDialog);
 
-            @Override
-            protected StatementResult doBackgroundTask() {
-                return Database.getInstance().executeStatement(sqlCommand);
-            }
+        backgroundWorkerReference.set(statementExecutorBackgroundWorker);
 
-            @Override
-            protected void onBackgroundTaskFailed(Throwable t) {
-                showWaitDialog.close();
-                TerminalUI.showErrorMessageFromThrowable(t);
-                setFocus(sqlEditArea);
+        statementExecutorBackgroundWorker.start();
 
-            }
+    }
 
-            @Override
-            protected void onBackgroundTaskCompleted(StatementResult statementResult) {
+    private BackgroundWorker<StatementResult> getStatementExecutorBackgroundWorker(
+            final String sqlCommand, final Window showWaitDialog) {
 
-                showWaitDialog.close();
+        return new BackgroundWorker<StatementResult>() {
 
-                setFocus(sqlEditArea);
+                @Override
+                protected StatementResult doBackgroundTask() {
+                    TerminalSize terminalSize = TerminalUI.getTerminalSize();
+                    int limit = terminalSize.getRows() - 2;
 
-                if (statementResult.isResultSet()) {
-
-                    final List<Map<String, Object>> queryResult = statementResult.getQueryResult();
-
-                    TerminalUI.showWindowFullScreen(new QueryResultWindow(queryResult));
-
-                } else {
-
-                    final int updateCount = statementResult.getUpdateCount();
-
-                    final String message = String.format("%s row(s) changed", updateCount);
-
-                    TerminalUI.showMessageBox("Statement executed", message);
-
+                    return database.executeStatement(sqlCommand, limit);
                 }
-            }
-        }.start();
 
+                @Override
+                protected void onBackgroundTaskFailed(Throwable t) {
+                    showWaitDialog.close();
+
+                    if (ExceptionUtils.causesContainAnyType(t,
+                            new Class[]{InterruptedException.class, InterruptedIOException.class})) {
+
+                        TerminalUI.showMessageBox("Interrupted",
+                                "The statement was aborted. \n"
+                                        + "You might have to re-connect before you can run a new one.");
+                    } else {
+                        TerminalUI.showErrorMessageFromThrowable(t);
+                    }
+                    setFocus(sqlEditArea);
+                }
+
+                @Override
+                protected void onBackgroundTaskCompleted(StatementResult statementResult) {
+                    showWaitDialog.close();
+
+                    setFocus(sqlEditArea);
+
+                    if (statementResult.isResultSet()) {
+
+                        final List<Map<String, Object>> queryResult = statementResult.getQueryResult();
+
+                        TerminalUI.showWindowFullScreen(new QueryResultWindow(queryResult));
+                    } else {
+
+                        final int updateCount = statementResult.getUpdateCount();
+
+                        final String message = String.format("%s row(s) changed", updateCount);
+
+                        TerminalUI.showMessageBox("Statement executed", message);
+                    }
+                }
+            };
     }
 
 }

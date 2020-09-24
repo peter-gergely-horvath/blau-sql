@@ -158,29 +158,29 @@ public final class ConnectionDefinition {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ConnectionDefinition that = (ConnectionDefinition) o;
-        return loginAutomatically == that.loginAutomatically &&
-                Objects.equals(connectionName, that.connectionName) &&
-                Objects.equals(driverClassName, that.driverClassName) &&
-                Objects.equals(jdbcUrl, that.jdbcUrl) &&
-                Objects.equals(userName, that.userName) &&
-                Objects.equals(password, that.password) &&
-                Objects.equals(hotkey, that.hotkey) &&
-                Objects.equals(order, that.order);
+        return loginAutomatically == that.loginAutomatically
+                && Objects.equals(connectionName, that.connectionName)
+                && Objects.equals(driverClassName, that.driverClassName)
+                && Objects.equals(jdbcUrl, that.jdbcUrl)
+                && Objects.equals(userName, that.userName)
+                && Objects.equals(password, that.password)
+                && Objects.equals(hotkey, that.hotkey)
+                && Objects.equals(order, that.order);
     }
     //CHECKSTYLE.ON
 
 
     @Override
     public String toString() {
-        return "ConnectionDefinition{" +
-                "connectionName='" + connectionName + '\'' +
-                ", driverClassName='" + driverClassName + '\'' +
-                ", jdbcUrl='" + jdbcUrl + '\'' +
-                ", loginAutomatically=" + loginAutomatically +
-                ", userName='" + userName + '\'' +
-                ", password='" + password + '\'' +
-                ", hotkey=" + hotkey +
-                ", order=" + order +
-                '}';
+        return "ConnectionDefinition{"
+                + "connectionName='" + connectionName + '\''
+                + ", driverClassName='" + driverClassName + '\''
+                + ", jdbcUrl='" + jdbcUrl + '\''
+                + ", loginAutomatically=" + loginAutomatically
+                + ", userName='" + userName + '\''
+                + ", password='" + password + '\''
+                + ", hotkey=" + hotkey
+                + ", order=" + order
+                + '}';
     }
 }

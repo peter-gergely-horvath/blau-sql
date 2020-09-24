@@ -19,7 +19,6 @@ package com.github.blausql.ui;
 
 import com.github.blausql.core.connection.ConnectionDefinition;
 import com.github.blausql.ui.components.CloseOnEscapeKeyPressWindow;
-import com.google.common.collect.ImmutableList;
 import com.googlecode.lanterna.gui.Action;
 import com.googlecode.lanterna.gui.Window;
 import com.googlecode.lanterna.gui.component.Button;

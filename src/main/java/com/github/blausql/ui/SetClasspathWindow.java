@@ -21,7 +21,7 @@ import com.github.blausql.TerminalUI;
 import com.github.blausql.core.preferences.ConfigurationRepository;
 import com.github.blausql.core.preferences.SaveException;
 import com.github.blausql.ui.util.BackgroundWorker;
-import com.github.blausql.util.TextUtils;
+import com.github.blausql.core.util.TextUtils;
 import com.googlecode.lanterna.gui.Action;
 import com.googlecode.lanterna.gui.Border;
 import com.googlecode.lanterna.gui.Window;

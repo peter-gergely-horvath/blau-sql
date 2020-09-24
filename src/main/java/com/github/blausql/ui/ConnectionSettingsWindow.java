@@ -88,15 +88,10 @@ public final class ConnectionSettingsWindow extends Window {
         super(mode.description);
         this.dialogMode = mode;
 
-        if (dialogMode == Mode.EDIT) {
-            this.originalNameOfExistingConnectionDefinition = cd.getConnectionName();
-
-        } else {
-            this.originalNameOfExistingConnectionDefinition = null;
-        }
+        this.originalNameOfExistingConnectionDefinition =
+                dialogMode == Mode.EDIT ? cd.getConnectionName() : null;
 
         addComponent(new Button("BACK TO MAIN MENU", new Action() {
-
             public void doAction() {
                 ConnectionSettingsWindow.this.onCancelButtonSelected();
             }
@@ -111,8 +106,7 @@ public final class ConnectionSettingsWindow extends Window {
         addComponent(driverClassTextBox);
 
         addComponent(new Label("JDBC URL:"));
-        jdbcUrlTextBox =
-                new TextBox(cd != null ? cd.getJdbcUrl() : null, JDBC_URL_BOX_LEN);
+        jdbcUrlTextBox = new TextBox(cd != null ? cd.getJdbcUrl() : null, JDBC_URL_BOX_LEN);
         addComponent(jdbcUrlTextBox);
 
         loginAutomaticallyCheckBox =
@@ -120,8 +114,7 @@ public final class ConnectionSettingsWindow extends Window {
         addComponent(loginAutomaticallyCheckBox);
 
         addComponent(new Label("User name:"));
-        userNameTextBox =
-                new TextBox(cd != null ? cd.getUserName() : null, USERNAME_BOX_LEN);
+        userNameTextBox = new TextBox(cd != null ? cd.getUserName() : null, USERNAME_BOX_LEN);
         addComponent(userNameTextBox);
 
         addComponent(new Label("Password:"));
@@ -129,38 +122,44 @@ public final class ConnectionSettingsWindow extends Window {
         addComponent(passwordPasswordBox);
 
         addComponent(new Label("HotKey to select this connection (ONE character, optional):"));
-        String hotkeyString;
-        if (cd != null && cd.getHotkey() != null) {
-            Character hotkey = cd.getHotkey();
-            hotkeyString = new String(new char[] { hotkey });
-        } else {
-            hotkeyString = null;
-        }
-        hotkeyTextBox = new TextBox(hotkeyString, HOTKEY_BOX_LEN);
+        hotkeyTextBox = new TextBox(getHotKeyString(cd), HOTKEY_BOX_LEN);
         addComponent(hotkeyTextBox);
 
         addComponent(new Label("Number for ordering in list (number, optional):"));
+        orderTextBox = new TextBox(getOrderText(cd), ORDER_BOX_LEN);
+        addComponent(orderTextBox);
+
+        addComponent(new Button("SAVE CONNECTION", onSaveConnectionButtonSelectedAction));
+    }
+
+    private String getHotKeyString(ConnectionDefinition cd) {
+        String hotkeyString;
+        if (cd != null && cd.getHotkey() != null) {
+            Character hotkey = cd.getHotkey();
+            hotkeyString = new String(new char[]{hotkey});
+        } else {
+            hotkeyString = null;
+        }
+        return hotkeyString;
+    }
+
+    private String getOrderText(ConnectionDefinition cd) {
         String orderText;
         if (cd != null && cd.getOrder() != null) {
             orderText = cd.getOrder().toString();
         } else {
             orderText = null;
         }
-        orderTextBox = new TextBox(orderText, ORDER_BOX_LEN);
-        addComponent(orderTextBox);
-
-        addComponent(new Button("SAVE CONNECTION", onSaveConnectionButtonSelectedAction));
+        return orderText;
     }
-    //CHECKSTYLE.ON
 
+    //CHECKSTYLE.ON
     private void onCancelButtonSelected() {
         this.close();
     }
 
     private void onSaveButtonSelected() {
-
         try {
-
             final String connectionName = connectionNameTextBox.getText();
             final String jdbcDriverClassName = driverClassTextBox.getText();
             final String jdbcUrl = jdbcUrlTextBox.getText();
@@ -171,29 +170,10 @@ public final class ConnectionSettingsWindow extends Window {
             final String password = passwordPasswordBox.getText();
 
             final String hotkeyString = hotkeyTextBox.getText();
-            final Character hotkey;
-            if (hotkeyString.trim().isEmpty()) {
-                hotkey = null;
-            } else {
-                final int aSingleCharacterLengthString = 1;
-                if (hotkeyString.trim().length() == aSingleCharacterLengthString) {
-                    hotkey = hotkeyString.charAt(0);
-                } else {
-                    throw new IllegalArgumentException("The Hotkey must be one character long");
-                }
-            }
+            final Character hotkey = mapHotKey(hotkeyString);
 
             final String orderString = orderTextBox.getText();
-            final Integer order;
-            try {
-                if (orderString.trim().isEmpty()) {
-                    order = null;
-                } else {
-                    order = Integer.parseInt(orderString.trim());
-                }
-            } catch (NumberFormatException nfe) {
-                throw new IllegalArgumentException("Order can only be a number");
-            }
+            final Integer order = mapOrder(orderString);
 
             ConnectionDefinition connectionDefinition = new ConnectionDefinition(
                     connectionName,
@@ -220,12 +200,40 @@ public final class ConnectionSettingsWindow extends Window {
                 default:
                     throw new IllegalStateException("Unknown dialogMode: " + dialogMode);
             }
-
             this.close();
+
         } catch (RuntimeException | SaveException e) {
             TerminalUI.showErrorMessageFromThrowable(e);
         }
+    }
 
+    private Character mapHotKey(String hotkeyString) {
+        final Character hotkey;
+        if (hotkeyString.trim().isEmpty()) {
+            hotkey = null;
+        } else {
+            final int aSingleCharacterLengthString = 1;
+            if (hotkeyString.trim().length() == aSingleCharacterLengthString) {
+                hotkey = hotkeyString.charAt(0);
+            } else {
+                throw new IllegalArgumentException("The Hotkey must be one character long");
+            }
+        }
+        return hotkey;
+    }
+
+    private Integer mapOrder(String orderString) {
+        final Integer order;
+        try {
+            if (orderString.trim().isEmpty()) {
+                order = null;
+            } else {
+                order = Integer.parseInt(orderString.trim());
+            }
+        } catch (NumberFormatException nfe) {
+            throw new IllegalArgumentException("Order can only be a number");
+        }
+        return order;
     }
 
     private void updateConnectionDefinition(ConnectionDefinition connectionDefinitionToUpdate) throws SaveException {

@@ -17,8 +17,8 @@
  
 package com.github.blausql;
 
+import com.github.blausql.core.util.TextUtils;
 import com.github.blausql.ui.components.WaitDialog;
-import com.github.blausql.util.TextUtils;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.googlecode.lanterna.TerminalFacade;
@@ -28,12 +28,12 @@ import com.googlecode.lanterna.gui.Window;
 import com.googlecode.lanterna.gui.dialog.DialogButtons;
 import com.googlecode.lanterna.gui.dialog.DialogResult;
 import com.googlecode.lanterna.gui.dialog.MessageBox;
+import com.googlecode.lanterna.gui.dialog.TextInputDialog;
 import com.googlecode.lanterna.terminal.TerminalSize;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.sql.SQLException;
-import java.util.LinkedList;
 
 //CHECKSTYLE.OFF: FinalClass: must be extensible for the testing frameworks
 public class TerminalUI {
@@ -76,7 +76,6 @@ public class TerminalUI {
                 sb.append(rootCauseMessage);
             } else {
                 Throwable t = throwable;
-                LinkedList<String> messages = new LinkedList<>();
                 while (t != null) {
                     String extractedMessage = extractMessageFrom(t);
                     if (!extractedMessage.isEmpty()) {
@@ -160,6 +159,13 @@ public class TerminalUI {
                                               String message, DialogButtons buttons) {
 
         return MessageBox.showMessageBox(getGUIScreen(), title, message, buttons);
+
+    }
+
+    public static String showTextInputDialog(
+            final String title, final String description, final String initialText, final int textBoxWidth) {
+
+        return TextInputDialog.showTextInputBox(getGUIScreen(), title, description, initialText, textBoxWidth);
 
     }
 

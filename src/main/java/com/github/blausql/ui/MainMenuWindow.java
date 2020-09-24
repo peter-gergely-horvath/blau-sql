@@ -44,7 +44,7 @@ public class MainMenuWindow extends Window {
         addComponent(connectToDatabaseButton);
         addComponent(manageConnectionButton);
         addComponent(setApplicationClasspathButton);
-
+        addComponent(manageBookmarkedSqlFilesButton);
         addComponent(aboutButton);
 
         addComponent(quitApplicationButton);
@@ -53,6 +53,7 @@ public class MainMenuWindow extends Window {
                 ImmutableMap.<Character, Action>builder()
                         .put('C', connectToDatabaseButton)
                         .put('M', manageConnectionButton)
+                        .put('B', manageBookmarkedSqlFilesButton)
                         .put('S', setApplicationClasspathButton)
                         .put('A', aboutButton)
                         .put('Q', quitApplicationButton)
@@ -92,6 +93,16 @@ public class MainMenuWindow extends Window {
         }
 
     });
+
+    private final ActionButton manageBookmarkedSqlFilesButton = new ActionButton("[B]ookmarked SQL Files",
+            new DefaultErrorHandlerAction() {
+
+                public void doActionWithErrorHandler() throws LoadException {
+
+                    TerminalUI.showWindowCenter(new ManageBookmarkedSqlFilesWindow());
+                }
+
+            });
 
     private final ActionButton aboutButton = new ActionButton("[A]bout", new Action() {
 

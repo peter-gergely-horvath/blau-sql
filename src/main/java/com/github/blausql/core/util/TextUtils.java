@@ -15,7 +15,7 @@
  */
 
 
-package com.github.blausql.util;
+package com.github.blausql.core.util;
 
 public final class TextUtils {
 

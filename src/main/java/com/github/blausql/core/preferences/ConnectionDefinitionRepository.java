@@ -19,7 +19,6 @@ package com.github.blausql.core.preferences;
 
 import com.github.blausql.core.connection.ConnectionDefinition;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
@@ -27,13 +26,7 @@ public final class ConnectionDefinitionRepository {
 
     private static final String PROPERTY_SEPARATOR = "\\.";
 
-    private static final File USER_HOME = new File(System.getProperty("user.home"));
-
-    private static final File BLAU_SQL_DIR = new File(USER_HOME, ".blauSQL");
-
-    private static final File CONNECTIONS_PROPERTIES_FILE = new File(BLAU_SQL_DIR, "connections.properties");
-
-    private final PropertyStore connectionsPropertyStore = new PropertyStore(CONNECTIONS_PROPERTIES_FILE);
+    private static final PropertyStore CONNECTIONS_PROPERTY_STORE = PropertyStoreFactory.getConnectionsPropertyStore();
 
     private static final Comparator<ConnectionDefinition> CONNECTION_DEFINITION_COMPARATOR =
             new Comparator<ConnectionDefinition>() {
@@ -74,7 +67,7 @@ public final class ConnectionDefinitionRepository {
 
             LinkedHashMap<String, ConnectionDefinition> map = new LinkedHashMap<>();
 
-            Properties properties = connectionsPropertyStore.loadProperties();
+            Properties properties = CONNECTIONS_PROPERTY_STORE.loadProperties();
 
             for (Map.Entry<Object, Object> entry : properties.entrySet()) {
                 final String key = entry.getKey().toString();
@@ -122,27 +115,26 @@ public final class ConnectionDefinitionRepository {
                 existingConnectionDefinitions = Collections.emptyList();
             }
 
-            for(ConnectionDefinition existingConnectionDefinition : existingConnectionDefinitions) {
-                if (!Objects.equals(existingConnectionDefinition.getConnectionName(), cd.getConnectionName())) {
-                    if(Objects.equals(
+            for (ConnectionDefinition existingConnectionDefinition : existingConnectionDefinitions) {
+                if (!Objects.equals(existingConnectionDefinition.getConnectionName(), cd.getConnectionName())
+                        && Objects.equals(
                             Character.toUpperCase(hotkey),
                             Character.toUpperCase(existingConnectionDefinition.getHotkey()))) {
 
-                        String connectionName = existingConnectionDefinition.getConnectionName();
-                        throw new SaveException("Hotkey '" + hotkey + "' is already used by: " + connectionName);
-                    }
+                    String connectionName = existingConnectionDefinition.getConnectionName();
+                    throw new SaveException("Hotkey '" + hotkey + "' is already used by: " + connectionName);
                 }
             }
         }
 
         try {
-            Properties properties = connectionsPropertyStore.loadProperties();
+            Properties properties = CONNECTIONS_PROPERTY_STORE.loadProperties();
 
             for (PropertyMapping propertyMapping : PropertyMapping.values()) {
                 propertyMapping.putPropertyKeyValue(cd, properties);
             }
 
-            connectionsPropertyStore.persistProperties(properties);
+            CONNECTIONS_PROPERTY_STORE.persistProperties(properties);
         } catch (IOException e) {
             throw new SaveException("Failed to save connection definition", e);
         }
@@ -155,7 +147,7 @@ public final class ConnectionDefinitionRepository {
 
             boolean foundInProperties = false;
 
-            Properties properties = connectionsPropertyStore.loadProperties();
+            Properties properties = CONNECTIONS_PROPERTY_STORE.loadProperties();
 
             Iterator<Object> iterator = properties.keySet().iterator();
             while (iterator.hasNext()) {
@@ -172,7 +164,7 @@ public final class ConnectionDefinitionRepository {
                 throw new IllegalStateException("Connection definition not found:" + connectionName);
             }
 
-            connectionsPropertyStore.persistProperties(properties);
+            CONNECTIONS_PROPERTY_STORE.persistProperties(properties);
         } catch (IOException e) {
             throw new RuntimeException("Failed to delete connection definition", e);
         }
@@ -257,8 +249,8 @@ public final class ConnectionDefinitionRepository {
             String getValue(ConnectionDefinition cd) {
                 Character hotkey = cd.getHotkey();
                 String stringRepresentation;
-                if(hotkey != null) {
-                    stringRepresentation = new String(new char[] { hotkey });
+                if (hotkey != null) {
+                    stringRepresentation = new String(new char[]{hotkey});
                 } else {
                     stringRepresentation = "";
                 }
@@ -300,9 +292,7 @@ public final class ConnectionDefinitionRepository {
                     }
                 }
             }
-        }
-
-        ;
+        };
 
         private String getQualifiedUniquePropertyName(ConnectionDefinition cd) {
             return String.format("%s.%s", cd.getConnectionName(), PropertyMapping.this.name());

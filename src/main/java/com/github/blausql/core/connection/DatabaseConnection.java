@@ -53,7 +53,9 @@ final class DatabaseConnection {
     }
 
 
-    public StatementResult executeStatement(final String sql) {
+    public StatementResult executeStatement(final String sql, int limit) {
+
+        jdbcTemplate.setMaxRows(limit);
 
          return jdbcTemplate.execute(new StatementCallback<StatementResult>() {
 
@@ -89,5 +91,4 @@ final class DatabaseConnection {
     void disconnect() {
         ((SingleConnectionDataSource) jdbcTemplate.getDataSource()).resetConnection();
     }
-
 }

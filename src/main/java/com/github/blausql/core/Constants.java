@@ -18,7 +18,7 @@
 package com.github.blausql.core;
 
 import com.github.blausql.Version;
-import com.github.blausql.util.TextUtils;
+import com.github.blausql.core.util.TextUtils;
 
 public final class Constants {
 

@@ -31,7 +31,7 @@ public abstract class BackgroundWorker<R> {
     private static final ExecutorService EXECUTOR_SERVICE = Executors.newCachedThreadPool(
             new ThreadFactory() {
 
-        private ThreadFactory defaultThreadFactory = Executors.defaultThreadFactory();
+        private final ThreadFactory defaultThreadFactory = Executors.defaultThreadFactory();
         private final AtomicInteger workerThreadCounter = new AtomicInteger();
 
 
@@ -85,10 +85,15 @@ public abstract class BackgroundWorker<R> {
             final R result;
             try {
                 if (Thread.currentThread().isInterrupted()) {
-                    throw new InterruptedException("Interrupted");
+                    throw new InterruptedException("Interrupted before background task started");
                 }
 
                 result = BackgroundWorker.this.doBackgroundTask();
+
+                if (Thread.currentThread().isInterrupted()) {
+                    throw new InterruptedException("Interrupted after background task finished");
+                }
+
             } catch (InterruptedException t) {
                 dispatchFailure(t);
 

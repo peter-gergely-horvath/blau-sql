@@ -17,21 +17,14 @@
 
 package com.github.blausql.core.preferences;
 
-import com.github.blausql.util.TextUtils;
+import com.github.blausql.core.util.TextUtils;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
 
 public final class ConfigurationRepository {
 
-    private static final File USER_HOME = new File(System.getProperty("user.home"));
-
-    private static final File BLAU_SQL_DIR = new File(USER_HOME, ".blauSQL");
-
-    private static final File SETTINGS_PROPERTIES_FILE = new File(BLAU_SQL_DIR, "settings.properties");
-
-    private final PropertyStore settingsPropertyStore = new PropertyStore(SETTINGS_PROPERTIES_FILE);
+    private static final PropertyStore SETTINGS_PROPERTY_STORE = PropertyStoreFactory.getSettingsPropertyStore();
 
     public static ConfigurationRepository getInstance() {
         return INSTANCE;
@@ -48,13 +41,13 @@ public final class ConfigurationRepository {
     public void saveClasspath(String[] entries) throws SaveException {
 
         try {
-            Properties properties = settingsPropertyStore.loadProperties();
+            Properties properties = SETTINGS_PROPERTY_STORE.loadProperties();
 
             String classpathString = TextUtils.joinStringsWithSeparator(CLASSPATH_SEPARATOR_CHAR, entries);
 
             properties.put(Keys.CLASSPATH, classpathString);
 
-            settingsPropertyStore.persistProperties(properties);
+            SETTINGS_PROPERTY_STORE.persistProperties(properties);
 
         } catch (IOException e) {
             throw new SaveException("Failed to save configuration", e);
@@ -65,7 +58,7 @@ public final class ConfigurationRepository {
     public String[] getClasspath() throws LoadException {
 
         try {
-            Properties properties = settingsPropertyStore.loadProperties();
+            Properties properties = SETTINGS_PROPERTY_STORE.loadProperties();
 
             String classpath = properties.getProperty(Keys.CLASSPATH, "");
 

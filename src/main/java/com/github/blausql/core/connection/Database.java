@@ -31,7 +31,6 @@ public final class Database {
     private final AtomicReference<DatabaseConnection> currentConnectionHolder = new AtomicReference<>();
 
 
-
     private static final Database INSTANCE = new Database();
 
     private Database() {
@@ -113,14 +112,13 @@ public final class Database {
         currentConnectionHolder.set(null);
     }
 
-    public StatementResult executeStatement(final String sql) {
+    public StatementResult executeStatement(final String sql, int limit) {
 
         DatabaseConnection databaseConnection = currentConnectionHolder.get();
         if (databaseConnection == null) {
             throw new IllegalStateException("databaseConnection is null");
         }
 
-        return databaseConnection.executeStatement(sql);
+        return databaseConnection.executeStatement(sql, limit);
     }
-
 }
