@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Peter G. Horvath, All Rights Reserved.
+ * Copyright (c) 2017-2020 Peter G. Horvath, All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -185,7 +185,7 @@ final class SqlCommandWindow extends Window {
 
         TerminalUI.showWindowCenter(new ListSelectorWindow<String>(
                 "Select bookmarked SQL to load",
-                "No bookmarkfound",
+                "No bookmark found",
                 fileNames) {
 
             @Override

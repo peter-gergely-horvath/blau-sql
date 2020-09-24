@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Peter G. Horvath, All Rights Reserved.
+ * Copyright (c) 2017-2020 Peter G. Horvath, All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ public final class Constants {
     public static final String ABOUT_TEXT = TextUtils.joinStringsWithNewLine(
             "BlauSQL version " + Version.VERSION_STRING,
             "",
-            "Copyright 2017 Peter G. Horvath",
+            "Copyright 2017-2020 Peter G. Horvath",
             "",
             "Licensed under the Apache License, Version 2.0 (the \"License\");",
             "you may not use this file except in compliance with the License.",
