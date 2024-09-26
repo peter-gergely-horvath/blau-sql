@@ -21,11 +21,10 @@ import com.github.blausql.TerminalUI;
 import com.github.blausql.core.connection.ConnectionDefinition;
 import com.github.blausql.core.preferences.ConnectionDefinitionRepository;
 import com.github.blausql.core.preferences.LoadException;
+import com.github.blausql.core.util.ImmutableMapBuilder;
 import com.github.blausql.ui.components.CloseOnEscapeKeyPressWindow;
 import com.github.blausql.ui.util.DefaultErrorHandlerAction;
 import com.github.blausql.ui.util.HotKeySupportListener;
-
-import com.google.common.collect.ImmutableMap;
 import com.googlecode.lanterna.gui.Action;
 import com.googlecode.lanterna.gui.component.Button;
 
@@ -51,7 +50,7 @@ class ManageConnectionsWindow extends CloseOnEscapeKeyPressWindow {
         addComponent(new Button("[D]elete connection", onDeleteConnectionButtonSelectedAction));
 
         addWindowListener(new HotKeySupportListener(
-                ImmutableMap.<Character, Action>builder()
+                ImmutableMapBuilder.<Character, Action>newInstance()
                         .put('A', onAddConnectionButtonSelectedAction)
                         .put('E', onEditConnectionButtonSelectedAction)
                         .put('C', onCopyConnectionButtonSelectedAction)

@@ -1,5 +1,6 @@
 package com.github.blausql.core.util;
 
+import java.util.HashSet;
 import java.util.Objects;
 
 public final class ExceptionUtils {
@@ -37,6 +38,26 @@ public final class ExceptionUtils {
 
         return false;
 
+    }
+
+    public static Throwable getRootCause(Throwable throwable) {
+
+        HashSet<Throwable> seenThrowables = new HashSet<>();
+
+        Throwable cause;
+        while ((cause = throwable.getCause()) != null) {
+
+            // add returns true if the set did not already contain the specified element
+            boolean wasPresentAlready = !seenThrowables.add(cause);
+            if (wasPresentAlready) {
+                // emitting an IllegalArgumentException is better than an infinite loop
+                throw new IllegalArgumentException("Cause loop detected!", throwable);
+            }
+
+            throwable = cause;
+        }
+
+        return throwable;
     }
 
 }

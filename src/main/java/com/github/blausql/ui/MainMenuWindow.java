@@ -25,11 +25,10 @@ import com.github.blausql.core.connection.ConnectionDefinition;
 import com.github.blausql.core.preferences.ConfigurationRepository;
 import com.github.blausql.core.preferences.ConnectionDefinitionRepository;
 import com.github.blausql.core.preferences.LoadException;
+import com.github.blausql.core.util.ImmutableMapBuilder;
 import com.github.blausql.ui.components.ActionButton;
 import com.github.blausql.ui.util.DefaultErrorHandlerAction;
 import com.github.blausql.ui.util.HotKeySupportListener;
-import com.google.common.collect.ImmutableMap;
-
 import com.googlecode.lanterna.gui.Action;
 import com.googlecode.lanterna.gui.Window;
 
@@ -50,7 +49,7 @@ public class MainMenuWindow extends Window {
         addComponent(quitApplicationButton);
 
         addWindowListener(new HotKeySupportListener(
-                ImmutableMap.<Character, Action>builder()
+                ImmutableMapBuilder.<Character, Action>newInstance()
                         .put('C', connectToDatabaseButton)
                         .put('M', manageConnectionButton)
                         .put('B', manageBookmarkedSqlFilesButton)
