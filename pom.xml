@@ -56,7 +56,7 @@
 
 		<!-- Dependency versions: used for testing ONLY -->
 		<testng.version>6.8.21</testng.version>
-		<groovy.version>2.4.8</groovy.version>
+		<groovy.version>2.4.21</groovy.version>
 
 		<!-- Used to generate build information -->
 		<product-name>${project.name}</product-name>
