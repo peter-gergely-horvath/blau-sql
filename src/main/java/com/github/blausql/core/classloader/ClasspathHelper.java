@@ -18,8 +18,10 @@
 package com.github.blausql.core.classloader;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.LinkedList;
 
 public final class ClasspathHelper {
 
@@ -29,15 +31,35 @@ public final class ClasspathHelper {
     }
 
     public static URL[] convertToURLs(String[] urlStrings) throws MalformedURLException {
-        URL[] urlList = new URL[urlStrings.length];
 
-        for (int i = 0; i < urlStrings.length; i++) {
+        LinkedList<URL> allUrls = new LinkedList<>();
 
-            URL url = new File(urlStrings[i]).toURI().toURL();
+        for (String anUrl : urlStrings) {
 
-            urlList[i] = url;
+            File file = new File(anUrl);
+
+            if (anUrl.endsWith("/")) {
+                File[] filesInDirectory = file.listFiles(new FilenameFilter() {
+                    @Override
+                    public boolean accept(File dir, String name) {
+                        return name.endsWith(".jar");
+                    }
+                });
+
+                if (filesInDirectory == null) {
+                    throw new IllegalArgumentException("The specified directory contains no .jar files: " + file);
+                }
+
+                for (File fileInTheDirectory : filesInDirectory) {
+                    allUrls.add(fileInTheDirectory.toURI().toURL());
+                }
+
+            } else {
+                allUrls.add(file.toURI().toURL());
+            }
+
         }
 
-        return urlList;
+        return allUrls.toArray(new URL[0]);
     }
 }
