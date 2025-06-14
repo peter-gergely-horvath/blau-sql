@@ -21,16 +21,18 @@ import com.github.blausql.core.util.TextUtils;
 import com.github.blausql.ui.components.WaitDialog;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
-import com.googlecode.lanterna.TerminalFacade;
-import com.googlecode.lanterna.gui.Action;
-import com.googlecode.lanterna.gui.GUIScreen;
-import com.googlecode.lanterna.gui.Window;
-import com.googlecode.lanterna.gui.dialog.DialogButtons;
-import com.googlecode.lanterna.gui.dialog.DialogResult;
-import com.googlecode.lanterna.gui.dialog.MessageBox;
-import com.googlecode.lanterna.gui.dialog.TextInputDialog;
-import com.googlecode.lanterna.terminal.TerminalSize;
 
+import com.googlecode.lanterna.TerminalSize;
+import com.googlecode.lanterna.gui2.MultiWindowTextGUI;
+import com.googlecode.lanterna.gui2.WindowBasedTextGUI;
+import com.googlecode.lanterna.gui2.dialogs.MessageDialogBuilder;
+import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton;
+import com.googlecode.lanterna.screen.Screen;
+import com.googlecode.lanterna.screen.TerminalScreen;
+import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
+import com.googlecode.lanterna.terminal.Terminal;
+
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.sql.SQLException;
@@ -40,24 +42,40 @@ public class TerminalUI {
 
     private static final int LINE_SIZE_DIFF = 8;
 
+    private final Screen screen;
+    private final WindowBasedTextGUI textGUI;
+
     private TerminalUI() {
-        // no instances
+        try {
+            Terminal terminal = new DefaultTerminalFactory().createTerminal();
+            screen = new TerminalScreen(terminal);
+
+            textGUI = new MultiWindowTextGUI(screen);
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    private static GUIScreen getGUIScreen() {
-        return LazyHolder.INSTANCE;
-    }
 
     private static class LazyHolder {
-        static final GUIScreen INSTANCE = TerminalFacade.createGUIScreen();
+        static final TerminalUI INSTANCE = new TerminalUI();
     }
 
     public static void init() {
-        getGUIScreen().getScreen().startScreen();
+        try {
+            LazyHolder.INSTANCE.screen.startScreen();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     static void close() {
-        getGUIScreen().getScreen().stopScreen();
+        try {
+            LazyHolder.INSTANCE.screen.stopScreen();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static void showErrorMessageFromThrowable(Throwable throwable) {
@@ -108,13 +126,12 @@ public class TerminalUI {
     }
 
     public static void showErrorMessageFromString(String dialogTitle, String errorMessage) {
-        final int columns = getGUIScreen().getScreen().getTerminalSize().getColumns();
+        final int columns = LazyHolder.INSTANCE.screen.getTerminalSize().getColumns();
         final int maxLineLen = columns - LINE_SIZE_DIFF;
 
         String multilineErrorMsgString = TextUtils.breakLine(errorMessage, maxLineLen);
 
-
-        MessageBox.showMessageBox(getGUIScreen(), dialogTitle, multilineErrorMsgString);
+        showMessageBox(dialogTitle, multilineErrorMsgString);
     }
 
     public static String extractMessageFrom(Throwable t) {
@@ -151,7 +168,12 @@ public class TerminalUI {
 
     public static void showMessageBox(String title, String messageText) {
 
-        MessageBox.showMessageBox(getGUIScreen(), title, messageText);
+        new MessageDialogBuilder()
+                .setTitle(title)
+                .setText(messageText)
+                .addButton(MessageDialogButton.Close)
+                .build()
+                .showDialog(LazyHolder.INSTANCE.textGUI);
 
     }
 
@@ -202,7 +224,7 @@ public class TerminalUI {
     }
 
     public static TerminalSize getTerminalSize() {
-        return getGUIScreen().getScreen().getTerminalSize();
+        return LazyHolder.INSTANCE.screen.getTerminalSize();
     }
 }
 //CHECKSTYLE.ON
