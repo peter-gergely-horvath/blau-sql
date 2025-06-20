@@ -18,10 +18,11 @@
 package com.github.blausql.ui.components;
 
 import com.github.blausql.TerminalUI;
-import com.googlecode.lanterna.gui.Action;
-import com.googlecode.lanterna.gui.Window;
-import com.googlecode.lanterna.gui.component.Label;
-import com.googlecode.lanterna.gui.component.Panel;
+import com.github.blausql.ui.LegacyWindowSupport;
+import com.googlecode.lanterna.gui2.Label;
+import com.googlecode.lanterna.gui2.LinearLayout;
+import com.googlecode.lanterna.gui2.Panel;
+import com.googlecode.lanterna.gui2.WindowListenerAdapter;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -31,7 +32,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Inspired by com.googlecode.lanterna.gui.dialog.WaitingDialog,
  * with the majority of code re-written and bugs fixes
  */
-public final class WaitDialog extends Window {
+public final class WaitDialog extends LegacyWindowSupport {
 
     private final Thread spinAnimationThread = new Thread(new SpinAnimationTask());
 
@@ -56,10 +57,10 @@ public final class WaitDialog extends Window {
         this(title, text, null);
     }
 
-    public WaitDialog(String title, String text, final Action onCancel) {
+    public WaitDialog(String title, String text, final Runnable onCancel) {
         super(title);
         spinLabel = new Label(SPIN_STEPS[currentSpinnerStepIndex.get()]);
-        final Panel panel = new Panel(Panel.Orientation.HORISONTAL);
+        final Panel panel = new Panel(new LinearLayout());
         panel.addComponent(new Label(text));
         panel.addComponent(spinLabel);
 
@@ -67,30 +68,34 @@ public final class WaitDialog extends Window {
             panel.addComponent(new Label("   "));
 
             panel.addComponent(new ActionButton("Cancel",
-                    new Action() {
+                    new Runnable() {
                         @Override
-                        public void doAction() {
+                        public void run() {
                             WaitDialog.this.close();
-                            onCancel.doAction();
+                            onCancel.run();
                         }
                     }));
         }
 
         addComponent(panel);
-
     }
 
     @Override
-    protected void onVisible() {
-        super.onVisible();
+    public void setVisible(boolean visible) {
 
-        if (isClosed.get()) {
-            // if by any chance, onVisible is triggered after close,
-            // ensure that the window will actually be closed
-            close();
-        } else {
-            spinAnimationThread.start();
+        super.setVisible(visible);
+
+
+        if (visible) {
+            if (isClosed.get()) {
+                // if by any chance, onVisible is triggered after close,
+                // ensure that the window will actually be closed
+                close();
+            } else {
+                spinAnimationThread.start();
+            }
         }
+
     }
 
     @Override
@@ -101,8 +106,8 @@ public final class WaitDialog extends Window {
             spinAnimationThread.interrupt();
         }
 
-        getOwner().runInEventThread(new Action() {
-            public void doAction() {
+        TerminalUI.runInEventThread(new Runnable() {
+            public void run() {
                 WaitDialog.super.close();
             }
         });
@@ -130,8 +135,8 @@ public final class WaitDialog extends Window {
 
                 while (!Thread.currentThread().isInterrupted()) {
 
-                    TerminalUI.runInEventThread(new Action() {
-                        public void doAction() {
+                    TerminalUI.runInEventThread(new Runnable() {
+                        public void run() {
                             stepSpinner();
                         }
                     });

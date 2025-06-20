@@ -17,6 +17,7 @@
 
 package com.github.blausql.ui;
 
+import com.github.blausql.DialogResult;
 import com.github.blausql.TerminalUI;
 import com.github.blausql.core.preferences.LoadException;
 import com.github.blausql.core.sqlfile.SqlFileRepository;
@@ -24,12 +25,12 @@ import com.github.blausql.ui.components.CloseOnEscapeKeyPressWindow;
 import com.github.blausql.ui.util.DefaultErrorHandlerAction;
 import com.github.blausql.ui.util.HotKeySupportListener;
 import com.google.common.collect.ImmutableMap;
-import com.googlecode.lanterna.gui.Action;
-import com.googlecode.lanterna.gui.component.Button;
-import com.googlecode.lanterna.gui.dialog.DialogButtons;
-import com.googlecode.lanterna.gui.dialog.DialogResult;
+
+import com.googlecode.lanterna.gui2.Button;
+
 
 import java.util.List;
+
 
 @SuppressWarnings("FieldCanBeLocal")
 class ManageBookmarkedSqlFilesWindow extends CloseOnEscapeKeyPressWindow {
@@ -40,24 +41,24 @@ class ManageBookmarkedSqlFilesWindow extends CloseOnEscapeKeyPressWindow {
 
         super("Manage Bookmarked SQLs");
 
-        addComponent(new Button("BACK (ESC)", new Action() {
+        addComponent(new Button("BACK (ESC)", new Runnable() {
 
-            public void doAction() {
+            public void run() {
                 ManageBookmarkedSqlFilesWindow.this.close();
             }
         }));
-        addComponent(new Button("[D]elete bookmarked SQL", onDeleteBookmarkedSqlFileSelectedAction));
+        addComponent(new Button("[D]elete bookmarked SQL", onDeleteBookmarkedSqlFileSelectedRunnable));
 
         addWindowListener(new HotKeySupportListener(
-                ImmutableMap.<Character, Action>builder()
-                        .put('D', onDeleteBookmarkedSqlFileSelectedAction)
+                ImmutableMap.<Character, Runnable>builder()
+                        .put('D', onDeleteBookmarkedSqlFileSelectedRunnable)
                         .build(), true));
     }
 
 
-    private final Action onDeleteBookmarkedSqlFileSelectedAction = new DefaultErrorHandlerAction() {
+    private final Runnable onDeleteBookmarkedSqlFileSelectedRunnable = new DefaultErrorHandlerAction() {
 
-        public void doActionWithErrorHandler() throws LoadException {
+        public void runWithErrorHandler() throws LoadException {
             ManageBookmarkedSqlFilesWindow.this.close();
 
             List<String> fileNames = sqlFileRepository.listSqlFileNames();

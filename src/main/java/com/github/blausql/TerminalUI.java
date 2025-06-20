@@ -18,15 +18,18 @@
 package com.github.blausql;
 
 import com.github.blausql.core.util.TextUtils;
+import com.github.blausql.ui.DialogButtons;
 import com.github.blausql.ui.components.WaitDialog;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 
 import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.gui2.MultiWindowTextGUI;
+import com.googlecode.lanterna.gui2.Window;
 import com.googlecode.lanterna.gui2.WindowBasedTextGUI;
 import com.googlecode.lanterna.gui2.dialogs.MessageDialogBuilder;
 import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton;
+import com.googlecode.lanterna.gui2.dialogs.TextInputDialogBuilder;
 import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.screen.TerminalScreen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
@@ -36,6 +39,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.Collections;
 
 //CHECKSTYLE.OFF: FinalClass: must be extensible for the testing frameworks
 public class TerminalUI {
@@ -167,36 +172,65 @@ public class TerminalUI {
     }
 
     public static void showMessageBox(String title, String messageText) {
-
-        new MessageDialogBuilder()
-                .setTitle(title)
-                .setText(messageText)
-                .addButton(MessageDialogButton.Close)
-                .build()
-                .showDialog(LazyHolder.INSTANCE.textGUI);
-
+        showMessageBox(title, messageText, DialogButtons.OK);
     }
 
     public static DialogResult showMessageBox(String title,
-                                              String message, DialogButtons buttons) {
+                                              String messageText, DialogButtons buttons) {
 
-        return MessageBox.showMessageBox(getGUIScreen(), title, message, buttons);
+        MessageDialogBuilder messageDialogBuilder = new MessageDialogBuilder()
+                .setTitle(title)
+                .setText(messageText);
+
+
+        if (buttons == DialogButtons.OK || buttons == DialogButtons.OK_CANCEL) {
+            messageDialogBuilder
+                    .addButton(MessageDialogButton.OK);
+        }
+
+        if (buttons == DialogButtons.OK_CANCEL) {
+            messageDialogBuilder
+                    .addButton(MessageDialogButton.Cancel);
+        }
+
+        MessageDialogButton messageDialogButton = messageDialogBuilder
+                .build()
+                .showDialog(getTextGUI());
+
+        switch (messageDialogButton) {
+            case OK:
+                return DialogResult.OK;
+            case Cancel:
+                return DialogResult.CANCEL;
+
+            default:
+                throw new IllegalStateException("Unexpected button");
+        }
 
     }
 
     public static String showTextInputDialog(
             final String title, final String description, final String initialText, final int textBoxWidth) {
 
-        return TextInputDialog.showTextInputBox(getGUIScreen(), title, description, initialText, textBoxWidth);
-
+        return new TextInputDialogBuilder()
+                .setTitle(title)
+                .setDescription(description)
+                .build()
+                .showDialog(getTextGUI());
     }
 
     public static void showWindowCenter(Window w) {
-        getGUIScreen().showWindow(w, GUIScreen.Position.CENTER);
+        w.setHints(Collections.singletonList(Window.Hint.CENTERED));
+        getTextGUI().addWindowAndWait(w);
+    }
+
+    public static void showWindowCenterAsync(Window w) {
+        getTextGUI().addWindow(w);
     }
 
     public static void showWindowFullScreen(Window w) {
-        getGUIScreen().showWindow(w, GUIScreen.Position.FULL_SCREEN);
+        w.setHints(Collections.singletonList(Window.Hint.FULL_SCREEN));
+        getTextGUI().addWindowAndWait(w);
 
     }
 
@@ -204,24 +238,29 @@ public class TerminalUI {
         return showWaitDialog(title, text, null);
     }
 
-    public static Window showWaitDialog(String title, String text, Action onCancel) {
+    public static Window showWaitDialog(String title, String text, Runnable onCancel) {
 
         final Window w = new WaitDialog(title, text, onCancel);
 
-        getGUIScreen().runInEventThread(new Action() {
+        runInEventThread(() -> showWindowCenter(w));
 
-            public void doAction() {
-                showWindowCenter(w);
-            }
-        });
 
         return w;
 
     }
 
-    public static void runInEventThread(Action action) {
-        getGUIScreen().runInEventThread(action);
+    public static void runInEventThread(Runnable runnable) {
+        getTextGUI().getGUIThread().invokeLater(runnable);
     }
+
+    private static WindowBasedTextGUI getTextGUI() {
+        return LazyHolder.INSTANCE.textGUI;
+    }
+
+    private static Screen getScreen() {
+        return LazyHolder.INSTANCE.screen;
+    }
+
 
     public static TerminalSize getTerminalSize() {
         return LazyHolder.INSTANCE.screen.getTerminalSize();

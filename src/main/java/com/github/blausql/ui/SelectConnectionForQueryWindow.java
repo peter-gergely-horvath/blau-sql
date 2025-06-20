@@ -17,15 +17,14 @@
 
 package com.github.blausql.ui;
 
+import com.github.blausql.DialogResult;
 import com.github.blausql.TerminalUI;
 import com.github.blausql.core.connection.ConnectionDefinition;
 import com.github.blausql.core.connection.Database;
 import com.github.blausql.ui.components.WaitDialog;
 import com.github.blausql.ui.util.BackgroundWorker;
 import com.github.blausql.core.util.ExceptionUtils;
-import com.googlecode.lanterna.gui.Action;
-import com.googlecode.lanterna.gui.Window;
-import com.googlecode.lanterna.gui.dialog.DialogResult;
+import com.googlecode.lanterna.gui2.Window;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -121,18 +120,18 @@ final class SelectConnectionForQueryWindow extends SelectConnectionWindow {
     }
 
     private static void showInEventThread(final Window waitDialog) {
-        TerminalUI.runInEventThread(new Action() {
+        TerminalUI.runInEventThread(new Runnable() {
             @Override
-            public void doAction() {
+            public void run() {
                 TerminalUI.showWindowCenter(waitDialog);
             }
         });
     }
 
-    private Action closeThisAndCancelBackgroundWorker(final BackgroundWorker backgroundWorker) {
-        return new Action() {
+    private Runnable closeThisAndCancelBackgroundWorker(final BackgroundWorker backgroundWorker) {
+        return new Runnable() {
             @Override
-            public void doAction() {
+            public void run() {
                 SelectConnectionForQueryWindow.this.close();
 
                 backgroundWorker.cancel();

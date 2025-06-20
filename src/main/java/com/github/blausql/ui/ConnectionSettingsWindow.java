@@ -24,18 +24,16 @@ import com.github.blausql.core.preferences.ConnectionDefinitionRepository;
 
 import com.github.blausql.core.preferences.LoadException;
 import com.github.blausql.core.preferences.SaveException;
-import com.googlecode.lanterna.gui.Action;
-import com.googlecode.lanterna.gui.Window;
-import com.googlecode.lanterna.gui.component.Button;
-import com.googlecode.lanterna.gui.component.CheckBox;
-import com.googlecode.lanterna.gui.component.Label;
-import com.googlecode.lanterna.gui.component.PasswordBox;
-import com.googlecode.lanterna.gui.component.TextBox;
+import com.googlecode.lanterna.gui2.Button;
+import com.googlecode.lanterna.gui2.CheckBox;
+import com.googlecode.lanterna.gui2.Label;
+import com.googlecode.lanterna.gui2.TextBox;
+
 
 import java.util.Objects;
 
 @SuppressWarnings("FieldCanBeLocal")
-public final class ConnectionSettingsWindow extends Window {
+public final class ConnectionSettingsWindow extends LegacyWindowSupport {
 
     public enum Mode {
         ADD("Add connection"), EDIT("Edit connection"), COPY("Copy connection");
@@ -71,9 +69,9 @@ public final class ConnectionSettingsWindow extends Window {
 
     private final String originalNameOfExistingConnectionDefinition;
 
-    private final Action onSaveConnectionButtonSelectedAction = new Action() {
+    private final Runnable onSaveConnectionButtonSelectedRunnable = new Runnable() {
 
-        public void doAction() {
+        public void run() {
             ConnectionSettingsWindow.this.onSaveButtonSelected();
         }
     };
@@ -91,30 +89,33 @@ public final class ConnectionSettingsWindow extends Window {
         this.originalNameOfExistingConnectionDefinition =
                 dialogMode == Mode.EDIT ? cd.getConnectionName() : null;
 
-        addComponent(new Button("BACK TO MAIN MENU", new Action() {
-            public void doAction() {
+        addComponent(new Button("BACK TO MAIN MENU", new Runnable() {
+            public void run() {
                 ConnectionSettingsWindow.this.onCancelButtonSelected();
             }
         }));
 
         addComponent(new Label("Connection name:"));
-        connectionNameTextBox = new TextBox(cd != null ? cd.getConnectionName() : null, CONNECTION_NAME_BOX_LEN);
+        connectionNameTextBox = new LegacyTextBox(cd != null ? cd.getConnectionName() : null, CONNECTION_NAME_BOX_LEN);
         addComponent(connectionNameTextBox);
 
         addComponent(new Label("Driver class:"));
-        driverClassTextBox = new TextBox(cd != null ? cd.getDriverClassName() : null, DRIVER_CLASS_BOX_LEN);
+        driverClassTextBox = new LegacyTextBox(cd != null ? cd.getDriverClassName() : null, DRIVER_CLASS_BOX_LEN);
         addComponent(driverClassTextBox);
 
         addComponent(new Label("JDBC URL:"));
-        jdbcUrlTextBox = new TextBox(cd != null ? cd.getJdbcUrl() : null, JDBC_URL_BOX_LEN);
+        jdbcUrlTextBox = new LegacyTextBox(cd != null ? cd.getJdbcUrl() : null, JDBC_URL_BOX_LEN);
         addComponent(jdbcUrlTextBox);
 
-        loginAutomaticallyCheckBox =
-                new CheckBox("Log in automatically", cd != null && cd.getLoginAutomatically());
+        loginAutomaticallyCheckBox = new CheckBox("Log in automatically");
+        if ( cd != null) {
+            boolean loginAutomatically = cd.getLoginAutomatically();
+            loginAutomaticallyCheckBox.setChecked(loginAutomatically);
+        }
         addComponent(loginAutomaticallyCheckBox);
 
         addComponent(new Label("User name:"));
-        userNameTextBox = new TextBox(cd != null ? cd.getUserName() : null, USERNAME_BOX_LEN);
+        userNameTextBox = new LegacyTextBox(cd != null ? cd.getUserName() : null, USERNAME_BOX_LEN);
         addComponent(userNameTextBox);
 
         addComponent(new Label("Password:"));
@@ -122,14 +123,14 @@ public final class ConnectionSettingsWindow extends Window {
         addComponent(passwordPasswordBox);
 
         addComponent(new Label("HotKey to select this connection (ONE character, optional):"));
-        hotkeyTextBox = new TextBox(getHotKeyString(cd), HOTKEY_BOX_LEN);
+        hotkeyTextBox = new LegacyTextBox(getHotKeyString(cd), HOTKEY_BOX_LEN);
         addComponent(hotkeyTextBox);
 
         addComponent(new Label("Number for ordering in list (number, optional):"));
-        orderTextBox = new TextBox(getOrderText(cd), ORDER_BOX_LEN);
+        orderTextBox = new LegacyTextBox(getOrderText(cd), ORDER_BOX_LEN);
         addComponent(orderTextBox);
 
-        addComponent(new Button("SAVE CONNECTION", onSaveConnectionButtonSelectedAction));
+        addComponent(new Button("SAVE CONNECTION", onSaveConnectionButtonSelectedRunnable));
     }
 
     private String getHotKeyString(ConnectionDefinition cd) {
@@ -164,7 +165,7 @@ public final class ConnectionSettingsWindow extends Window {
             final String jdbcDriverClassName = driverClassTextBox.getText();
             final String jdbcUrl = jdbcUrlTextBox.getText();
 
-            final boolean loginAutomatically = loginAutomaticallyCheckBox.isSelected();
+            final boolean loginAutomatically = loginAutomaticallyCheckBox.isChecked();
 
             final String userName = userNameTextBox.getText();
             final String password = passwordPasswordBox.getText();

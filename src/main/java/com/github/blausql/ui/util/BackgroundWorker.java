@@ -18,7 +18,6 @@
 package com.github.blausql.ui.util;
 
 import com.github.blausql.TerminalUI;
-import com.googlecode.lanterna.gui.Action;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -110,16 +109,16 @@ public abstract class BackgroundWorker<R> {
         }
 
         private void dispatchFailure(final Throwable t) {
-            TerminalUI.runInEventThread(new Action() {
-                public void doAction() {
+            TerminalUI.runInEventThread(new Runnable() {
+                public void run() {
                     onBackgroundTaskFailed(t);
                 }
             });
         }
 
         private void dispatchCompleted(final R result) {
-            TerminalUI.runInEventThread(new Action() {
-                public void doAction() {
+            TerminalUI.runInEventThread(new Runnable() {
+                public void run() {
                     onBackgroundTaskCompleted(result);
                 }
             });

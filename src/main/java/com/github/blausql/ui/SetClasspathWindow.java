@@ -22,39 +22,33 @@ import com.github.blausql.core.preferences.ConfigurationRepository;
 import com.github.blausql.core.preferences.SaveException;
 import com.github.blausql.ui.util.BackgroundWorker;
 import com.github.blausql.core.util.TextUtils;
-import com.googlecode.lanterna.gui.Action;
-import com.googlecode.lanterna.gui.Border;
-import com.googlecode.lanterna.gui.Window;
-import com.googlecode.lanterna.gui.component.Button;
-import com.googlecode.lanterna.gui.component.EditArea;
-import com.googlecode.lanterna.gui.component.Label;
-import com.googlecode.lanterna.gui.component.Panel;
-import com.googlecode.lanterna.input.Key;
-import com.googlecode.lanterna.input.Key.Kind;
-import com.googlecode.lanterna.terminal.TerminalSize;
+import com.googlecode.lanterna.TerminalSize;
+import com.googlecode.lanterna.gui2.*;
+
+import com.googlecode.lanterna.input.KeyStroke;
+import com.googlecode.lanterna.input.KeyType;
+
 
 import java.io.File;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-final class SetClasspathWindow extends Window {
+final class SetClasspathWindow extends LegacyWindowSupport {
 
     private static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
-
-    private final EditArea classpathEditArea;
+    private final TextBox classpathEditArea;
 
     SetClasspathWindow(String[] classpath) {
 
         super("Set JDBC Driver Classpath");
 
-        Panel bottomPanel = new Panel(new Border.Bevel(true),
-                Panel.Orientation.HORISONTAL);
-        Panel verticalPanel = new Panel(new Border.Invisible(),
-                Panel.Orientation.VERTICAL);
+        Panel bottomPanel = new Panel(new LinearLayout());
+        Panel verticalPanel = new Panel(new BorderLayout());
 
         bottomPanel.addComponent(new Label(">>> Press TAB >>>"));
 
-        bottomPanel.addComponent(new Button("Save Changes (CTRL+S)", onSaveChangesButtonSelectedAction));
-        bottomPanel.addComponent(new Button("Cancel (ESC)", onCancelButtonSelectedAction));
+        bottomPanel.addComponent(new Button("Save Changes (CTRL+S)", onSaveChangesButtonSelectedRunnable));
+        bottomPanel.addComponent(new Button("Cancel (ESC)", onCancelButtonSelectedRunnable));
 
         TerminalSize screenTerminalSize = TerminalUI.getTerminalSize();
 
@@ -64,51 +58,67 @@ final class SetClasspathWindow extends Window {
         String classpathText = TextUtils.joinStringsWithNewLine(classpath);
 
         TerminalSize preferredSizeForTextArea = new TerminalSize(sqlEditorPanelColumns, sqlEditorPanelRows);
-        classpathEditArea = new EditArea(preferredSizeForTextArea, classpathText);
 
-        verticalPanel.addComponent(new Label("Enter Classpath entries - each on a new line:"));
 
+        classpathEditArea = new TextBox(preferredSizeForTextArea, classpathText);
+
+
+        Label topLabel = new Label("Enter Classpath entries - each on a new line:");
+
+        topLabel.setLayoutData(BorderLayout.Location.TOP);
+        verticalPanel.addComponent(topLabel);
+
+        classpathEditArea.setLayoutData(BorderLayout.Location.CENTER);
         verticalPanel.addComponent(classpathEditArea);
 
+        bottomPanel.setLayoutData(BorderLayout.Location.BOTTOM);
         verticalPanel.addComponent(bottomPanel);
 
         addComponent(verticalPanel);
+
+
+        addWindowListener(new WindowListenerAdapter() {
+            @Override
+            public void onUnhandledInput(Window basePane, KeyStroke keyStroke, AtomicBoolean hasBeenHandled) {
+                SetClasspathWindow.this.onUnhandledInput(basePane, keyStroke, hasBeenHandled);
+            }
+        });
     }
 
-    private final Action onSaveChangesButtonSelectedAction = new Action() {
+    private void onUnhandledInput(Window basePane, KeyStroke keyStroke, AtomicBoolean hasBeenHandled) {
 
-        public void doAction() {
-            saveClasspath(classpathEditArea.getData());
+        if (keyStroke.isCtrlDown()) {
+            Character character = keyStroke.getCharacter();
 
+            if (character != null) {
+                if (character == 'S' || character == 's') {
+                    onCancelButtonSelectedRunnable.run();
+                    hasBeenHandled.set(true);
+                }
+            }
+        }
+
+        if (KeyType.Escape.equals(keyStroke.getKeyType())) {
+            onCancelButtonSelectedRunnable.run();
+            hasBeenHandled.set(true);
+        }
+    }
+
+    private final Runnable onSaveChangesButtonSelectedRunnable = new Runnable() {
+
+        public void run() {
+            saveClasspath(classpathEditArea.getText());
         }
     };
 
-    private final Action onCancelButtonSelectedAction = new Action() {
+    private final Runnable onCancelButtonSelectedRunnable = new Runnable() {
 
-        public void doAction() {
+        public void run() {
             SetClasspathWindow.this.close();
         }
 
     };
 
-    public void onKeyPressed(Key key) {
-
-        if (Kind.NormalKey.equals(key.getKind())
-                && (key.getCharacter() == 'S' || key.getCharacter() == 's')
-                && key.isCtrlPressed()) {
-
-            onSaveChangesButtonSelectedAction.doAction();
-
-
-        } else if (Kind.Escape.equals(key.getKind())) {
-
-            onCancelButtonSelectedAction.doAction();
-
-
-        } else {
-            super.onKeyPressed(key);
-        }
-    }
 
     private void saveClasspath(final String newLineSeparatedClasspathString) {
 
@@ -145,7 +155,7 @@ final class SetClasspathWindow extends Window {
             protected void onBackgroundTaskFailed(Throwable t) {
                 showWaitDialog.close();
                 TerminalUI.showErrorMessageFromThrowable(t);
-                setFocus(classpathEditArea);
+                setFocusedInteractable(classpathEditArea);
 
             }
 

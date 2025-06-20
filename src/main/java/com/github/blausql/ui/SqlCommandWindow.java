@@ -25,16 +25,7 @@ import com.github.blausql.core.sqlfile.SqlFile;
 import com.github.blausql.core.sqlfile.SqlFileRepository;
 import com.github.blausql.core.util.ExceptionUtils;
 import com.github.blausql.ui.util.BackgroundWorker;
-import com.googlecode.lanterna.gui.Action;
-import com.googlecode.lanterna.gui.Border;
-import com.googlecode.lanterna.gui.Interactable;
-import com.googlecode.lanterna.gui.Window;
-import com.googlecode.lanterna.gui.component.EditArea;
-import com.googlecode.lanterna.gui.component.Label;
-import com.googlecode.lanterna.gui.component.Panel;
-import com.googlecode.lanterna.input.Key;
-import com.googlecode.lanterna.input.Key.Kind;
-import com.googlecode.lanterna.terminal.TerminalSize;
+
 
 import java.io.InterruptedIOException;
 import java.util.List;
@@ -42,7 +33,13 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
-final class SqlCommandWindow extends Window {
+final class SqlCommandWindow extends LegacyWindowSupport {
+
+    public SqlCommandWindow(ConnectionDefinition connectionDefinition) {
+        super(connectionDefinition.getConnectionName());
+    }
+
+    /*
 
     private EditArea sqlEditArea;
     private final String connectionName;
@@ -56,15 +53,15 @@ final class SqlCommandWindow extends Window {
             super(terminalSize, text);
         }
 
-        public Interactable.Result keyboardInteraction(Key key) {
+        public Interactable.Result keyboardInterRunnable(Key key) {
             if (key.getKind() == Kind.Tab) {
                 // Turn a TAB into 4 characters
                 Key spaceCharacter = new Key(' ');
 
-                super.keyboardInteraction(spaceCharacter);
-                super.keyboardInteraction(spaceCharacter);
-                super.keyboardInteraction(spaceCharacter);
-                return super.keyboardInteraction(spaceCharacter);
+                super.keyboardInterRunnable(spaceCharacter);
+                super.keyboardInterRunnable(spaceCharacter);
+                super.keyboardInterRunnable(spaceCharacter);
+                return super.keyboardInterRunnable(spaceCharacter);
 
             } else if (Kind.NormalKey.equals(key.getKind())
                     && Character.toUpperCase(key.getCharacter()) == 'R'
@@ -75,10 +72,10 @@ final class SqlCommandWindow extends Window {
                     setEditorContent(" ");
                 }
 
-                return super.keyboardInteraction(new Key(Kind.Backspace));
+                return super.keyboardInterRunnable(new Key(Kind.Backspace));
             }
 
-            return super.keyboardInteraction(key);
+            return super.keyboardInterRunnable(key);
         }
     }
 
@@ -215,9 +212,9 @@ final class SqlCommandWindow extends Window {
         final AtomicReference<BackgroundWorker<?>> backgroundWorkerReference = new AtomicReference<>();
 
         final Window showWaitDialog = TerminalUI.showWaitDialog("Please wait",
-                String.format("Executing statement against %s ...", connectionName), new Action() {
+                String.format("Executing statement against %s ...", connectionName), new Runnable() {
                     @Override
-                    public void doAction() {
+                    public void run() {
                         BackgroundWorker<?> backgroundWorker = backgroundWorkerReference.get();
                         if (backgroundWorker != null) {
                             backgroundWorker.cancel();
@@ -285,5 +282,7 @@ final class SqlCommandWindow extends Window {
                 }
             };
     }
+
+     */
 
 }

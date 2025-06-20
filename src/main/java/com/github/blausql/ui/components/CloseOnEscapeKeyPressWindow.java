@@ -17,30 +17,37 @@
 
 package com.github.blausql.ui.components;
 
-import com.googlecode.lanterna.gui.Window;
-import com.googlecode.lanterna.gui.listener.WindowAdapter;
-import com.googlecode.lanterna.input.Key;
-import com.googlecode.lanterna.input.Key.Kind;
+import com.github.blausql.ui.LegacyWindowSupport;
+import com.googlecode.lanterna.gui2.BasicWindow;
+import com.googlecode.lanterna.gui2.Window;
+import com.googlecode.lanterna.gui2.WindowListenerAdapter;
+import com.googlecode.lanterna.input.KeyStroke;
+import com.googlecode.lanterna.input.KeyType;
 
-public abstract class CloseOnEscapeKeyPressWindow extends Window {
+import java.util.concurrent.atomic.AtomicBoolean;
+
+
+public abstract class CloseOnEscapeKeyPressWindow extends LegacyWindowSupport {
 
     protected CloseOnEscapeKeyPressWindow(String title) {
         super(title);
 
-        addWindowListener(new WindowAdapter() {
+        addWindowListener(new WindowListenerAdapter() {
 
             @Override
-            public void onUnhandledKeyboardInteraction(
-                    Window window, Key key) {
+            public void onUnhandledInput(Window basePane, KeyStroke keyStroke, AtomicBoolean hasBeenHandled) {
 
-                if (Kind.Escape.equals(key.getKind())) {
+                KeyType keyType = keyStroke.getKeyType();
+                if (keyType != null && keyType.equals(KeyType.Escape)) {
+
                     CloseOnEscapeKeyPressWindow.this.close();
+
+                } else {
+
+                    super.onUnhandledInput(basePane, keyStroke, hasBeenHandled);
+
                 }
             }
-
         });
-
-
     }
-
 }

@@ -2,7 +2,7 @@
     <Match>
         <Class name="~.*Window\$.*" />
         <Bug pattern="SIC_INNER_SHOULD_BE_STATIC_ANON" />
-        <!-- Windows may have Action classes as members -->
+        <!-- Windows may have Runnable classes as members -->
     </Match>
     <Match>
         <Class name="com.github.blausql.core.connection.DatabaseConnection$1" />

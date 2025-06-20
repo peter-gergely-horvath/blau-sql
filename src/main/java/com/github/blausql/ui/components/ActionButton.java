@@ -17,26 +17,26 @@
  
 package com.github.blausql.ui.components;
 
-import com.googlecode.lanterna.gui.Action;
-import com.googlecode.lanterna.gui.component.Button;
+
+import com.googlecode.lanterna.gui2.Button;
 
 import java.util.Objects;
 
 
-public final class ActionButton extends Button implements Action {
+public final class ActionButton extends Button implements Runnable {
 
-    private final Action delegateAction;
+    private final Runnable delegateRunnable;
 
-    public ActionButton(String text, Action onPressEvent) {
+    public ActionButton(String text, Runnable onPressEvent) {
         super(text, onPressEvent);
 
         Objects.requireNonNull(onPressEvent, "argument onPressEvent cannot be null");
-        this.delegateAction = onPressEvent;
+        this.delegateRunnable = onPressEvent;
     }
 
 
     @Override
-    public void doAction() {
-        delegateAction.doAction();
+    public void run() {
+        delegateRunnable.run();
     }
 }

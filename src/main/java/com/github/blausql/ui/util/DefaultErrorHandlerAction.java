@@ -18,19 +18,18 @@
 package com.github.blausql.ui.util;
 
 import com.github.blausql.TerminalUI;
-import com.googlecode.lanterna.gui.Action;
 
-public abstract class DefaultErrorHandlerAction implements Action {
+public abstract class DefaultErrorHandlerAction implements Runnable {
 
     @Override
-    public final void doAction() {
+    public final void run() {
 
         try {
-            doActionWithErrorHandler();
+            runWithErrorHandler();
         } catch (Exception e) {
             TerminalUI.showErrorMessageFromThrowable(e);
         }
     }
 
-    protected abstract void doActionWithErrorHandler() throws Exception;
+    protected abstract void runWithErrorHandler() throws Exception;
 }

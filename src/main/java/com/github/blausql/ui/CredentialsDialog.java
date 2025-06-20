@@ -17,18 +17,12 @@
 
 package com.github.blausql.ui;
 
+import com.github.blausql.DialogResult;
 import com.github.blausql.core.connection.ConnectionDefinition;
 import com.github.blausql.ui.components.CloseOnEscapeKeyPressWindow;
+import com.googlecode.lanterna.TerminalSize;
+import com.googlecode.lanterna.gui2.*;
 
-import com.googlecode.lanterna.gui.Action;
-import com.googlecode.lanterna.gui.Border;
-import com.googlecode.lanterna.gui.component.Button;
-import com.googlecode.lanterna.gui.component.EmptySpace;
-import com.googlecode.lanterna.gui.component.Label;
-import com.googlecode.lanterna.gui.component.Panel;
-import com.googlecode.lanterna.gui.component.PasswordBox;
-import com.googlecode.lanterna.gui.component.TextBox;
-import com.googlecode.lanterna.gui.dialog.DialogResult;
 
 final class CredentialsDialog extends CloseOnEscapeKeyPressWindow {
 
@@ -36,7 +30,7 @@ final class CredentialsDialog extends CloseOnEscapeKeyPressWindow {
     private static final int PASSWORD_BOX_LEN = 20;
 
     private final TextBox userNameTextBox;
-    private final PasswordBox passwordPasswordBox;
+    private final TextBox passwordPasswordBox;
 
     private DialogResult dialogResult = DialogResult.CANCEL;
 
@@ -45,28 +39,30 @@ final class CredentialsDialog extends CloseOnEscapeKeyPressWindow {
         super("Enter credentials for " + cd.getConnectionName());
 
         addComponent(new Label("User name:"));
-        userNameTextBox = new TextBox(cd.getUserName(), USERNAME_BOX_LEN);
+        userNameTextBox = new TextBox(new TerminalSize(USERNAME_BOX_LEN, 1),
+                cd.getUserName(), TextBox.Style.SINGLE_LINE);
         addComponent(userNameTextBox);
 
         addComponent(new Label("Password:"));
-        passwordPasswordBox = new PasswordBox(cd.getPassword(), PASSWORD_BOX_LEN);
+        passwordPasswordBox = new TextBox(new TerminalSize(USERNAME_BOX_LEN, 1),
+                cd.getPassword(), TextBox.Style.SINGLE_LINE);
         addComponent(passwordPasswordBox);
 
-        Button okButton = new Button("OK", new Action() {
-            public void doAction() {
+        Button okButton = new Button("OK", new Runnable() {
+            public void run() {
                 dialogResult = DialogResult.OK;
                 close();
             }
         });
-        Button cancelButton = new Button("Cancel", new Action() {
-            public void doAction() {
+        Button cancelButton = new Button("Cancel", new Runnable() {
+            public void run() {
                 dialogResult = DialogResult.CANCEL;
                 close();
             }
         });
 
         int labelWidth = userNameTextBox.getPreferredSize().getColumns();
-        Panel buttonPanel = new Panel(new Border.Invisible(), Panel.Orientation.HORISONTAL);
+        Panel buttonPanel = new Panel();
         int leftPadding = 0;
         int buttonsWidth = okButton.getPreferredSize().getColumns()
                 + cancelButton.getPreferredSize().getColumns() + 1;
@@ -75,13 +71,14 @@ final class CredentialsDialog extends CloseOnEscapeKeyPressWindow {
         }
 
         if (leftPadding > 0) {
-            buttonPanel.addComponent(new EmptySpace(leftPadding, 1));
+            buttonPanel.addComponent(new EmptySpace(new TerminalSize(1, 1)));
         }
         buttonPanel.addComponent(okButton);
         buttonPanel.addComponent(cancelButton);
         addComponent(new EmptySpace());
         addComponent(buttonPanel);
-        setFocus(okButton);
+
+        setFocusedInteractable(okButton);
     }
 
     public DialogResult getDialogResult() {

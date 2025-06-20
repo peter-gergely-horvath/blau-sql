@@ -26,8 +26,8 @@ import com.github.blausql.ui.util.DefaultErrorHandlerAction;
 import com.github.blausql.ui.util.HotKeySupportListener;
 
 import com.google.common.collect.ImmutableMap;
-import com.googlecode.lanterna.gui.Action;
-import com.googlecode.lanterna.gui.component.Button;
+import com.googlecode.lanterna.gui2.Button;
+
 
 import java.util.List;
 
@@ -39,38 +39,38 @@ class ManageConnectionsWindow extends CloseOnEscapeKeyPressWindow {
 
         super("Manage Connections");
 
-        addComponent(new Button("BACK (ESC)", new Action() {
+        addComponent(new Button("BACK (ESC)", new Runnable() {
 
-            public void doAction() {
+            public void run() {
                 ManageConnectionsWindow.this.close();
             }
         }));
-        addComponent(new Button("[A]dd connection", onAddConnectionButtonSelectedAction));
-        addComponent(new Button("[E]dit connection", onEditConnectionButtonSelectedAction));
-        addComponent(new Button("[C]opy connection", onCopyConnectionButtonSelectedAction));
-        addComponent(new Button("[D]elete connection", onDeleteConnectionButtonSelectedAction));
+        addComponent(new Button("[A]dd connection", onAddConnectionButtonSelectedRunnable));
+        addComponent(new Button("[E]dit connection", onEditConnectionButtonSelectedRunnable));
+        addComponent(new Button("[C]opy connection", onCopyConnectionButtonSelectedRunnable));
+        addComponent(new Button("[D]elete connection", onDeleteConnectionButtonSelectedRunnable));
 
         addWindowListener(new HotKeySupportListener(
-                ImmutableMap.<Character, Action>builder()
-                        .put('A', onAddConnectionButtonSelectedAction)
-                        .put('E', onEditConnectionButtonSelectedAction)
-                        .put('C', onCopyConnectionButtonSelectedAction)
-                        .put('D', onDeleteConnectionButtonSelectedAction)
+                ImmutableMap.<Character, Runnable>builder()
+                        .put('A', onAddConnectionButtonSelectedRunnable)
+                        .put('E', onEditConnectionButtonSelectedRunnable)
+                        .put('C', onCopyConnectionButtonSelectedRunnable)
+                        .put('D', onDeleteConnectionButtonSelectedRunnable)
                         .build(), true));
     }
 
 
-    private final Action onAddConnectionButtonSelectedAction = new Action() {
+    private final Runnable onAddConnectionButtonSelectedRunnable = new Runnable() {
 
-        public void doAction() {
+        public void run() {
             ManageConnectionsWindow.this.close();
             TerminalUI.showWindowCenter(new ConnectionSettingsWindow());
         }
     };
 
-    private final Action onCopyConnectionButtonSelectedAction = new DefaultErrorHandlerAction() {
+    private final Runnable onCopyConnectionButtonSelectedRunnable = new DefaultErrorHandlerAction() {
 
-        public void doActionWithErrorHandler() throws LoadException {
+        public void runWithErrorHandler() throws LoadException {
             ManageConnectionsWindow.this.close();
 
             List<ConnectionDefinition> connectionDefinitions =
@@ -80,9 +80,9 @@ class ManageConnectionsWindow extends CloseOnEscapeKeyPressWindow {
         }
     };
 
-    private final Action onEditConnectionButtonSelectedAction = new DefaultErrorHandlerAction() {
+    private final Runnable onEditConnectionButtonSelectedRunnable = new DefaultErrorHandlerAction() {
 
-        public void doActionWithErrorHandler() throws LoadException {
+        public void runWithErrorHandler() throws LoadException {
             ManageConnectionsWindow.this.close();
 
             List<ConnectionDefinition> connectionDefinitions =
@@ -92,9 +92,9 @@ class ManageConnectionsWindow extends CloseOnEscapeKeyPressWindow {
         }
     };
 
-    private final Action onDeleteConnectionButtonSelectedAction = new DefaultErrorHandlerAction() {
+    private final Runnable onDeleteConnectionButtonSelectedRunnable = new DefaultErrorHandlerAction() {
 
-        public void doActionWithErrorHandler() throws LoadException {
+        public void runWithErrorHandler() throws LoadException {
             ManageConnectionsWindow.this.close();
 
             List<ConnectionDefinition> connectionDefinitions =

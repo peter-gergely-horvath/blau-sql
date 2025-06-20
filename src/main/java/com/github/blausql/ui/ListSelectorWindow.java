@@ -18,20 +18,21 @@
 package com.github.blausql.ui;
 
 import com.github.blausql.ui.components.CloseOnEscapeKeyPressWindow;
-import com.googlecode.lanterna.gui.Action;
-import com.googlecode.lanterna.gui.component.Button;
-import com.googlecode.lanterna.gui.component.Label;
+import com.googlecode.lanterna.gui2.Label;
+import com.googlecode.lanterna.gui2.Button;
 
 import java.util.List;
+
+
 
 abstract class ListSelectorWindow<T> extends CloseOnEscapeKeyPressWindow {
 
     ListSelectorWindow(String title, String emptyListMessage, List<T> list) {
         super(title);
 
-        addComponent(new Button("CANCEL (ESC)", new Action() {
+        addComponent(new Button("CANCEL (ESC)", new Runnable() {
 
-            public void doAction() {
+            public void run() {
                 ListSelectorWindow.this.close();
             }
         }));
@@ -42,9 +43,9 @@ abstract class ListSelectorWindow<T> extends CloseOnEscapeKeyPressWindow {
         } else {
             for (final T entry : list) {
 
-                addComponent(new Button(entry.toString(), new Action() {
+                addComponent(new Button(entry.toString(), new Runnable() {
 
-                    public void doAction() {
+                    public void run() {
                         ListSelectorWindow.this.close();
 
                         ListSelectorWindow.this.onEntrySelected(entry);

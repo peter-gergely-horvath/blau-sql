@@ -17,14 +17,14 @@
 
 package com.github.blausql.ui;
 
+import com.github.blausql.DialogResult;
 import com.github.blausql.TerminalUI;
 import com.github.blausql.core.connection.ConnectionDefinition;
 import com.github.blausql.core.preferences.ConnectionDefinitionRepository;
 import com.github.blausql.ui.util.BackgroundWorker;
 
-import com.googlecode.lanterna.gui.Window;
-import com.googlecode.lanterna.gui.dialog.DialogButtons;
-import com.googlecode.lanterna.gui.dialog.DialogResult;
+import com.googlecode.lanterna.gui2.Window;
+
 
 import java.util.List;
 

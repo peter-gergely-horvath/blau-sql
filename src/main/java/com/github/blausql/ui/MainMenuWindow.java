@@ -30,12 +30,10 @@ import com.github.blausql.ui.util.DefaultErrorHandlerAction;
 import com.github.blausql.ui.util.HotKeySupportListener;
 import com.google.common.collect.ImmutableMap;
 
-import com.googlecode.lanterna.gui.Action;
-import com.googlecode.lanterna.gui.Window;
 
 import java.util.List;
 
-public class MainMenuWindow extends Window {
+public class MainMenuWindow extends LegacyWindowSupport {
 
     public MainMenuWindow() {
 
@@ -50,7 +48,7 @@ public class MainMenuWindow extends Window {
         addComponent(quitApplicationButton);
 
         addWindowListener(new HotKeySupportListener(
-                ImmutableMap.<Character, Action>builder()
+                ImmutableMap.<Character, Runnable>builder()
                         .put('C', connectToDatabaseButton)
                         .put('M', manageConnectionButton)
                         .put('B', manageBookmarkedSqlFilesButton)
@@ -65,7 +63,7 @@ public class MainMenuWindow extends Window {
     private final ActionButton connectToDatabaseButton =
             new ActionButton("[C]onnect to database", new DefaultErrorHandlerAction() {
 
-                public void doActionWithErrorHandler() throws LoadException {
+                public void runWithErrorHandler() throws LoadException {
 
                     List<ConnectionDefinition> connectionDefinitions =
                             ConnectionDefinitionRepository.getInstance().getConnectionDefinitions();
@@ -74,9 +72,9 @@ public class MainMenuWindow extends Window {
                 }
             });
 
-    private final ActionButton manageConnectionButton = new ActionButton("[M]anage Connections", new Action() {
+    private final ActionButton manageConnectionButton = new ActionButton("[M]anage Connections", new Runnable() {
 
-        public void doAction() {
+        public void run() {
             TerminalUI.showWindowCenter(new ManageConnectionsWindow());
         }
 
@@ -85,7 +83,7 @@ public class MainMenuWindow extends Window {
     private final ActionButton setApplicationClasspathButton = new ActionButton("[S]et Classpath",
             new DefaultErrorHandlerAction() {
 
-        public void doActionWithErrorHandler() throws LoadException {
+        public void runWithErrorHandler() throws LoadException {
 
             String[] classpath = ConfigurationRepository.getInstance().getClasspath();
 
@@ -97,23 +95,23 @@ public class MainMenuWindow extends Window {
     private final ActionButton manageBookmarkedSqlFilesButton = new ActionButton("[B]ookmarked SQL Files",
             new DefaultErrorHandlerAction() {
 
-                public void doActionWithErrorHandler() throws LoadException {
+                public void runWithErrorHandler() throws LoadException {
 
                     TerminalUI.showWindowCenter(new ManageBookmarkedSqlFilesWindow());
                 }
 
             });
 
-    private final ActionButton aboutButton = new ActionButton("[A]bout", new Action() {
+    private final ActionButton aboutButton = new ActionButton("[A]bout", new Runnable() {
 
-        public void doAction() {
+        public void run() {
             TerminalUI.showMessageBox("About BlauSQL", Constants.ABOUT_TEXT);
         }
     });
 
-    private final ActionButton quitApplicationButton = new ActionButton("[Q]uit Application", new Action() {
+    private final ActionButton quitApplicationButton = new ActionButton("[Q]uit Application", new Runnable() {
 
-        public void doAction() {
+        public void run() {
             Main.exitApplication(0);
 
         }

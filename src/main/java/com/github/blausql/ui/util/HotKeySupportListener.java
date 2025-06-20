@@ -18,61 +18,46 @@
 package com.github.blausql.ui.util;
 
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.springframework.util.Assert;
+import com.googlecode.lanterna.gui2.Window;
+import com.googlecode.lanterna.gui2.WindowListenerAdapter;
+import com.googlecode.lanterna.input.KeyStroke;
+import com.googlecode.lanterna.input.KeyType;
 
-import com.googlecode.lanterna.gui.Action;
-import com.googlecode.lanterna.gui.Window;
-import com.googlecode.lanterna.gui.listener.WindowAdapter;
-import com.googlecode.lanterna.input.Key;
-import com.googlecode.lanterna.input.Key.Kind;
 
-public final class HotKeySupportListener extends WindowAdapter {
+public final class HotKeySupportListener extends WindowListenerAdapter {
 
-    private final Map<Character, Action> hotkeyToActionMap;
+    private final Map<Character, Runnable> hotkeyToRunnableMap;
     private final boolean closeOnEscape;
 
-    public HotKeySupportListener(Map<Character, Action> hotkeyToActionMap, boolean closeOnEsc) {
-        this.hotkeyToActionMap = hotkeyToActionMap;
+    public HotKeySupportListener(Map<Character, Runnable> hotkeyToRunnableMap, boolean closeOnEsc) {
+        this.hotkeyToRunnableMap = hotkeyToRunnableMap;
         this.closeOnEscape = closeOnEsc;
     }
 
-
     @Override
-    public void onUnhandledKeyboardInteraction(Window window, Key key) {
+    public void onUnhandledInput(Window basePane, KeyStroke keyStroke, AtomicBoolean hasBeenHandled) {
 
-        final Kind keyKind = key.getKind();
+        KeyType keyType = keyStroke.getKeyType();
+        Character character = keyStroke.getCharacter();
 
-        Assert.notNull(keyKind, "kind retrieved from key is null");
+        if (closeOnEscape && KeyType.Escape.equals(keyType) ) {
+            basePane.close();
 
-        switch (keyKind) {
+            hasBeenHandled.set(true);
 
-            case NormalKey:
-                final char characterKey = key.getCharacter();
+        } else if (character != null) {
+            Runnable runnable = hotkeyToRunnableMap.get(Character.toUpperCase(character));
+            if (runnable == null) {
+                runnable = hotkeyToRunnableMap.get(Character.toLowerCase(character));
+            }
 
-                Action action;
-                action = hotkeyToActionMap.get(Character.toUpperCase(characterKey));
-                if (action == null) {
-                    action = hotkeyToActionMap.get(Character.toLowerCase(characterKey));
-                }
+            if (runnable != null) {
+                runnable.run();
 
-                if (action != null) {
-                    action.doAction();
-                }
-
-                break;
-
-            case Escape:
-                if (closeOnEscape) {
-                    window.close();
-                }
-
-                break;
-
-            default:
-                // nothing to do
-                break;
+                hasBeenHandled.set(true);
+            }
         }
     }
-
 }
