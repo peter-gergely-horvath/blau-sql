@@ -20,6 +20,7 @@ package com.github.blausql.ui;
 import com.github.blausql.DialogResult;
 import com.github.blausql.core.connection.ConnectionDefinition;
 import com.github.blausql.ui.components.CloseOnEscapeKeyPressWindow;
+import com.github.blausql.ui.components.PasswordBox;
 import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.gui2.*;
 
@@ -44,8 +45,7 @@ final class CredentialsDialog extends CloseOnEscapeKeyPressWindow {
         addComponent(userNameTextBox);
 
         addComponent(new Label("Password:"));
-        passwordPasswordBox = new TextBox(new TerminalSize(USERNAME_BOX_LEN, 1),
-                cd.getPassword(), TextBox.Style.SINGLE_LINE);
+        passwordPasswordBox = new PasswordBox(PASSWORD_BOX_LEN, cd.getPassword());
         addComponent(passwordPasswordBox);
 
         Button okButton = new Button("OK", new Runnable() {
@@ -62,7 +62,7 @@ final class CredentialsDialog extends CloseOnEscapeKeyPressWindow {
         });
 
         int labelWidth = userNameTextBox.getPreferredSize().getColumns();
-        Panel buttonPanel = new Panel();
+        Panel buttonPanel = new Panel(new LinearLayout(Direction.HORIZONTAL));
         int leftPadding = 0;
         int buttonsWidth = okButton.getPreferredSize().getColumns()
                 + cancelButton.getPreferredSize().getColumns() + 1;

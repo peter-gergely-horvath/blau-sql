@@ -24,6 +24,8 @@ import com.github.blausql.core.preferences.ConnectionDefinitionRepository;
 
 import com.github.blausql.core.preferences.LoadException;
 import com.github.blausql.core.preferences.SaveException;
+import com.github.blausql.ui.components.PasswordBox;
+import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.gui2.Button;
 import com.googlecode.lanterna.gui2.CheckBox;
 import com.googlecode.lanterna.gui2.Label;
@@ -62,7 +64,7 @@ public final class ConnectionSettingsWindow extends LegacyWindowSupport {
     private final CheckBox loginAutomaticallyCheckBox;
 
     private final TextBox userNameTextBox;
-    private final PasswordBox passwordPasswordBox;
+    private final TextBox passwordPasswordBox;
 
     private final TextBox hotkeyTextBox;
     private final TextBox orderTextBox;
@@ -119,7 +121,8 @@ public final class ConnectionSettingsWindow extends LegacyWindowSupport {
         addComponent(userNameTextBox);
 
         addComponent(new Label("Password:"));
-        passwordPasswordBox = new PasswordBox(cd != null ? cd.getPassword() : null, PASSWORD_BOX_LEN);
+        passwordPasswordBox = new PasswordBox((PASSWORD_BOX_LEN),
+                cd != null ? cd.getPassword() : null);
         addComponent(passwordPasswordBox);
 
         addComponent(new Label("HotKey to select this connection (ONE character, optional):"));
@@ -131,6 +134,10 @@ public final class ConnectionSettingsWindow extends LegacyWindowSupport {
         addComponent(orderTextBox);
 
         addComponent(new Button("SAVE CONNECTION", onSaveConnectionButtonSelectedRunnable));
+    }
+
+    private static TerminalSize getTerminalSizeForLength(int length) {
+        return new TerminalSize(length, 1);
     }
 
     private String getHotKeyString(ConnectionDefinition cd) {
