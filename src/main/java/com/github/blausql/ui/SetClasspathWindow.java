@@ -42,7 +42,7 @@ final class SetClasspathWindow extends LegacyWindowSupport {
 
         super("Set JDBC Driver Classpath");
 
-        Panel bottomPanel = new Panel(new LinearLayout());
+        Panel bottomPanel = new Panel(new LinearLayout(Direction.HORIZONTAL));
         Panel verticalPanel = new Panel(new BorderLayout());
 
         bottomPanel.addComponent(new Label(">>> Press TAB >>>"));
