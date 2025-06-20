@@ -47,8 +47,9 @@ final class SetClasspathWindow extends LegacyWindowSupport {
 
         bottomPanel.addComponent(new Label(">>> Press TAB >>>"));
 
-        bottomPanel.addComponent(new Button("Save Changes (CTRL+S)", onSaveChangesButtonSelectedRunnable));
-        bottomPanel.addComponent(new Button("Cancel (ESC)", onCancelButtonSelectedRunnable));
+        bottomPanel.addComponent(new Button("Add a file", this::onAddFileButtonSelected));
+        bottomPanel.addComponent(new Button("Save Changes (CTRL+S)", this::onSaveChangesButtonSelected));
+        bottomPanel.addComponent(new Button("Cancel (ESC)", this::onSaveChangesButtonSelected));
 
         TerminalSize screenTerminalSize = TerminalUI.getTerminalSize();
 
@@ -92,32 +93,32 @@ final class SetClasspathWindow extends LegacyWindowSupport {
 
             if (character != null) {
                 if (character == 'S' || character == 's') {
-                    onCancelButtonSelectedRunnable.run();
+                    onCancelButtonSelected();
                     hasBeenHandled.set(true);
                 }
             }
         }
 
         if (KeyType.Escape.equals(keyStroke.getKeyType())) {
-            onCancelButtonSelectedRunnable.run();
+            onCancelButtonSelected();
             hasBeenHandled.set(true);
         }
     }
 
-    private final Runnable onSaveChangesButtonSelectedRunnable = new Runnable() {
+    private void onAddFileButtonSelected() {
+        TerminalUI.showFileSelectorDialog(
+                "Add a JDBC JAR file",
+                "Please select the JDBC driver JAR file",
+                "Select");
+    }
 
-        public void run() {
-            saveClasspath(classpathEditArea.getText());
-        }
-    };
+    private void onSaveChangesButtonSelected() {
+        saveClasspath(classpathEditArea.getText());
+    }
 
-    private final Runnable onCancelButtonSelectedRunnable = new Runnable() {
-
-        public void run() {
-            SetClasspathWindow.this.close();
-        }
-
-    };
+    private void onCancelButtonSelected() {
+        SetClasspathWindow.this.close();
+    }
 
 
     private void saveClasspath(final String newLineSeparatedClasspathString) {

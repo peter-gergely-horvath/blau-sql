@@ -27,6 +27,7 @@ import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.gui2.MultiWindowTextGUI;
 import com.googlecode.lanterna.gui2.Window;
 import com.googlecode.lanterna.gui2.WindowBasedTextGUI;
+import com.googlecode.lanterna.gui2.dialogs.FileDialogBuilder;
 import com.googlecode.lanterna.gui2.dialogs.MessageDialogBuilder;
 import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton;
 import com.googlecode.lanterna.gui2.dialogs.TextInputDialogBuilder;
@@ -35,6 +36,7 @@ import com.googlecode.lanterna.screen.TerminalScreen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import com.googlecode.lanterna.terminal.Terminal;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -218,6 +220,18 @@ public class TerminalUI {
                 .build()
                 .showDialog(getTextGUI());
     }
+
+    public static File showFileSelectorDialog(
+            final String title, final String description, final String actionLabel) {
+
+        return new FileDialogBuilder()
+                .setTitle(title)
+                .setDescription(description)
+                .setActionLabel(actionLabel)
+                .build()
+                .showDialog(getTextGUI());
+    }
+
 
     public static void showWindowCenter(Window w) {
         w.setHints(Collections.singletonList(Window.Hint.CENTERED));
