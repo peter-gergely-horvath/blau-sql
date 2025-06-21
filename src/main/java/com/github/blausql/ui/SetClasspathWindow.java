@@ -26,14 +26,12 @@ import com.github.blausql.ui.util.HotKeyWindowListener;
 import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.gui2.*;
 
-import com.googlecode.lanterna.input.KeyStroke;
 import com.googlecode.lanterna.input.KeyType;
 
 
 import java.io.File;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 final class SetClasspathWindow extends BasicWindow {
