@@ -85,9 +85,9 @@ public class MainMenuWindow extends LegacyWindowSupport {
 
         public void runWithErrorHandler() throws LoadException {
 
-            String[] classpath = ConfigurationRepository.getInstance().getClasspath();
+            List<String> classpath = ConfigurationRepository.getInstance().getClasspath();
 
-            TerminalUI.showWindowCenter(new SetClasspathWindow(classpath));
+            TerminalUI.showWindowFullScreen(new SetClasspathWindow(classpath));
         }
 
     });

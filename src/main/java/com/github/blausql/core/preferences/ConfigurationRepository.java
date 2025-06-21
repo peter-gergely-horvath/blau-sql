@@ -17,10 +17,11 @@
 
 package com.github.blausql.core.preferences;
 
-import com.github.blausql.core.util.TextUtils;
-
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Properties;
+
+import java.util.List;
 
 public final class ConfigurationRepository {
 
@@ -38,12 +39,12 @@ public final class ConfigurationRepository {
         private static final String CLASSPATH = "classpath";
     }
 
-    public void saveClasspath(String[] entries) throws SaveException {
+    public void saveClasspath(List<String> entries) throws SaveException {
 
         try {
             Properties properties = SETTINGS_PROPERTY_STORE.loadProperties();
 
-            String classpathString = TextUtils.joinStringsWithSeparator(CLASSPATH_SEPARATOR_CHAR, entries);
+            String classpathString = String.join(CLASSPATH_SEPARATOR_CHAR, entries);
 
             properties.put(Keys.CLASSPATH, classpathString);
 
@@ -55,14 +56,14 @@ public final class ConfigurationRepository {
     }
 
 
-    public String[] getClasspath() throws LoadException {
+    public List<String> getClasspath() throws LoadException {
 
         try {
             Properties properties = SETTINGS_PROPERTY_STORE.loadProperties();
 
             String classpath = properties.getProperty(Keys.CLASSPATH, "");
 
-            return classpath.split("\\" + CLASSPATH_SEPARATOR_CHAR);
+            return Arrays.asList(classpath.split("\\" + CLASSPATH_SEPARATOR_CHAR));
 
         } catch (IOException e) {
             throw new LoadException("Failed to read configuration", e);

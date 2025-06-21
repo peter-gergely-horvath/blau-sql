@@ -24,6 +24,7 @@ import com.github.blausql.core.preferences.LoadException;
 
 import java.net.MalformedURLException;
 import java.sql.*;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 public final class Database {
@@ -51,9 +52,9 @@ public final class Database {
 
         ClassLoader originalContextClassLoader = Thread.currentThread().getContextClassLoader();
         try {
-            String[] classpath = ConfigurationRepository.getInstance().getClasspath();
+            List<String> classpath = ConfigurationRepository.getInstance().getClasspath();
 
-            if (classpath.length != 0) {
+            if (!classpath.isEmpty()) {
 
                 ClassLoader classLoader = ClassLoaderFactory.getClassLoaderForClasspath(classpath);
                 Thread.currentThread().setContextClassLoader(classLoader);

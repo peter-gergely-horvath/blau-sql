@@ -17,11 +17,11 @@
 
 package com.github.blausql.ui;
 
+import com.github.blausql.DialogResult;
 import com.github.blausql.TerminalUI;
 import com.github.blausql.core.preferences.ConfigurationRepository;
 import com.github.blausql.core.preferences.SaveException;
 import com.github.blausql.ui.util.BackgroundWorker;
-import com.github.blausql.core.util.TextUtils;
 import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.gui2.*;
 
@@ -30,60 +30,58 @@ import com.googlecode.lanterna.input.KeyType;
 
 
 import java.io.File;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
-final class SetClasspathWindow extends LegacyWindowSupport {
+final class SetClasspathWindow extends BasicWindow {
 
     private static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
-    private final TextBox classpathEditArea;
+    private final ActionListBox driverJarFilesActionList;
 
-    SetClasspathWindow(String[] classpath) {
+    private boolean thereAreUnsavedChanges = false;
+
+    SetClasspathWindow(List<String> classpath) {
 
         super("Set JDBC Driver Classpath");
 
-        Panel bottomPanel = new Panel(new LinearLayout(Direction.HORIZONTAL));
-        Panel verticalPanel = new Panel(new BorderLayout());
+        Button addFileToClasspathButton = new Button("Add file to Classpath", this::addNewJarFileButtonSelected);
 
-        bottomPanel.addComponent(new Label(">>> Press TAB >>>"));
+        TerminalSize terminalSize = TerminalUI.getTerminalSize();
+        TerminalSize size = getDesiredDriverJarFilesActionListSize(terminalSize);
+        driverJarFilesActionList = new ActionListBox(size);
 
-        bottomPanel.addComponent(new Button("Add a file", this::onAddFileButtonSelected));
-        bottomPanel.addComponent(new Button("Save Changes (CTRL+S)", this::onSaveChangesButtonSelected));
-        bottomPanel.addComponent(new Button("Cancel (ESC)", this::onSaveChangesButtonSelected));
-
-        TerminalSize screenTerminalSize = TerminalUI.getTerminalSize();
-
-        final int sqlEditorPanelColumns = screenTerminalSize.getColumns() - 4;
-        final int sqlEditorPanelRows = screenTerminalSize.getRows() - 4;
-
-        String classpathText = TextUtils.joinStringsWithNewLine(classpath);
-
-        TerminalSize preferredSizeForTextArea = new TerminalSize(sqlEditorPanelColumns, sqlEditorPanelRows);
+        Border borderOfDriverJarFilesActionList = Borders.singleLine();
+        borderOfDriverJarFilesActionList.setComponent(driverJarFilesActionList);
+        classpath.forEach(classpathEntry ->
+                driverJarFilesActionList.addItem(classpathEntry, this::onEntrySelectedForEditing));
 
 
-        classpathEditArea = new TextBox(preferredSizeForTextArea, classpathText);
+        Button saveChangeButton = new Button("Save Changes (CTRL+S)", this::onSaveChangesButtonSelected);
+        Button discardChangesButton = new Button("Discard Changes (CTRL+R)", this::onCancelButtonSelected);
 
+        Panel bottomButtonBar = Panels.horizontal(saveChangeButton, discardChangesButton);
 
-        Label topLabel = new Label("Enter Classpath entries - each on a new line:");
-
-        topLabel.setLayoutData(BorderLayout.Location.TOP);
-        verticalPanel.addComponent(topLabel);
-
-        classpathEditArea.setLayoutData(BorderLayout.Location.CENTER);
-        verticalPanel.addComponent(classpathEditArea);
-
-        bottomPanel.setLayoutData(BorderLayout.Location.BOTTOM);
-        verticalPanel.addComponent(bottomPanel);
-
-        addComponent(verticalPanel);
-
+        setComponent(Panels.vertical(addFileToClasspathButton, borderOfDriverJarFilesActionList, bottomButtonBar));
 
         addWindowListener(new WindowListenerAdapter() {
             @Override
             public void onUnhandledInput(Window basePane, KeyStroke keyStroke, AtomicBoolean hasBeenHandled) {
                 SetClasspathWindow.this.onUnhandledInput(basePane, keyStroke, hasBeenHandled);
             }
+
+            @Override
+            public void onResized(Window window, TerminalSize oldSize, TerminalSize newSize) {
+
+                driverJarFilesActionList.setSize(getDesiredDriverJarFilesActionListSize(newSize));
+            }
         });
+    }
+
+    private static TerminalSize getDesiredDriverJarFilesActionListSize(TerminalSize terminalSize) {
+        return new TerminalSize(terminalSize.getColumns() - 2, terminalSize.getRows() - 2);
     }
 
     private void onUnhandledInput(Window basePane, KeyStroke keyStroke, AtomicBoolean hasBeenHandled) {
@@ -112,16 +110,72 @@ final class SetClasspathWindow extends LegacyWindowSupport {
                 "Select");
     }
 
+    private void addNewJarFileButtonSelected() {
+        File file = TerminalUI.showFileSelectorDialog(
+                "Select JDBC Driver JAR file",
+                "Please select the JDBC Driver JAR file",
+                "Select");
+
+        if (file != null) {
+            driverJarFilesActionList.addItem(file.getAbsolutePath(), this::onEntrySelectedForEditing);
+
+            thereAreUnsavedChanges = true;
+        }
+    }
+
+
+    private void onEntrySelectedForEditing() {
+
+        int selectedIndex = driverJarFilesActionList.getSelectedIndex();
+
+        Runnable selectedRunnable = driverJarFilesActionList.getItemAt(selectedIndex);
+
+        if (selectedRunnable != null) {
+            // weird, but the component implementation overrides toString
+            // with the value of the item label, so this is the way
+            String selectedFile = selectedRunnable.toString();
+
+            DialogResult dialogResult = TerminalUI.showMessageBox("Remove this file?",
+                    "Do you want to remove the file: \n" + selectedFile,
+                    DialogButtons.OK_CANCEL);
+
+            if (dialogResult == DialogResult.OK) {
+
+                driverJarFilesActionList.removeItem(selectedIndex);
+
+                thereAreUnsavedChanges = true;
+            }
+        }
+    }
+
+
     private void onSaveChangesButtonSelected() {
-        saveClasspath(classpathEditArea.getText());
+
+        List<String> classpathEntries = driverJarFilesActionList.getItems().stream()
+                .map(Objects::toString)
+                .collect(Collectors.toList());
+
+        saveClasspath(classpathEntries);
     }
 
     private void onCancelButtonSelected() {
+
+        if (thereAreUnsavedChanges) {
+
+            DialogResult dialogResult = TerminalUI.showMessageBox("Discard changes?",
+                    "Classpath settings are not saved yet: do you want to discard all changes?",
+                    DialogButtons.OK_CANCEL);
+
+            if (dialogResult == DialogResult.CANCEL) {
+                return;
+            }
+        }
+
         SetClasspathWindow.this.close();
     }
 
 
-    private void saveClasspath(final String newLineSeparatedClasspathString) {
+    private void saveClasspath(List<String> classPathStrings) {
 
         final Window showWaitDialog = TerminalUI.showWaitDialog("Please wait", "Validating Classpath settings ...");
 
@@ -129,15 +183,6 @@ final class SetClasspathWindow extends LegacyWindowSupport {
 
             @Override
             protected Void doBackgroundTask() throws SaveException {
-
-
-                String[] classPathStrings = newLineSeparatedClasspathString.split(LINE_SEPARATOR);
-
-                for (int i = 0; i < classPathStrings.length; i++) {
-                    // the user might enter the classpath entry with leading or trailing spaces,
-                    // e.g. " /foo/bar.jar  ", so trim each string to ensure it can be resolved as a path
-                    classPathStrings[i] = classPathStrings[i].trim();
-                }
 
                 for (String path : classPathStrings) {
                     if (!"".equals(path) && !new File(path).exists()) {
@@ -156,7 +201,7 @@ final class SetClasspathWindow extends LegacyWindowSupport {
             protected void onBackgroundTaskFailed(Throwable t) {
                 showWaitDialog.close();
                 TerminalUI.showErrorMessageFromThrowable(t);
-                setFocusedInteractable(classpathEditArea);
+                // setFocusedInteractable(classpathEditArea);
 
             }
 

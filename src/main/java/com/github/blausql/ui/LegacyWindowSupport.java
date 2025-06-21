@@ -9,7 +9,7 @@ public class LegacyWindowSupport extends BasicWindow {
     private final Panel panel;
 
     public LegacyWindowSupport(String title) {
-        super(title);
+        super(String.format(" %s ", title));
 
         panel = new Panel();
         setComponent(panel);
