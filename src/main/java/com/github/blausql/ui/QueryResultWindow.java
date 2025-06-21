@@ -35,7 +35,7 @@ class QueryResultWindow extends CloseOnEscapeKeyPressWindow {
     QueryResultWindow(List<Map<String, Object>> queryResult) {
         super("Query result (press Enter/ESC to close)");
 
-        if (queryResult.size() == 0) {
+        if (queryResult.isEmpty()) {
             addComponent(new Label("(query yielded no results)"));
         } else {
 

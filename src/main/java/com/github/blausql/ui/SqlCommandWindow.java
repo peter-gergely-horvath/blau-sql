@@ -25,6 +25,10 @@ import com.github.blausql.core.sqlfile.SqlFile;
 import com.github.blausql.core.sqlfile.SqlFileRepository;
 import com.github.blausql.core.util.ExceptionUtils;
 import com.github.blausql.ui.util.BackgroundWorker;
+import com.github.blausql.ui.util.HotKeyWindowListener;
+import com.googlecode.lanterna.TerminalSize;
+import com.googlecode.lanterna.gui2.*;
+import com.googlecode.lanterna.input.KeyType;
 
 
 import java.io.InterruptedIOException;
@@ -35,47 +39,16 @@ import java.util.concurrent.atomic.AtomicReference;
 
 final class SqlCommandWindow extends LegacyWindowSupport {
 
-    public SqlCommandWindow(ConnectionDefinition connectionDefinition) {
-        super(connectionDefinition.getConnectionName());
-    }
-
-    /*
-
-    private EditArea sqlEditArea;
+    private SqlEditArea sqlEditArea;
     private final String connectionName;
 
     private SqlFileRepository sqlFileRepository = SqlFileRepository.getInstance();
     private Database database = Database.getInstance();
 
-    private final class SqlEditArea extends EditArea {
+    private final class SqlEditArea extends TextBox {
 
         private SqlEditArea(TerminalSize terminalSize, String text) {
             super(terminalSize, text);
-        }
-
-        public Interactable.Result keyboardInterRunnable(Key key) {
-            if (key.getKind() == Kind.Tab) {
-                // Turn a TAB into 4 characters
-                Key spaceCharacter = new Key(' ');
-
-                super.keyboardInterRunnable(spaceCharacter);
-                super.keyboardInterRunnable(spaceCharacter);
-                super.keyboardInterRunnable(spaceCharacter);
-                return super.keyboardInterRunnable(spaceCharacter);
-
-            } else if (Kind.NormalKey.equals(key.getKind())
-                    && Character.toUpperCase(key.getCharacter()) == 'R'
-                    && key.isCtrlPressed()) {
-
-                String data = this.getData();
-                if (data != null) {
-                    setEditorContent(" ");
-                }
-
-                return super.keyboardInterRunnable(new Key(Kind.Backspace));
-            }
-
-            return super.keyboardInterRunnable(key);
         }
     }
 
@@ -85,15 +58,29 @@ final class SqlCommandWindow extends LegacyWindowSupport {
         connectionName = connectionDefinition.getConnectionName();
 
         initComponents("");
+
+        addWindowListener(HotKeyWindowListener.builder()
+                .keyType(KeyType.Escape).invoke(this::closeWindow)
+                .keyType(KeyType.F2).invoke(this::clearEditor)
+                .keyType(KeyType.F5).invoke(this::saveSqlFile)
+                .keyType(KeyType.F6).invoke(this::selectSqlFileToLoad)
+                .keyType(KeyType.F9).invoke(this::executeQuery)
+                .build());
+
+        setFocusedInteractable(sqlEditArea);
+    }
+
+    private void clearEditor() {
+        sqlEditArea.setText("");
     }
 
     private void initComponents(String text) {
-        Panel bottomPanel = new Panel(new Border.Invisible(), Panel.Orientation.HORISONTAL);
+        Panel bottomPanel = new Panel(new LinearLayout(Direction.HORIZONTAL));
 
-        bottomPanel.addComponent(new Label("< Execute(CTRL+E) >"));
-        bottomPanel.addComponent(new Label("< Clear(CTRL+R) >"));
-        bottomPanel.addComponent(new Label("< Save(CTRL+S) >"));
-        bottomPanel.addComponent(new Label("< Load(CTRL+L) >"));
+        bottomPanel.addComponent(new Label("< Clear(F2) >"));
+        bottomPanel.addComponent(new Label("< Save(F5) >"));
+        bottomPanel.addComponent(new Label("< Load(F6) >"));
+        bottomPanel.addComponent(new Label("< Execute(F9) >"));
         bottomPanel.addComponent(new Label("< Exit(ESC) >"));
 
         TerminalSize screenTerminalSize = TerminalUI.getTerminalSize();
@@ -109,7 +96,7 @@ final class SqlCommandWindow extends LegacyWindowSupport {
     }
 
     private void executeQuery() {
-        executeQuery(sqlEditArea.getData());
+        executeQuery(sqlEditArea.getText());
     }
 
     private void closeWindow() {
@@ -118,41 +105,12 @@ final class SqlCommandWindow extends LegacyWindowSupport {
         SqlCommandWindow.this.close();
     }
 
-    public void onKeyPressed(Key key) {
-
-        if (Kind.NormalKey.equals(key.getKind())
-                && Character.toUpperCase(key.getCharacter()) == 'E'
-                && key.isCtrlPressed()) {
-
-            executeQuery();
-
-        } else if (Kind.NormalKey.equals(key.getKind())
-                && Character.toUpperCase(key.getCharacter()) == 'S'
-                && key.isCtrlPressed()) {
-
-            saveSqlFile();
-
-        } else if (Kind.NormalKey.equals(key.getKind())
-                && Character.toUpperCase(key.getCharacter()) == 'L'
-                && key.isCtrlPressed()) {
-
-            selectSqlFileToLoad();
-
-        } else if (Kind.Escape.equals(key.getKind())) {
-
-            closeWindow();
-
-        } else {
-            super.onKeyPressed(key);
-        }
-    }
-
     private void saveSqlFile() {
         String fileName = TerminalUI.showTextInputDialog("Save as Bookmark",
                 "Please enter the name for this SQL bookmark", "", 0);
 
         if (fileName != null) {
-            String sqlContent = sqlEditArea.getData();
+            String sqlContent = sqlEditArea.getText();
 
             saveSqlFile(fileName, sqlContent);
         }
@@ -202,9 +160,8 @@ final class SqlCommandWindow extends LegacyWindowSupport {
     }
 
     private void setEditorContent(String content) {
-        removeAllComponents();
 
-        initComponents(content);
+        sqlEditArea.setText(content);
     }
 
     private void executeQuery(final String sqlCommand) {
@@ -257,14 +214,15 @@ final class SqlCommandWindow extends LegacyWindowSupport {
                     } else {
                         TerminalUI.showErrorMessageFromThrowable(t);
                     }
-                    setFocus(sqlEditArea);
+
+                    setFocusedInteractable(sqlEditArea);
                 }
 
                 @Override
                 protected void onBackgroundTaskCompleted(StatementResult statementResult) {
                     showWaitDialog.close();
 
-                    setFocus(sqlEditArea);
+                    setFocusedInteractable(sqlEditArea);
 
                     if (statementResult.isResultSet()) {
 
@@ -282,7 +240,5 @@ final class SqlCommandWindow extends LegacyWindowSupport {
                 }
             };
     }
-
-     */
 
 }
