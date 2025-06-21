@@ -22,8 +22,6 @@ import com.github.blausql.TerminalUI;
 import com.github.blausql.core.connection.ConnectionDefinition;
 import com.github.blausql.core.connection.Database;
 import com.github.blausql.core.connection.StatementResult;
-import com.github.blausql.core.sqlfile.SqlFile;
-import com.github.blausql.core.sqlfile.SqlFileRepository;
 import com.github.blausql.core.util.ExceptionUtils;
 import com.github.blausql.ui.util.BackgroundWorker;
 import com.github.blausql.ui.util.HotKeyWindowListener;
@@ -32,9 +30,13 @@ import com.googlecode.lanterna.gui2.*;
 import com.googlecode.lanterna.input.KeyType;
 
 
+import java.io.File;
+import java.io.IOException;
 import java.io.InterruptedIOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -43,7 +45,6 @@ final class SqlQueryWindow extends BasicWindow {
     private final TextBox sqlQueryTextBox;
     private final String connectionName;
 
-    private final SqlFileRepository sqlFileRepository = SqlFileRepository.getInstance();
     private final Database database = Database.getInstance();
 
     SqlQueryWindow(ConnectionDefinition connectionDefinition) {
@@ -106,57 +107,39 @@ final class SqlQueryWindow extends BasicWindow {
     }
 
     private void saveSqlFile() {
-        String fileName = TerminalUI.showTextInputDialog("Save as Bookmark",
-                "Please enter the name for this SQL bookmark", "", 0);
 
-        if (fileName != null) {
+        File file = TerminalUI.showFileSelectorDialog("Save SQL file",
+                "Please specify the location to save the file to", "Save");
+
+        if (file != null) {
             String sqlContent = sqlQueryTextBox.getText();
 
-            saveSqlFile(fileName, sqlContent);
-        }
-    }
+            try {
+                Files.writeString(file.toPath(), sqlContent,
+                        StandardCharsets.UTF_8,
+                        StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 
-    private void saveSqlFile(final String fileName, final String sqlContent) {
-
-        try {
-            String sqlFileName = fileName;
-
-            if (!sqlFileName.toLowerCase(Locale.ENGLISH).endsWith(".sql")) {
-                sqlFileName = sqlFileName + ".sql";
+            } catch (RuntimeException | IOException e) {
+                TerminalUI.showErrorMessageFromThrowable(e);
             }
-
-            SqlFile sqlFile = new SqlFile(sqlFileName, sqlContent);
-
-            this.sqlFileRepository.saveSqlFile(sqlFile);
-
-        } catch (RuntimeException e) {
-            TerminalUI.showErrorMessageFromThrowable(e);
         }
     }
 
     private void selectSqlFileToLoad() {
 
-        List<String> fileNames = SqlFileRepository.getInstance().listSqlFileNames();
+        File file = TerminalUI.showFileSelectorDialog("Select SQL file to load",
+                "Please specify the location to load the file from", "Select");
 
-        TerminalUI.showWindowCenter(new ListSelectorWindow<String>(
-                "Select bookmarked SQL to load",
-                "No bookmark found",
-                fileNames) {
+        if (file != null) {
+            try {
+                String sqlContent = Files.readString(file.toPath(), StandardCharsets.UTF_8);
 
-            @Override
-            protected void onEntrySelected(String fileName) {
+                setEditorContent(sqlContent);
 
-                try {
-                    final String content =
-                            SqlQueryWindow.this.sqlFileRepository.getFileContentBySqlFileName(fileName);
-
-                    setEditorContent(content);
-
-                } catch (RuntimeException e) {
-                    TerminalUI.showErrorMessageFromThrowable(e);
-                }
+            } catch (RuntimeException | IOException e) {
+                TerminalUI.showErrorMessageFromThrowable(e);
             }
-        });
+        }
     }
 
     private void setEditorContent(String content) {

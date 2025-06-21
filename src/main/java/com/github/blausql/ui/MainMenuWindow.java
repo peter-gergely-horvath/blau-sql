@@ -41,7 +41,6 @@ public class MainMenuWindow extends LegacyWindowSupport {
         addComponent(connectToDatabaseButton);
         addComponent(manageConnectionButton);
         addComponent(setApplicationClasspathButton);
-        addComponent(manageBookmarkedSqlFilesButton);
         addComponent(aboutButton);
 
         addComponent(quitApplicationButton);
@@ -49,7 +48,6 @@ public class MainMenuWindow extends LegacyWindowSupport {
         addWindowListener(HotKeyWindowListener.builder()
                 .character('C').invoke(connectToDatabaseButton)
                 .character('M').invoke(manageConnectionButton)
-                .character('B').invoke(manageBookmarkedSqlFilesButton)
                 .character('S').invoke(setApplicationClasspathButton)
                 .character('A').invoke(aboutButton)
                 .character('Q').invoke(quitApplicationButton)
@@ -85,16 +83,6 @@ public class MainMenuWindow extends LegacyWindowSupport {
                     List<String> classpath = ConfigurationRepository.getInstance().getClasspath();
 
                     TerminalUI.showWindowFullScreen(new SetClasspathWindow(classpath));
-                }
-
-            });
-
-    private final ActionButton manageBookmarkedSqlFilesButton = new ActionButton("[B]ookmarked SQL Files",
-            new DefaultErrorHandlerAction() {
-
-                public void runWithErrorHandler() throws LoadException {
-
-                    TerminalUI.showWindowCenter(new ManageBookmarkedSqlFilesWindow());
                 }
 
             });
