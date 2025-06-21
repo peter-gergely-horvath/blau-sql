@@ -36,8 +36,6 @@ import java.util.stream.Collectors;
 
 final class SetClasspathWindow extends BasicWindow {
 
-    private static final String LINE_SEPARATOR = System.getProperty("line.separator");
-
     private final ActionListBox driverJarFilesActionList;
 
     private boolean thereAreUnsavedChanges = false;
@@ -146,7 +144,7 @@ final class SetClasspathWindow extends BasicWindow {
             }
         }
 
-        SetClasspathWindow.this.close();
+        close();
     }
 
 

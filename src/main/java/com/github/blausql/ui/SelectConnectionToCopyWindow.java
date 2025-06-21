@@ -38,7 +38,8 @@ final class SelectConnectionToCopyWindow extends SelectConnectionWindow {
 
         copyOfConnectionDefinition.setConnectionName("Copy of " + connectionName);
 
-        SelectConnectionToCopyWindow.this.close();
+        close();
+
         TerminalUI.showWindowCenter(
                 new ConnectionSettingsWindow(copyOfConnectionDefinition, ConnectionSettingsWindow.Mode.COPY));
     }

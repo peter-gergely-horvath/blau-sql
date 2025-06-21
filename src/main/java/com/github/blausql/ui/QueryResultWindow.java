@@ -18,7 +18,6 @@
 package com.github.blausql.ui;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -49,8 +48,6 @@ class QueryResultWindow extends CloseOnEscapeKeyPressWindow {
             TableModel<Component> tableModel = table.getTableModel();
 
             Component[] components = new Component[numberOfColumns];
-
-            List<Component> rowComponents = new LinkedList<>();
 
             for (Map<String, Object> row : queryResult) {
 

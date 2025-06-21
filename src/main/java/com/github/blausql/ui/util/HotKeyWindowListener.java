@@ -13,7 +13,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class HotKeyWindowListener extends WindowListenerAdapter {
 
-    private static class Rule {
+    private static final class Rule {
+
         private final KeyType keyType;
         private final Character character;
         private final boolean ctrlDown;
@@ -37,15 +38,15 @@ public final class HotKeyWindowListener extends WindowListenerAdapter {
         }
 
         boolean marches(KeyStroke keyStroke) {
-            if (keyStroke != null) {
-                if (this.keyType == keyStroke.getKeyType()
-                        && charactersMatch(this.character, keyStroke.getCharacter())
-                        && this.ctrlDown == keyStroke.isCtrlDown()
-                        && this.altDown == keyStroke.isAltDown()
-                        && this.shiftDown == keyStroke.isShiftDown()) {
+            if (keyStroke != null
+                    && this.keyType == keyStroke.getKeyType()
+                    && charactersMatch(this.character, keyStroke.getCharacter())
+                    && this.ctrlDown == keyStroke.isCtrlDown()
+                    && this.altDown == keyStroke.isAltDown()
+                    && this.shiftDown == keyStroke.isShiftDown()) {
 
-                    return true;
-                }
+                return true;
+
             }
 
             return false;
@@ -70,9 +71,13 @@ public final class HotKeyWindowListener extends WindowListenerAdapter {
 
     public interface KeyDefinitionConfiguration {
         ActionConfigurable keyType(KeyType keyType);
+
         ActionConfigurable character(Character character);
+
         ActionConfigurable ctrlDown();
-        ActionConfigurable altDown(boolean altDown);
+
+        ActionConfigurable altDown();
+
         ActionConfigurable shiftDown();
     }
 
@@ -98,16 +103,16 @@ public final class HotKeyWindowListener extends WindowListenerAdapter {
 
 
         @Override
-        public ActionConfigurable keyType(KeyType keyType) {
-            this.keyType = keyType;
+        public ActionConfigurable keyType(KeyType newKeyType) {
+            this.keyType = newKeyType;
 
             return this;
         }
 
         @Override
-        public ActionConfigurable character(Character character) {
+        public ActionConfigurable character(Character newCharacter) {
             this.keyType = KeyType.Character;
-            this.character = character;
+            this.character = newCharacter;
 
             return this;
         }
@@ -120,7 +125,7 @@ public final class HotKeyWindowListener extends WindowListenerAdapter {
         }
 
         @Override
-        public ActionConfigurable altDown(boolean altDown) {
+        public ActionConfigurable altDown() {
             this.altDown = true;
 
             return this;
@@ -146,9 +151,9 @@ public final class HotKeyWindowListener extends WindowListenerAdapter {
             rules.add(rule);
 
             keyType = null;
-            character  = null;
+            character = null;
             ctrlDown = false;
-            altDown  = false;
+            altDown = false;
             shiftDown = false;
 
             return this;

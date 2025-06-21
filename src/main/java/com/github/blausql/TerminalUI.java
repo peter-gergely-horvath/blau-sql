@@ -40,7 +40,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.Collections;
 
 //CHECKSTYLE.OFF: FinalClass: must be extensible for the testing frameworks
@@ -237,10 +236,6 @@ public class TerminalUI {
         getTextGUI().addWindowAndWait(w);
     }
 
-    public static void showWindowCenterAsync(Window w) {
-        getTextGUI().addWindow(w);
-    }
-
     public static void showWindowFullScreen(Window w) {
         w.setHints(Collections.singletonList(Window.Hint.FULL_SCREEN));
         getTextGUI().addWindowAndWait(w);
@@ -269,11 +264,6 @@ public class TerminalUI {
     private static WindowBasedTextGUI getTextGUI() {
         return LazyHolder.INSTANCE.textGUI;
     }
-
-    private static Screen getScreen() {
-        return LazyHolder.INSTANCE.screen;
-    }
-
 
     public static TerminalSize getTerminalSize() {
         return LazyHolder.INSTANCE.screen.getTerminalSize();

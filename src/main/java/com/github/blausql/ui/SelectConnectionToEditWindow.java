@@ -32,7 +32,8 @@ final class SelectConnectionToEditWindow extends SelectConnectionWindow {
     protected void onConnectionSelected(
             final ConnectionDefinition cd) {
 
-        SelectConnectionToEditWindow.this.close();
+        close();
+
         TerminalUI.showWindowCenter(
                 new ConnectionSettingsWindow(cd, ConnectionSettingsWindow.Mode.EDIT));
     }

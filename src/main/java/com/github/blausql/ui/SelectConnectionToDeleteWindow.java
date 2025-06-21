@@ -74,9 +74,7 @@ final class SelectConnectionToDeleteWindow extends SelectConnectionWindow {
                 }
             }.start();
         } else {
-            SelectConnectionToDeleteWindow.this.close();
+            close();
         }
-
-
     }
 }

@@ -295,13 +295,13 @@ public final class ConnectionDefinitionRepository {
         };
 
         private String getQualifiedUniquePropertyName(ConnectionDefinition cd) {
-            return String.format("%s.%s", cd.getConnectionName(), PropertyMapping.this.name());
+            return String.format("%s.%s", cd.getConnectionName(), this.name());
         }
 
         private void putPropertyKeyValue(ConnectionDefinition cd, Properties properties) {
-            if (PropertyMapping.connectionName != PropertyMapping.this) {
-                String propertyKey = this.getQualifiedUniquePropertyName(cd);
-                String propertyValue = this.getValue(cd);
+            if (connectionName != this) {
+                String propertyKey = getQualifiedUniquePropertyName(cd);
+                String propertyValue = getValue(cd);
 
 
                 properties.put(propertyKey, propertyValue);

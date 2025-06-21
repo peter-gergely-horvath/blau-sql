@@ -42,6 +42,63 @@ import java.util.concurrent.atomic.AtomicReference;
 
 final class SqlQueryWindow extends BasicWindow {
 
+    private final class ExecuteStatementBackgroundWorker extends BackgroundWorker<StatementResult> {
+
+        private final String sqlCommand;
+        private final Window showWaitDialog;
+
+        private ExecuteStatementBackgroundWorker(String sqlCommand, Window showWaitDialog) {
+            this.sqlCommand = sqlCommand;
+            this.showWaitDialog = showWaitDialog;
+        }
+
+        @Override
+        protected StatementResult doBackgroundTask() {
+            TerminalSize terminalSize = TerminalUI.getTerminalSize();
+            int limit = terminalSize.getRows() - 2;
+
+            return database.executeStatement(sqlCommand, limit);
+        }
+
+        @Override
+        protected void onBackgroundTaskFailed(Throwable t) {
+            showWaitDialog.close();
+
+            if (ExceptionUtils.causesContainAnyType(t,
+                    new Class[]{InterruptedException.class, InterruptedIOException.class})) {
+
+                TerminalUI.showMessageBox("Interrupted",
+                        "The statement was aborted. \n"
+                                + "You might have to re-connect before you can run a new one.");
+            } else {
+                TerminalUI.showErrorMessageFromThrowable(t);
+            }
+
+            setFocusedInteractable(sqlQueryTextBox);
+        }
+
+        @Override
+        protected void onBackgroundTaskCompleted(StatementResult statementResult) {
+            showWaitDialog.close();
+
+            setFocusedInteractable(sqlQueryTextBox);
+
+            if (statementResult.isResultSet()) {
+
+                final List<Map<String, Object>> queryResult = statementResult.getQueryResult();
+
+                TerminalUI.showWindowFullScreen(new QueryResultWindow(queryResult));
+            } else {
+
+                final int updateCount = statementResult.getUpdateCount();
+
+                final String message = String.format("%s row(s) changed", updateCount);
+
+                TerminalUI.showMessageBox("Statement executed", message);
+            }
+        }
+    }
+
     private final TextBox sqlQueryTextBox;
     private final String connectionName;
 
@@ -102,7 +159,7 @@ final class SqlQueryWindow extends BasicWindow {
 
         if (dialogResult == DialogResult.OK) {
             database.disconnect();
-            SqlQueryWindow.this.close();
+            close();
         }
     }
 
@@ -163,65 +220,10 @@ final class SqlQueryWindow extends BasicWindow {
                 });
 
         BackgroundWorker<StatementResult> statementExecutorBackgroundWorker =
-                getStatementExecutorBackgroundWorker(sqlCommand, showWaitDialog);
+                new ExecuteStatementBackgroundWorker(sqlCommand, showWaitDialog);
 
         backgroundWorkerReference.set(statementExecutorBackgroundWorker);
 
         statementExecutorBackgroundWorker.start();
-
     }
-
-    private BackgroundWorker<StatementResult> getStatementExecutorBackgroundWorker(
-            final String sqlCommand, final Window showWaitDialog) {
-
-        return new BackgroundWorker<StatementResult>() {
-
-                @Override
-                protected StatementResult doBackgroundTask() {
-                    TerminalSize terminalSize = TerminalUI.getTerminalSize();
-                    int limit = terminalSize.getRows() - 2;
-
-                    return database.executeStatement(sqlCommand, limit);
-                }
-
-                @Override
-                protected void onBackgroundTaskFailed(Throwable t) {
-                    showWaitDialog.close();
-
-                    if (ExceptionUtils.causesContainAnyType(t,
-                            new Class[]{InterruptedException.class, InterruptedIOException.class})) {
-
-                        TerminalUI.showMessageBox("Interrupted",
-                                "The statement was aborted. \n"
-                                        + "You might have to re-connect before you can run a new one.");
-                    } else {
-                        TerminalUI.showErrorMessageFromThrowable(t);
-                    }
-
-                    setFocusedInteractable(sqlQueryTextBox);
-                }
-
-                @Override
-                protected void onBackgroundTaskCompleted(StatementResult statementResult) {
-                    showWaitDialog.close();
-
-                    setFocusedInteractable(sqlQueryTextBox);
-
-                    if (statementResult.isResultSet()) {
-
-                        final List<Map<String, Object>> queryResult = statementResult.getQueryResult();
-
-                        TerminalUI.showWindowFullScreen(new QueryResultWindow(queryResult));
-                    } else {
-
-                        final int updateCount = statementResult.getUpdateCount();
-
-                        final String message = String.format("%s row(s) changed", updateCount);
-
-                        TerminalUI.showMessageBox("Statement executed", message);
-                    }
-                }
-            };
-    }
-
 }

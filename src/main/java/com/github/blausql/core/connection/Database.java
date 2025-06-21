@@ -23,7 +23,6 @@ import com.github.blausql.core.preferences.ConfigurationRepository;
 import com.github.blausql.core.preferences.LoadException;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.sql.*;
 import java.util.List;
@@ -90,8 +89,7 @@ public final class Database {
 
     }
 
-    private void initDriver(String driverClassName)
-            throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException, NoSuchMethodException, InvocationTargetException {
+    private void initDriver(String driverClassName) throws ReflectiveOperationException, SQLException {
         ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
 
         @SuppressWarnings("unchecked")

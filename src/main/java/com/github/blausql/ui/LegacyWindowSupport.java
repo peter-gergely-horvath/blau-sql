@@ -15,10 +15,11 @@ public class LegacyWindowSupport extends BasicWindow {
         setComponent(panel);
     }
 
-    protected void addComponent(Component component) {
+    /**
+     * Adds the specified component to the default, main panel of the Window
+     * @param component the component to add to the default, main panel of the Window
+     */
+    protected final void addComponent(Component component) {
         panel.addComponent(component);
     }
-
-
-
 }

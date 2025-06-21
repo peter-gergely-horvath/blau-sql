@@ -25,7 +25,6 @@ import com.github.blausql.core.preferences.ConnectionDefinitionRepository;
 import com.github.blausql.core.preferences.LoadException;
 import com.github.blausql.core.preferences.SaveException;
 import com.github.blausql.ui.components.PasswordBox;
-import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.gui2.Button;
 import com.googlecode.lanterna.gui2.CheckBox;
 import com.googlecode.lanterna.gui2.Label;
@@ -91,11 +90,7 @@ public final class ConnectionSettingsWindow extends LegacyWindowSupport {
         this.originalNameOfExistingConnectionDefinition =
                 dialogMode == Mode.EDIT ? cd.getConnectionName() : null;
 
-        addComponent(new Button("BACK TO MAIN MENU", new Runnable() {
-            public void run() {
-                ConnectionSettingsWindow.this.onCancelButtonSelected();
-            }
-        }));
+        addComponent(new Button("BACK TO MAIN MENU", this::onCancelButtonSelected));
 
         addComponent(new Label("Connection name:"));
         connectionNameTextBox = new LegacyTextBox(cd != null ? cd.getConnectionName() : null, CONNECTION_NAME_BOX_LEN);
@@ -110,7 +105,7 @@ public final class ConnectionSettingsWindow extends LegacyWindowSupport {
         addComponent(jdbcUrlTextBox);
 
         loginAutomaticallyCheckBox = new CheckBox("Log in automatically");
-        if ( cd != null) {
+        if (cd != null) {
             boolean loginAutomatically = cd.getLoginAutomatically();
             loginAutomaticallyCheckBox.setChecked(loginAutomatically);
         }
@@ -121,8 +116,7 @@ public final class ConnectionSettingsWindow extends LegacyWindowSupport {
         addComponent(userNameTextBox);
 
         addComponent(new Label("Password:"));
-        passwordPasswordBox = new PasswordBox((PASSWORD_BOX_LEN),
-                cd != null ? cd.getPassword() : null);
+        passwordPasswordBox = new PasswordBox(PASSWORD_BOX_LEN, cd != null ? cd.getPassword() : null);
         addComponent(passwordPasswordBox);
 
         addComponent(new Label("HotKey to select this connection (ONE character, optional):"));
@@ -134,10 +128,6 @@ public final class ConnectionSettingsWindow extends LegacyWindowSupport {
         addComponent(orderTextBox);
 
         addComponent(new Button("SAVE CONNECTION", onSaveConnectionButtonSelectedRunnable));
-    }
-
-    private static TerminalSize getTerminalSizeForLength(int length) {
-        return new TerminalSize(length, 1);
     }
 
     private String getHotKeyString(ConnectionDefinition cd) {
