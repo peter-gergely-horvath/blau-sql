@@ -106,6 +106,7 @@ public final class HotKeyWindowListener extends WindowListenerAdapter {
 
         @Override
         public ActionConfigurable character(Character character) {
+            this.keyType = KeyType.Character;
             this.character = character;
 
             return this;

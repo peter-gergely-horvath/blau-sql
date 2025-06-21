@@ -23,8 +23,7 @@ import com.github.blausql.core.preferences.LoadException;
 import com.github.blausql.core.sqlfile.SqlFileRepository;
 import com.github.blausql.ui.components.CloseOnEscapeKeyPressWindow;
 import com.github.blausql.ui.util.DefaultErrorHandlerAction;
-import com.github.blausql.ui.util.HotKeySupportListener;
-import com.google.common.collect.ImmutableMap;
+import com.github.blausql.ui.util.HotKeyWindowListener;
 
 import com.googlecode.lanterna.gui2.Button;
 
@@ -49,10 +48,9 @@ class ManageBookmarkedSqlFilesWindow extends CloseOnEscapeKeyPressWindow {
         }));
         addComponent(new Button("[D]elete bookmarked SQL", onDeleteBookmarkedSqlFileSelectedRunnable));
 
-        addWindowListener(new HotKeySupportListener(
-                ImmutableMap.<Character, Runnable>builder()
-                        .put('D', onDeleteBookmarkedSqlFileSelectedRunnable)
-                        .build(), true));
+        addWindowListener(HotKeyWindowListener.builder()
+                        .character('D').invoke(onDeleteBookmarkedSqlFileSelectedRunnable)
+                        .build());
     }
 
 

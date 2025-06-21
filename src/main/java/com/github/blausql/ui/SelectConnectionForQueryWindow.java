@@ -96,7 +96,7 @@ final class SelectConnectionForQueryWindow extends SelectConnectionWindow {
             protected void onBackgroundTaskCompleted(Void result) {
                 closeWaitDialog();
 
-                TerminalUI.showWindowFullScreen(new SqlCommandWindow(connectionDefinition));
+                TerminalUI.showWindowFullScreen(new SqlQueryWindow(connectionDefinition));
 
             }
 

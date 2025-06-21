@@ -18,7 +18,6 @@
 package com.github.blausql.ui.components;
 
 import com.github.blausql.ui.LegacyWindowSupport;
-import com.googlecode.lanterna.gui2.BasicWindow;
 import com.googlecode.lanterna.gui2.Window;
 import com.googlecode.lanterna.gui2.WindowListenerAdapter;
 import com.googlecode.lanterna.input.KeyStroke;
@@ -39,6 +38,8 @@ public abstract class CloseOnEscapeKeyPressWindow extends LegacyWindowSupport {
 
                 KeyType keyType = keyStroke.getKeyType();
                 if (keyType != null && keyType.equals(KeyType.Escape)) {
+
+                    hasBeenHandled.set(true);
 
                     CloseOnEscapeKeyPressWindow.this.close();
 

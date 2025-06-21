@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
- 
+
 package com.github.blausql.ui;
 
 
@@ -27,8 +27,7 @@ import com.github.blausql.core.preferences.ConnectionDefinitionRepository;
 import com.github.blausql.core.preferences.LoadException;
 import com.github.blausql.ui.components.ActionButton;
 import com.github.blausql.ui.util.DefaultErrorHandlerAction;
-import com.github.blausql.ui.util.HotKeySupportListener;
-import com.google.common.collect.ImmutableMap;
+import com.github.blausql.ui.util.HotKeyWindowListener;
 
 
 import java.util.List;
@@ -47,17 +46,15 @@ public class MainMenuWindow extends LegacyWindowSupport {
 
         addComponent(quitApplicationButton);
 
-        addWindowListener(new HotKeySupportListener(
-                ImmutableMap.<Character, Runnable>builder()
-                        .put('C', connectToDatabaseButton)
-                        .put('M', manageConnectionButton)
-                        .put('B', manageBookmarkedSqlFilesButton)
-                        .put('S', setApplicationClasspathButton)
-                        .put('A', aboutButton)
-                        .put('Q', quitApplicationButton)
-                        .build(), false));
+        addWindowListener(HotKeyWindowListener.builder()
+                .character('C').invoke(connectToDatabaseButton)
+                .character('M').invoke(manageConnectionButton)
+                .character('B').invoke(manageBookmarkedSqlFilesButton)
+                .character('S').invoke(setApplicationClasspathButton)
+                .character('A').invoke(aboutButton)
+                .character('Q').invoke(quitApplicationButton)
+                .build());
     }
-
 
 
     private final ActionButton connectToDatabaseButton =
@@ -83,14 +80,14 @@ public class MainMenuWindow extends LegacyWindowSupport {
     private final ActionButton setApplicationClasspathButton = new ActionButton("[S]et Classpath",
             new DefaultErrorHandlerAction() {
 
-        public void runWithErrorHandler() throws LoadException {
+                public void runWithErrorHandler() throws LoadException {
 
-            List<String> classpath = ConfigurationRepository.getInstance().getClasspath();
+                    List<String> classpath = ConfigurationRepository.getInstance().getClasspath();
 
-            TerminalUI.showWindowFullScreen(new SetClasspathWindow(classpath));
-        }
+                    TerminalUI.showWindowFullScreen(new SetClasspathWindow(classpath));
+                }
 
-    });
+            });
 
     private final ActionButton manageBookmarkedSqlFilesButton = new ActionButton("[B]ookmarked SQL Files",
             new DefaultErrorHandlerAction() {

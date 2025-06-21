@@ -22,10 +22,7 @@ import com.github.blausql.ui.components.CloseOnEscapeKeyPressWindow;
 import com.googlecode.lanterna.gui2.*;
 
 import com.googlecode.lanterna.input.KeyStroke;
-import com.googlecode.lanterna.input.KeyType;
-import org.springframework.util.Assert;
 
-import java.awt.event.WindowAdapter;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

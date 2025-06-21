@@ -22,6 +22,7 @@ import com.github.blausql.TerminalUI;
 import com.github.blausql.core.preferences.ConfigurationRepository;
 import com.github.blausql.core.preferences.SaveException;
 import com.github.blausql.ui.util.BackgroundWorker;
+import com.github.blausql.ui.util.HotKeyWindowListener;
 import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.gui2.*;
 
@@ -66,11 +67,13 @@ final class SetClasspathWindow extends BasicWindow {
 
         setComponent(Panels.vertical(addFileToClasspathButton, borderOfDriverJarFilesActionList, bottomButtonBar));
 
+        addWindowListener(HotKeyWindowListener.builder()
+                .character('S').ctrlDown().invoke(this::onSaveChangesButtonSelected)
+                .character('R').ctrlDown().invoke(this::onCancelButtonSelected)
+                .keyType(KeyType.Escape).invoke(this::onCancelButtonSelected)
+                .build());
+
         addWindowListener(new WindowListenerAdapter() {
-            @Override
-            public void onUnhandledInput(Window basePane, KeyStroke keyStroke, AtomicBoolean hasBeenHandled) {
-                SetClasspathWindow.this.onUnhandledInput(basePane, keyStroke, hasBeenHandled);
-            }
 
             @Override
             public void onResized(Window window, TerminalSize oldSize, TerminalSize newSize) {
@@ -82,32 +85,6 @@ final class SetClasspathWindow extends BasicWindow {
 
     private static TerminalSize getDesiredDriverJarFilesActionListSize(TerminalSize terminalSize) {
         return new TerminalSize(terminalSize.getColumns() - 2, terminalSize.getRows() - 2);
-    }
-
-    private void onUnhandledInput(Window basePane, KeyStroke keyStroke, AtomicBoolean hasBeenHandled) {
-
-        if (keyStroke.isCtrlDown()) {
-            Character character = keyStroke.getCharacter();
-
-            if (character != null) {
-                if (character == 'S' || character == 's') {
-                    onCancelButtonSelected();
-                    hasBeenHandled.set(true);
-                }
-            }
-        }
-
-        if (KeyType.Escape.equals(keyStroke.getKeyType())) {
-            onCancelButtonSelected();
-            hasBeenHandled.set(true);
-        }
-    }
-
-    private void onAddFileButtonSelected() {
-        TerminalUI.showFileSelectorDialog(
-                "Add a JDBC JAR file",
-                "Please select the JDBC driver JAR file",
-                "Select");
     }
 
     private void addNewJarFileButtonSelected() {

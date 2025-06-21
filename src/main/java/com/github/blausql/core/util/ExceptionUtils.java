@@ -1,5 +1,6 @@
 package com.github.blausql.core.util;
 
+import java.util.Collection;
 import java.util.Objects;
 
 public final class ExceptionUtils {

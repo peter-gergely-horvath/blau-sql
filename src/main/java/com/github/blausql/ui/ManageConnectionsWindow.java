@@ -23,9 +23,8 @@ import com.github.blausql.core.preferences.ConnectionDefinitionRepository;
 import com.github.blausql.core.preferences.LoadException;
 import com.github.blausql.ui.components.CloseOnEscapeKeyPressWindow;
 import com.github.blausql.ui.util.DefaultErrorHandlerAction;
-import com.github.blausql.ui.util.HotKeySupportListener;
 
-import com.google.common.collect.ImmutableMap;
+import com.github.blausql.ui.util.HotKeyWindowListener;
 import com.googlecode.lanterna.gui2.Button;
 
 
@@ -50,13 +49,12 @@ class ManageConnectionsWindow extends CloseOnEscapeKeyPressWindow {
         addComponent(new Button("[C]opy connection", onCopyConnectionButtonSelectedRunnable));
         addComponent(new Button("[D]elete connection", onDeleteConnectionButtonSelectedRunnable));
 
-        addWindowListener(new HotKeySupportListener(
-                ImmutableMap.<Character, Runnable>builder()
-                        .put('A', onAddConnectionButtonSelectedRunnable)
-                        .put('E', onEditConnectionButtonSelectedRunnable)
-                        .put('C', onCopyConnectionButtonSelectedRunnable)
-                        .put('D', onDeleteConnectionButtonSelectedRunnable)
-                        .build(), true));
+        addWindowListener(HotKeyWindowListener.builder()
+                .character('A').invoke(onAddConnectionButtonSelectedRunnable)
+                .character('E').invoke(onEditConnectionButtonSelectedRunnable)
+                .character('C').invoke(onCopyConnectionButtonSelectedRunnable)
+                .character('D').invoke(onDeleteConnectionButtonSelectedRunnable)
+                .build());
     }
 
 

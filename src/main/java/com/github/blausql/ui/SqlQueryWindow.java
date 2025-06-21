@@ -17,6 +17,7 @@
 
 package com.github.blausql.ui;
 
+import com.github.blausql.DialogResult;
 import com.github.blausql.TerminalUI;
 import com.github.blausql.core.connection.ConnectionDefinition;
 import com.github.blausql.core.connection.Database;
@@ -37,27 +38,29 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
-final class SqlCommandWindow extends LegacyWindowSupport {
+final class SqlQueryWindow extends BasicWindow {
 
-    private SqlEditArea sqlEditArea;
+    private final TextBox sqlQueryTextBox;
     private final String connectionName;
 
-    private SqlFileRepository sqlFileRepository = SqlFileRepository.getInstance();
-    private Database database = Database.getInstance();
+    private final SqlFileRepository sqlFileRepository = SqlFileRepository.getInstance();
+    private final Database database = Database.getInstance();
 
-    private final class SqlEditArea extends TextBox {
-
-        private SqlEditArea(TerminalSize terminalSize, String text) {
-            super(terminalSize, text);
-        }
-    }
-
-    SqlCommandWindow(ConnectionDefinition connectionDefinition) {
-        super(connectionDefinition.getConnectionName());
+    SqlQueryWindow(ConnectionDefinition connectionDefinition) {
+        super(String.format(" %s ", connectionDefinition.getConnectionName()));
 
         connectionName = connectionDefinition.getConnectionName();
 
-        initComponents("");
+        Panel bottomPanel = new Panel(new LinearLayout(Direction.HORIZONTAL));
+
+        bottomPanel.addComponent(new Label("< Clear(F2) >"));
+        bottomPanel.addComponent(new Label("< Save(F5) >"));
+        bottomPanel.addComponent(new Label("< Load(F6) >"));
+        bottomPanel.addComponent(new Label("< Execute(F9) >"));
+        bottomPanel.addComponent(new Label("< Exit(ESC) >"));
+
+        TerminalSize desiredSizeForSqlQueryTextBox = getDesiredSizeForSqlQueryTextBox();
+        sqlQueryTextBox = new TextBox(desiredSizeForSqlQueryTextBox, "");
 
         addWindowListener(HotKeyWindowListener.builder()
                 .keyType(KeyType.Escape).invoke(this::closeWindow)
@@ -67,42 +70,39 @@ final class SqlCommandWindow extends LegacyWindowSupport {
                 .keyType(KeyType.F9).invoke(this::executeQuery)
                 .build());
 
-        setFocusedInteractable(sqlEditArea);
+        setComponent(Panels.vertical(sqlQueryTextBox, bottomPanel));
+        setFocusedInteractable(sqlQueryTextBox);
     }
 
-    private void clearEditor() {
-        sqlEditArea.setText("");
-    }
-
-    private void initComponents(String text) {
-        Panel bottomPanel = new Panel(new LinearLayout(Direction.HORIZONTAL));
-
-        bottomPanel.addComponent(new Label("< Clear(F2) >"));
-        bottomPanel.addComponent(new Label("< Save(F5) >"));
-        bottomPanel.addComponent(new Label("< Load(F6) >"));
-        bottomPanel.addComponent(new Label("< Execute(F9) >"));
-        bottomPanel.addComponent(new Label("< Exit(ESC) >"));
+    private static TerminalSize getDesiredSizeForSqlQueryTextBox() {
 
         TerminalSize screenTerminalSize = TerminalUI.getTerminalSize();
 
-        final int sqlEditorPanelColumns = screenTerminalSize.getColumns() - 4;
-        final int sqlEditorPanelRows = screenTerminalSize.getRows() - 2;
+        final int sqlQueryTextBoxColumns = screenTerminalSize.getColumns() - 4;
+        final int sqlQueryTextBoxRows = screenTerminalSize.getRows() - 2;
 
-        sqlEditArea = new SqlEditArea(new TerminalSize(sqlEditorPanelColumns, sqlEditorPanelRows), text);
+        return new TerminalSize(sqlQueryTextBoxColumns, sqlQueryTextBoxRows);
+    }
 
-        addComponent(sqlEditArea);
-
-        addComponent(bottomPanel);
+    private void clearEditor() {
+        sqlQueryTextBox.setText("");
     }
 
     private void executeQuery() {
-        executeQuery(sqlEditArea.getText());
+        executeQuery(sqlQueryTextBox.getText());
     }
 
     private void closeWindow() {
-        database.disconnect();
 
-        SqlCommandWindow.this.close();
+        DialogResult dialogResult = TerminalUI.showMessageBox(
+                "Quit now?",
+                "Do you want to quit the session now?",
+                DialogButtons.OK_CANCEL);
+
+        if (dialogResult == DialogResult.OK) {
+            database.disconnect();
+            SqlQueryWindow.this.close();
+        }
     }
 
     private void saveSqlFile() {
@@ -110,7 +110,7 @@ final class SqlCommandWindow extends LegacyWindowSupport {
                 "Please enter the name for this SQL bookmark", "", 0);
 
         if (fileName != null) {
-            String sqlContent = sqlEditArea.getText();
+            String sqlContent = sqlQueryTextBox.getText();
 
             saveSqlFile(fileName, sqlContent);
         }
@@ -148,7 +148,7 @@ final class SqlCommandWindow extends LegacyWindowSupport {
 
                 try {
                     final String content =
-                            SqlCommandWindow.this.sqlFileRepository.getFileContentBySqlFileName(fileName);
+                            SqlQueryWindow.this.sqlFileRepository.getFileContentBySqlFileName(fileName);
 
                     setEditorContent(content);
 
@@ -161,7 +161,7 @@ final class SqlCommandWindow extends LegacyWindowSupport {
 
     private void setEditorContent(String content) {
 
-        sqlEditArea.setText(content);
+        sqlQueryTextBox.setText(content);
     }
 
     private void executeQuery(final String sqlCommand) {
@@ -215,14 +215,14 @@ final class SqlCommandWindow extends LegacyWindowSupport {
                         TerminalUI.showErrorMessageFromThrowable(t);
                     }
 
-                    setFocusedInteractable(sqlEditArea);
+                    setFocusedInteractable(sqlQueryTextBox);
                 }
 
                 @Override
                 protected void onBackgroundTaskCompleted(StatementResult statementResult) {
                     showWaitDialog.close();
 
-                    setFocusedInteractable(sqlEditArea);
+                    setFocusedInteractable(sqlQueryTextBox);
 
                     if (statementResult.isResultSet()) {
 
