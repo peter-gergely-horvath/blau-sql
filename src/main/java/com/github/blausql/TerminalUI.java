@@ -17,11 +17,10 @@
  
 package com.github.blausql;
 
+import com.github.blausql.core.util.ExceptionUtils;
 import com.github.blausql.core.util.TextUtils;
 import com.github.blausql.ui.DialogButtons;
 import com.github.blausql.ui.components.WaitDialog;
-import com.google.common.base.Strings;
-import com.google.common.base.Throwables;
 
 import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.gui2.MultiWindowTextGUI;
@@ -89,7 +88,7 @@ public class TerminalUI {
 
         StringBuilder sb = new StringBuilder();
 
-        final Throwable rootCause = Throwables.getRootCause(throwable);
+        final Throwable rootCause = ExceptionUtils.getRootCause(throwable);
 
         if (rootCause instanceof ClassNotFoundException) {
             sb.append("Class not found: ").append(rootCause.getMessage());
@@ -97,7 +96,7 @@ public class TerminalUI {
             sb.append(extractMessageFrom(throwable));
         } else {
             String rootCauseMessage = extractMessageFrom(rootCause);
-            if (!Strings.isNullOrEmpty(rootCauseMessage)) {
+            if (rootCauseMessage != null && !rootCauseMessage.isBlank()) {
                 sb.append(rootCauseMessage);
             } else {
                 Throwable t = throwable;
@@ -148,7 +147,7 @@ public class TerminalUI {
             SQLException sqlEx = (SQLException) t;
 
             String sqlState = sqlEx.getSQLState();
-            if (!Strings.isNullOrEmpty(sqlState)) {
+            if (sqlState != null && !sqlState.isBlank()) {
                 sb.append("SQLState: ").append(sqlState)
                         .append(TextUtils.LINE_SEPARATOR);
             }
