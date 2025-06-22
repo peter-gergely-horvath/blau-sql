@@ -37,19 +37,13 @@ public final class HotKeyWindowListener extends WindowListenerAdapter {
             this.action = action;
         }
 
-        boolean marches(KeyStroke keyStroke) {
-            if (keyStroke != null
+        boolean matches(KeyStroke keyStroke) {
+            return keyStroke != null
                     && this.keyType == keyStroke.getKeyType()
                     && charactersMatch(this.character, keyStroke.getCharacter())
                     && this.ctrlDown == keyStroke.isCtrlDown()
                     && this.altDown == keyStroke.isAltDown()
-                    && this.shiftDown == keyStroke.isShiftDown()) {
-
-                return true;
-
-            }
-
-            return false;
+                    && this.shiftDown == keyStroke.isShiftDown();
         }
 
         private static boolean charactersMatch(Character character1, Character character2) {
@@ -181,14 +175,10 @@ public final class HotKeyWindowListener extends WindowListenerAdapter {
     public void onUnhandledInput(Window basePane, KeyStroke keyStroke, AtomicBoolean hasBeenHandled) {
 
         for (Rule rule : rules) {
-            if (rule.marches(keyStroke)) {
+            if (rule.matches(keyStroke)) {
 
-                try {
-                    rule.apply();
-
-                } finally {
-                    hasBeenHandled.set(true);
-                }
+                hasBeenHandled.set(true);
+                rule.apply();
 
                 break;
             }
