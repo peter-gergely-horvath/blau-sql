@@ -49,14 +49,52 @@ public class Main {
     private static final class UncaughtExceptionHandler implements Thread.UncaughtExceptionHandler {
 
         public void uncaughtException(Thread t, Throwable e) {
-            TerminalUI.close();
+
+            closeUISafely();
 
             System.err.format("--- UNHANDLED EXCEPTION in Thread '%s': exiting the JVM! --- %n", t.getName());
 
             e.printStackTrace();
 
+            System.err.println();
+
+            logApplicationVersionSafely();
+
+            System.err.println("The application encountered a fatal error and must shut down.");
+            System.err.println("Please report this via the GitHub issue tracker, ");
+            System.err.println("attaching the above debug information!");
+
             exitApplication(1);
         }
+
+
+        private static void closeUISafely() {
+            try {
+                TerminalUI.close();
+            } catch (Throwable uiCloseThrowable) {
+                System.err.println("--- IGNORING Throwable during abrupt UI shutdown ---");
+                uiCloseThrowable.printStackTrace();
+
+                System.err.println();
+                System.err.println();
+            }
+        }
+
+        private static void logApplicationVersionSafely() {
+
+            String version = "unknown";
+
+            try {
+                version = Version.VERSION_STRING;
+            } catch (Throwable throwable) {
+                // added out of paranoia: should not happen,
+                // if it does happen, it is best to just ignore
+            }
+
+            System.err.format("Application version: %s %n", version);
+            System.err.println();
+        }
+
     }
 }
 //CHECKSTYLE.ON

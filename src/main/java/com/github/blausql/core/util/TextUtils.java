@@ -51,4 +51,12 @@ public final class TextUtils {
 
         return stringBuilder.toString();
     }
+
+    public static String nullToEmptyString(String initialContent) {
+        if (initialContent != null) {
+            return initialContent;
+        } else {
+            return "";
+        }
+    }
 }
