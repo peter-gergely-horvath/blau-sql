@@ -52,7 +52,7 @@ public final class ExceptionUtils {
         Throwable rootCause = throwable;
 
         Throwable cause;
-        while ((cause = throwable.getCause()) != null) {
+        while ((cause = rootCause.getCause()) != null) {
             rootCause = cause;
 
             boolean wasSeenBefore = !seen.add(cause);
