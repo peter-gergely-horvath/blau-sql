@@ -56,8 +56,11 @@ final class SelectConnectionToDeleteWindow extends SelectConnectionWindow {
                             .deleteConnectionDefinitionByName(cd.getConnectionName());
 
                     return null;
+                }
 
-
+                @Override
+                protected void onBackgroundTaskInterrupted(InterruptedException interruptedException) {
+                    showWaitDialog.close();
                 }
 
                 @Override

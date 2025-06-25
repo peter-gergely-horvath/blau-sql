@@ -13,7 +13,7 @@ import java.sql.Statement;
 import java.util.List;
 import java.util.Map;
 
-final class DatabaseConnection {
+public final class DatabaseConnection {
 
     private static final RowMapperResultSetExtractor<Map<String, Object>> ROW_MAPPER_RESULT_SET_EXTRACTOR =
             new RowMapperResultSetExtractor<>(new ColumnMapRowMapper());
@@ -88,7 +88,7 @@ final class DatabaseConnection {
     }
 
 
-    void disconnect() {
+    public void disconnect() {
         ((SingleConnectionDataSource) jdbcTemplate.getDataSource()).resetConnection();
     }
 }

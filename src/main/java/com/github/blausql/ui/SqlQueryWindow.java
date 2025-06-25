@@ -20,9 +20,9 @@ package com.github.blausql.ui;
 import com.github.blausql.DialogResult;
 import com.github.blausql.TerminalUI;
 import com.github.blausql.core.connection.ConnectionDefinition;
-import com.github.blausql.core.connection.Database;
+import com.github.blausql.core.connection.DatabaseConnectionFactory;
+import com.github.blausql.core.connection.DatabaseConnection;
 import com.github.blausql.core.connection.StatementResult;
-import com.github.blausql.core.util.ExceptionUtils;
 import com.github.blausql.ui.util.BackgroundWorker;
 import com.github.blausql.ui.util.HotKeyWindowListener;
 import com.googlecode.lanterna.TerminalSize;
@@ -32,7 +32,6 @@ import com.googlecode.lanterna.input.KeyType;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InterruptedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
@@ -41,6 +40,8 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 final class SqlQueryWindow extends BasicWindow {
+
+    private final DatabaseConnection databaseConnection;
 
     private final class ExecuteStatementBackgroundWorker extends BackgroundWorker<StatementResult> {
 
@@ -57,22 +58,23 @@ final class SqlQueryWindow extends BasicWindow {
             TerminalSize terminalSize = TerminalUI.getTerminalSize();
             int limit = terminalSize.getRows() - 2;
 
-            return database.executeStatement(sqlCommand, limit);
+            return databaseConnection.executeStatement(sqlCommand, limit);
+        }
+
+        @Override
+        protected void onBackgroundTaskInterrupted(InterruptedException interruptedException) {
+            TerminalUI.showMessageBox("Interrupted",
+                    "The statement was aborted. \n"
+                            + "You might have to re-connect before you can run a new one.");
+
+            setFocusedInteractable(sqlQueryTextBox);
         }
 
         @Override
         protected void onBackgroundTaskFailed(Throwable t) {
             showWaitDialog.close();
 
-            if (ExceptionUtils.causesContainAnyType(t,
-                    new Class[]{InterruptedException.class, InterruptedIOException.class})) {
-
-                TerminalUI.showMessageBox("Interrupted",
-                        "The statement was aborted. \n"
-                                + "You might have to re-connect before you can run a new one.");
-            } else {
-                TerminalUI.showErrorMessageFromThrowable(t);
-            }
+            TerminalUI.showErrorMessageFromThrowable(t);
 
             setFocusedInteractable(sqlQueryTextBox);
         }
@@ -102,12 +104,11 @@ final class SqlQueryWindow extends BasicWindow {
     private final TextBox sqlQueryTextBox;
     private final String connectionName;
 
-    private final Database database = Database.getInstance();
-
-    SqlQueryWindow(ConnectionDefinition connectionDefinition) {
+    SqlQueryWindow(ConnectionDefinition connectionDefinition, DatabaseConnection databaseConnection) {
         super(String.format(" %s ", connectionDefinition.getConnectionName()));
 
         connectionName = connectionDefinition.getConnectionName();
+        this.databaseConnection = databaseConnection;
 
         Panel bottomPanel = new Panel(new LinearLayout(Direction.HORIZONTAL));
 
@@ -128,7 +129,20 @@ final class SqlQueryWindow extends BasicWindow {
                 .keyType(KeyType.F9).invoke(this::executeQuery)
                 .build());
 
-        setComponent(Panels.vertical(sqlQueryTextBox, bottomPanel));
+        Panel verticalPanel = Panels.vertical(sqlQueryTextBox, bottomPanel);
+        setComponent(verticalPanel);
+
+        addWindowListener(new WindowListenerAdapter() {
+            @Override
+            public void onResized(Window window, TerminalSize oldSize, TerminalSize newSize) {
+
+                TerminalSize desiredSizeForSqlQueryTextBox = getDesiredSizeForSqlQueryTextBox();
+                sqlQueryTextBox.setSize(desiredSizeForSqlQueryTextBox);
+
+                verticalPanel.setSize(desiredSizeForSqlQueryTextBox.withRelativeRows(-2));
+            }
+        });
+
         setFocusedInteractable(sqlQueryTextBox);
     }
 
@@ -158,7 +172,7 @@ final class SqlQueryWindow extends BasicWindow {
                 DialogButtons.OK_CANCEL);
 
         if (dialogResult == DialogResult.OK) {
-            database.disconnect();
+            databaseConnection.disconnect();
             close();
         }
     }

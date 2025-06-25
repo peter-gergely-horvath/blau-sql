@@ -248,7 +248,7 @@ public class TerminalUI {
 
     public static Window showWaitDialog(String title, String text, Runnable onCancel) {
 
-        final Window w = new WaitDialog(title, text, onCancel);
+        final Window w = WaitDialog.showDialog(getTextGUI(), title, text, onCancel);
 
         runInEventThread(() -> showWindowCenter(w));
 

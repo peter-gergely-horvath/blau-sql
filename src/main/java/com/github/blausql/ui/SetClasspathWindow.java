@@ -171,11 +171,14 @@ final class SetClasspathWindow extends BasicWindow {
             }
 
             @Override
+            protected void onBackgroundTaskInterrupted(InterruptedException interruptedException) {
+                showWaitDialog.close();
+            }
+
+            @Override
             protected void onBackgroundTaskFailed(Throwable t) {
                 showWaitDialog.close();
                 TerminalUI.showErrorMessageFromThrowable(t);
-                // setFocusedInteractable(classpathEditArea);
-
             }
 
             @Override

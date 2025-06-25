@@ -26,30 +26,14 @@ import java.lang.reflect.Constructor;
 import java.net.MalformedURLException;
 import java.sql.*;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
-public final class Database {
+public final class DatabaseConnectionFactory {
 
-    private final AtomicReference<DatabaseConnection> currentConnectionHolder = new AtomicReference<>();
-
-
-    private static final Database INSTANCE = new Database();
-
-    private Database() {
+    private DatabaseConnectionFactory() {
         // no external instances
     }
 
-    public static Database getInstance() {
-        return INSTANCE;
-    }
-
-    public void establishConnection(ConnectionDefinition cd) {
-
-        DatabaseConnection existingConn = currentConnectionHolder.get();
-        if (existingConn != null) {
-            throw new IllegalStateException(
-                    "Current connection exists: must close it first");
-        }
+    public static DatabaseConnection getDatabaseConnection(ConnectionDefinition cd) {
 
         ClassLoader originalContextClassLoader = Thread.currentThread().getContextClassLoader();
         try {
@@ -71,8 +55,7 @@ public final class Database {
 
             databaseConnection.establishConnection();
 
-            currentConnectionHolder.set(databaseConnection);
-
+            return databaseConnection;
 
         } catch (MalformedURLException e) {
             throw new RuntimeException(
@@ -89,7 +72,7 @@ public final class Database {
 
     }
 
-    private void initDriver(String driverClassName) throws ReflectiveOperationException, SQLException {
+    private static void initDriver(String driverClassName) throws ReflectiveOperationException, SQLException {
         ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
 
         @SuppressWarnings("unchecked")
@@ -97,28 +80,5 @@ public final class Database {
         Constructor<Driver> declaredConstructor = driverClass.getDeclaredConstructor();
         Driver driver = declaredConstructor.newInstance();
         DriverManager.registerDriver(new DelegatingDriver(driver));
-    }
-
-    public void disconnect() {
-
-        DatabaseConnection existingConn = currentConnectionHolder.get();
-        if (existingConn == null) {
-            throw new IllegalStateException(
-                    "No current connection: must establish first");
-        }
-
-        existingConn.disconnect();
-
-        currentConnectionHolder.set(null);
-    }
-
-    public StatementResult executeStatement(final String sql, int limit) {
-
-        DatabaseConnection databaseConnection = currentConnectionHolder.get();
-        if (databaseConnection == null) {
-            throw new IllegalStateException("databaseConnection is null");
-        }
-
-        return databaseConnection.executeStatement(sql, limit);
     }
 }

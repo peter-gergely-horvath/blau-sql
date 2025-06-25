@@ -19,11 +19,9 @@ package com.github.blausql.ui.util;
 
 import com.github.blausql.TerminalUI;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantLock;
 
 public abstract class BackgroundWorker<R> {
 
@@ -48,37 +46,67 @@ public abstract class BackgroundWorker<R> {
     });
     private Future<?> future;
 
-    private final Object lockObject = new Object();
+    private final ReentrantLock lock = new ReentrantLock();
 
     public final void start() {
 
-        synchronized (lockObject) {
-            if (future != null && future.isCancelled()) {
-                throw new IllegalStateException("Cancelled already");
+        try {
+            boolean couldLock = lock.tryLock(1, TimeUnit.MINUTES);
+            if (!couldLock) {
+                throw new IllegalStateException("Could not acquire lock");
             }
 
-            this.future = EXECUTOR_SERVICE.submit(new RunBackgroundTask());
+            try {
+                if (future != null && future.isCancelled()) {
+                    throw new IllegalStateException("Cancelled already");
+                }
+
+                this.future = EXECUTOR_SERVICE.submit(new RunBackgroundTask());
+
+            } finally {
+                lock.unlock();
+            }
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
         }
     }
 
     public final void cancel() {
 
-        synchronized (lockObject) {
-            if (future == null) {
-                throw new IllegalStateException(this + " is not started yet");
+        try {
+            boolean couldLock = lock.tryLock(1, TimeUnit.MINUTES);
+            if (!couldLock) {
+                throw new IllegalStateException("Could not acquire lock");
             }
 
-            future.cancel(true);
+            try {
+                if (future == null) {
+                    throw new IllegalStateException(this + " is not started yet");
+                }
+
+                future.cancel(true);
+
+            } finally {
+                lock.unlock();
+            }
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
         }
     }
 
     protected abstract R doBackgroundTask() throws Exception;
 
+    protected abstract void onBackgroundTaskInterrupted(InterruptedException interruptedException);
+
     protected abstract void onBackgroundTaskFailed(Throwable t);
 
     protected abstract void onBackgroundTaskCompleted(R result);
 
-    private class RunBackgroundTask implements Runnable {
+    private final class RunBackgroundTask implements Runnable {
 
         public void run() {
             final R result;
@@ -93,35 +121,35 @@ public abstract class BackgroundWorker<R> {
                     throw new InterruptedException("Interrupted after background task finished");
                 }
 
-            } catch (InterruptedException t) {
-                dispatchFailure(t);
+            } catch (InterruptedException interruptedException) {
+
+                dispatchInterrupted(interruptedException);
 
                 Thread.currentThread().interrupt();
 
                 return;
+
             } catch (Throwable t) {
+
                 dispatchFailure(t);
 
                 return;
             }
+
             dispatchCompleted(result);
 
         }
 
+        private void dispatchInterrupted(final InterruptedException interruptedException) {
+            TerminalUI.runInEventThread(() -> onBackgroundTaskInterrupted(interruptedException));
+        }
+
         private void dispatchFailure(final Throwable t) {
-            TerminalUI.runInEventThread(new Runnable() {
-                public void run() {
-                    onBackgroundTaskFailed(t);
-                }
-            });
+            TerminalUI.runInEventThread(() -> onBackgroundTaskFailed(t));
         }
 
         private void dispatchCompleted(final R result) {
-            TerminalUI.runInEventThread(new Runnable() {
-                public void run() {
-                    onBackgroundTaskCompleted(result);
-                }
-            });
+            TerminalUI.runInEventThread(() -> onBackgroundTaskCompleted(result));
         }
     }
 }

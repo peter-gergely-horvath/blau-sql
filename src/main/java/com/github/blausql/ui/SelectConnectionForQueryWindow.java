@@ -20,10 +20,10 @@ package com.github.blausql.ui;
 import com.github.blausql.DialogResult;
 import com.github.blausql.TerminalUI;
 import com.github.blausql.core.connection.ConnectionDefinition;
-import com.github.blausql.core.connection.Database;
+import com.github.blausql.core.connection.DatabaseConnectionFactory;
+import com.github.blausql.core.connection.DatabaseConnection;
 import com.github.blausql.ui.components.WaitDialog;
 import com.github.blausql.ui.util.BackgroundWorker;
-import com.github.blausql.core.util.ExceptionUtils;
 import com.googlecode.lanterna.gui2.Window;
 
 import java.util.List;
@@ -72,31 +72,39 @@ final class SelectConnectionForQueryWindow extends SelectConnectionWindow {
             final ConnectionDefinition connectionDefinition) {
 
         final AtomicReference<Window> waitDialogRef = new AtomicReference<>();
-        final BackgroundWorker backgroundWorker = new BackgroundWorker<Void>() {
+        final BackgroundWorker<DatabaseConnection> backgroundWorker = new BackgroundWorker<>() {
 
             @Override
-            protected Void doBackgroundTask() {
-                Database.getInstance()
-                        .establishConnection(connectionDefinition);
-                return null;
+            protected DatabaseConnection doBackgroundTask() {
+                DatabaseConnection databaseConnection =
+                        DatabaseConnectionFactory.getDatabaseConnection(connectionDefinition);
+
+                try {
+                    Thread.sleep(10_000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new RuntimeException(e);
+                }
+                return databaseConnection;
+            }
+
+            @Override
+            protected void onBackgroundTaskInterrupted(InterruptedException interruptedException) {
+                // do nothing
             }
 
             @Override
             protected void onBackgroundTaskFailed(Throwable throwable) {
                 closeWaitDialog();
 
-                final boolean causedByCancellation = ExceptionUtils.causesContainType(
-                        throwable, InterruptedException.class);
-                if (!causedByCancellation) {
-                    TerminalUI.showErrorMessageFromThrowable(throwable);
-                }
+                TerminalUI.showErrorMessageFromThrowable(throwable);
             }
 
             @Override
-            protected void onBackgroundTaskCompleted(Void result) {
+            protected void onBackgroundTaskCompleted(DatabaseConnection databaseConnection) {
                 closeWaitDialog();
 
-                TerminalUI.showWindowFullScreen(new SqlQueryWindow(connectionDefinition));
+                TerminalUI.showWindowFullScreen(new SqlQueryWindow(connectionDefinition, databaseConnection));
 
             }
 
@@ -108,7 +116,8 @@ final class SelectConnectionForQueryWindow extends SelectConnectionWindow {
             }
         };
 
-        final Window waitDialog = new WaitDialog("Please wait",
+        final Window waitDialog = WaitDialog.createDialog(
+                "Please wait",
                         "Connecting to " + connectionDefinition.getConnectionName() + "... ",
                         closeThisAndCancelBackgroundWorker(backgroundWorker));
 
