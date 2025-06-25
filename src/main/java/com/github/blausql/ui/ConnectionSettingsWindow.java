@@ -25,16 +25,15 @@ import com.github.blausql.core.preferences.ConnectionDefinitionRepository;
 import com.github.blausql.core.preferences.LoadException;
 import com.github.blausql.core.preferences.SaveException;
 import com.github.blausql.ui.components.PasswordBox;
-import com.googlecode.lanterna.gui2.Button;
-import com.googlecode.lanterna.gui2.CheckBox;
-import com.googlecode.lanterna.gui2.Label;
-import com.googlecode.lanterna.gui2.TextBox;
+import com.github.blausql.ui.util.HotKeyWindowListener;
+import com.googlecode.lanterna.gui2.*;
+import com.googlecode.lanterna.input.KeyType;
 
 
 import java.util.Objects;
 
 @SuppressWarnings("FieldCanBeLocal")
-public final class ConnectionSettingsWindow extends LegacyWindowSupport {
+public final class ConnectionSettingsWindow extends BasicWindow {
 
     public enum Mode {
         ADD("Add connection"), EDIT("Edit connection"), COPY("Copy connection");
@@ -90,44 +89,58 @@ public final class ConnectionSettingsWindow extends LegacyWindowSupport {
         this.originalNameOfExistingConnectionDefinition =
                 dialogMode == Mode.EDIT ? cd.getConnectionName() : null;
 
-        addComponent(new Button("BACK TO MAIN MENU", this::onCancelButtonSelected));
+        Panel mainPanel = new Panel(new LinearLayout(Direction.VERTICAL));
 
-        addComponent(new Label("Connection name:"));
+        mainPanel.addComponent(new Label("Connection name:"));
         connectionNameTextBox = new LegacyTextBox(cd != null ? cd.getConnectionName() : null, CONNECTION_NAME_BOX_LEN);
-        addComponent(connectionNameTextBox);
+        mainPanel.addComponent(connectionNameTextBox);
 
-        addComponent(new Label("Driver class:"));
+        mainPanel.addComponent(new Label("Driver class:"));
         driverClassTextBox = new LegacyTextBox(cd != null ? cd.getDriverClassName() : null, DRIVER_CLASS_BOX_LEN);
-        addComponent(driverClassTextBox);
+        mainPanel.addComponent(driverClassTextBox);
 
-        addComponent(new Label("JDBC URL:"));
+        mainPanel.addComponent(new Label("JDBC URL:"));
         jdbcUrlTextBox = new LegacyTextBox(cd != null ? cd.getJdbcUrl() : null, JDBC_URL_BOX_LEN);
-        addComponent(jdbcUrlTextBox);
+        mainPanel.addComponent(jdbcUrlTextBox);
 
         loginAutomaticallyCheckBox = new CheckBox("Log in automatically");
         if (cd != null) {
             boolean loginAutomatically = cd.getLoginAutomatically();
             loginAutomaticallyCheckBox.setChecked(loginAutomatically);
         }
-        addComponent(loginAutomaticallyCheckBox);
+        mainPanel.addComponent(loginAutomaticallyCheckBox);
 
-        addComponent(new Label("User name:"));
+        mainPanel.addComponent(new Label("User name:"));
         userNameTextBox = new LegacyTextBox(cd != null ? cd.getUserName() : null, USERNAME_BOX_LEN);
-        addComponent(userNameTextBox);
+        mainPanel.addComponent(userNameTextBox);
 
-        addComponent(new Label("Password:"));
+        mainPanel. addComponent(new Label("Password:"));
         passwordPasswordBox = new PasswordBox(PASSWORD_BOX_LEN, cd != null ? cd.getPassword() : null);
-        addComponent(passwordPasswordBox);
+        mainPanel.addComponent(passwordPasswordBox);
 
-        addComponent(new Label("HotKey to select this connection (ONE character, optional):"));
+        mainPanel.addComponent(new Label("HotKey to select this connection (ONE character, optional):"));
         hotkeyTextBox = new LegacyTextBox(getHotKeyString(cd), HOTKEY_BOX_LEN);
-        addComponent(hotkeyTextBox);
+        mainPanel.addComponent(hotkeyTextBox);
 
-        addComponent(new Label("Number for ordering in list (number, optional):"));
+        mainPanel.addComponent(new Label("Number for ordering in list (number, optional):"));
         orderTextBox = new LegacyTextBox(getOrderText(cd), ORDER_BOX_LEN);
-        addComponent(orderTextBox);
+        mainPanel.addComponent(orderTextBox);
 
-        addComponent(new Button("SAVE CONNECTION", onSaveConnectionButtonSelectedRunnable));
+        Panel buttonPanel = new Panel(new LinearLayout(Direction.HORIZONTAL));
+
+        buttonPanel.addComponent(new Button("Save Connection (F5)", onSaveConnectionButtonSelectedRunnable));
+        buttonPanel.addComponent(new Button("Discard Changes (ESC)", this::onCancelButtonSelected));
+
+        mainPanel.addComponent(new EmptySpace());
+
+        mainPanel.addComponent(buttonPanel);
+
+        setComponent(mainPanel);
+
+        addWindowListener(HotKeyWindowListener.builder()
+                .keyType(KeyType.F5).invoke(onSaveConnectionButtonSelectedRunnable)
+                .keyType(KeyType.Escape).invoke(this::onCancelButtonSelected)
+                .build());
     }
 
     private String getHotKeyString(ConnectionDefinition cd) {
