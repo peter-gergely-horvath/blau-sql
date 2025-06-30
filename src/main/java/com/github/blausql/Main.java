@@ -28,7 +28,6 @@ public class Main {
     }
 
     public static void exitApplication(int exitCode) {
-        TerminalUI.close();
         System.exit(exitCode);
     }
 
@@ -38,15 +37,22 @@ public class Main {
 
     public static void main(String[] args) {
 
-        Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler());
+        try (TerminalUI terminalUI = TerminalUI.getInstance()) {
 
-        TerminalUI.init();
+            Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler(terminalUI));
 
-        TerminalUI.showWindowCenter(new MainMenuWindow());
+            TerminalUI.showWindowCenter(new MainMenuWindow());
+        }
     }
 
 
     private static final class UncaughtExceptionHandler implements Thread.UncaughtExceptionHandler {
+
+        private final TerminalUI terminalUI;
+
+        private UncaughtExceptionHandler(TerminalUI terminalUI) {
+            this.terminalUI = terminalUI;
+        }
 
         public void uncaughtException(Thread t, Throwable e) {
 
@@ -68,9 +74,9 @@ public class Main {
         }
 
 
-        private static void closeUISafely() {
+        private void closeUISafely() {
             try {
-                TerminalUI.close();
+                terminalUI.close();
             } catch (Throwable uiCloseThrowable) {
                 System.err.println("--- IGNORING Throwable during abrupt UI shutdown ---");
                 uiCloseThrowable.printStackTrace();

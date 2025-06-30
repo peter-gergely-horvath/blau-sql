@@ -43,7 +43,7 @@ import java.sql.SQLException;
 import java.util.Collections;
 
 //CHECKSTYLE.OFF: FinalClass: must be extensible for the testing frameworks
-public class TerminalUI {
+public class TerminalUI implements AutoCloseable {
 
     private static final int LINE_SIZE_DIFF = 8;
 
@@ -54,6 +54,7 @@ public class TerminalUI {
         try {
             Terminal terminal = new DefaultTerminalFactory().createTerminal();
             screen = new TerminalScreen(terminal);
+            screen.startScreen();
 
             textGUI = new MultiWindowTextGUI(screen);
 
@@ -67,15 +68,13 @@ public class TerminalUI {
         static final TerminalUI INSTANCE = new TerminalUI();
     }
 
-    public static void init() {
-        try {
-            LazyHolder.INSTANCE.screen.startScreen();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    public static TerminalUI getInstance() {
+        return LazyHolder.INSTANCE;
+
     }
 
-    static void close() {
+
+    public void close() {
         try {
             LazyHolder.INSTANCE.screen.stopScreen();
         } catch (IOException e) {

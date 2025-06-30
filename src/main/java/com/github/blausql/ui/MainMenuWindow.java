@@ -97,8 +97,7 @@ public class MainMenuWindow extends LegacyWindowSupport {
     private final ActionButton quitApplicationButton = new ActionButton("[Q]uit Application", new Runnable() {
 
         public void run() {
-            Main.exitApplication(0);
-
+            close();
         }
     });
 }
