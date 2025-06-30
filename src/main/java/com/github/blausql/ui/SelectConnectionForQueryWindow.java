@@ -75,17 +75,9 @@ final class SelectConnectionForQueryWindow extends SelectConnectionWindow {
         final BackgroundWorker<DatabaseConnection> backgroundWorker = new BackgroundWorker<>() {
 
             @Override
-            protected DatabaseConnection doBackgroundTask() {
-                DatabaseConnection databaseConnection =
-                        DatabaseConnectionFactory.getDatabaseConnection(connectionDefinition);
+            protected DatabaseConnection doBackgroundTask() throws InterruptedException {
 
-                try {
-                    Thread.sleep(10_000);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    throw new RuntimeException(e);
-                }
-                return databaseConnection;
+                return DatabaseConnectionFactory.getDatabaseConnection(connectionDefinition);
             }
 
             @Override
@@ -137,7 +129,7 @@ final class SelectConnectionForQueryWindow extends SelectConnectionWindow {
         });
     }
 
-    private Runnable closeThisAndCancelBackgroundWorker(final BackgroundWorker backgroundWorker) {
+    private Runnable closeThisAndCancelBackgroundWorker(final BackgroundWorker<?> backgroundWorker) {
         return new Runnable() {
             @Override
             public void run() {

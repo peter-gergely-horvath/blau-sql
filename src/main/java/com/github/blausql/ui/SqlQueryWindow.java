@@ -20,11 +20,12 @@ package com.github.blausql.ui;
 import com.github.blausql.DialogResult;
 import com.github.blausql.TerminalUI;
 import com.github.blausql.core.connection.ConnectionDefinition;
-import com.github.blausql.core.connection.DatabaseConnectionFactory;
 import com.github.blausql.core.connection.DatabaseConnection;
 import com.github.blausql.core.connection.StatementResult;
+import com.github.blausql.core.util.TextUtils;
 import com.github.blausql.ui.util.BackgroundWorker;
 import com.github.blausql.ui.util.HotKeyWindowListener;
+import com.googlecode.lanterna.TerminalPosition;
 import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.gui2.*;
 import com.googlecode.lanterna.input.KeyType;
@@ -35,6 +36,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -103,11 +105,13 @@ final class SqlQueryWindow extends BasicWindow {
 
     private final TextBox sqlQueryTextBox;
     private final String connectionName;
+    private final String statementSeparator = ";";
 
     SqlQueryWindow(ConnectionDefinition connectionDefinition, DatabaseConnection databaseConnection) {
         super(String.format(" %s ", connectionDefinition.getConnectionName()));
 
         connectionName = connectionDefinition.getConnectionName();
+
         this.databaseConnection = databaseConnection;
 
         Panel bottomPanel = new Panel(new LinearLayout(Direction.HORIZONTAL));
@@ -115,7 +119,8 @@ final class SqlQueryWindow extends BasicWindow {
         bottomPanel.addComponent(new Label("< Clear(F2) >"));
         bottomPanel.addComponent(new Label("< Save(F5) >"));
         bottomPanel.addComponent(new Label("< Load(F6) >"));
-        bottomPanel.addComponent(new Label("< Execute(F9) >"));
+        bottomPanel.addComponent(new Label("< Execute Current(F8) >"));
+        bottomPanel.addComponent(new Label("< Execute All(F9) >"));
         bottomPanel.addComponent(new Label("< Exit(ESC) >"));
 
         TerminalSize desiredSizeForSqlQueryTextBox = getDesiredSizeForSqlQueryTextBox();
@@ -126,7 +131,8 @@ final class SqlQueryWindow extends BasicWindow {
                 .keyType(KeyType.F2).invoke(this::clearEditor)
                 .keyType(KeyType.F5).invoke(this::saveSqlFile)
                 .keyType(KeyType.F6).invoke(this::selectSqlFileToLoad)
-                .keyType(KeyType.F9).invoke(this::executeQuery)
+                .keyType(KeyType.F8).invoke(this::executeQuerySelected)
+                .keyType(KeyType.F9).invoke(this::executeQueryAll)
                 .build());
 
         Panel verticalPanel = Panels.vertical(sqlQueryTextBox, bottomPanel);
@@ -160,7 +166,111 @@ final class SqlQueryWindow extends BasicWindow {
         sqlQueryTextBox.setText("");
     }
 
-    private void executeQuery() {
+    private void executeQuerySelected() {
+
+        TerminalPosition cursorLocation = sqlQueryTextBox.getCursorLocation();
+
+        final int cursorLinePosition = cursorLocation.getRow();
+        final int lineCount = sqlQueryTextBox.getLineCount();
+
+        LinkedList<String> linesBeforeCursor = getBeforeCursorLines(cursorLinePosition);
+        LinkedList<String> lines = new LinkedList<>(linesBeforeCursor);
+
+        boolean processLinesAfterCursorPosition;
+
+
+        String cursorLine = sqlQueryTextBox.getLine(cursorLinePosition);
+        if (cursorLine.contains(statementSeparator)) {
+
+            String lastLine = cursorLine.substring(0, cursorLine.indexOf(statementSeparator));
+
+            lines.add(lastLine);
+
+            processLinesAfterCursorPosition = false;
+        } else {
+
+            lines.add(cursorLine);
+
+            processLinesAfterCursorPosition = true;
+        }
+
+        if (processLinesAfterCursorPosition) {
+            LinkedList<String> afterCursorLines = getAfterCursorLines(cursorLinePosition, lineCount);
+            lines.addAll(afterCursorLines);
+        }
+
+        String statementToExecute = TextUtils.joinStringsWithNewLine(lines);
+
+        executeQuery(statementToExecute);
+    }
+
+    private LinkedList<String> getBeforeCursorLines(int cursorLine) {
+
+        LinkedList<String> lines = new LinkedList<>();
+
+        for (int i = cursorLine - 1; i >= 0; i--) {
+
+            String line = sqlQueryTextBox.getLine(i);
+
+            boolean firstLineOfTheStatement = line.contains(statementSeparator);
+
+            if (firstLineOfTheStatement) {
+
+                int beginIndex = line.lastIndexOf(statementSeparator);
+
+                line = line.substring(beginIndex);
+
+                if (line.trim().equalsIgnoreCase(statementSeparator.trim())) {
+                    line = null;
+                }
+            }
+
+            if (line != null) {
+                lines.addFirst(line);
+            }
+
+            if (firstLineOfTheStatement) {
+                break;
+            }
+        }
+
+        return lines;
+    }
+
+    private LinkedList<String> getAfterCursorLines(int cursorLine, int lineCount) {
+
+        LinkedList<String> lines = new LinkedList<>();
+
+        for (int i = cursorLine + 1; i < lineCount; i++) {
+
+            String line = sqlQueryTextBox.getLine(i);
+
+            boolean lastLineOfTheStatement = line.contains(statementSeparator);
+
+            if (lastLineOfTheStatement) {
+
+                int endIndex = line.indexOf(statementSeparator);
+
+                line = line.substring(0, endIndex);
+
+                if (line.trim().equalsIgnoreCase(statementSeparator.trim())) {
+                    line = null;
+                }
+            }
+
+            if (line != null) {
+                lines.addLast(line);
+            }
+
+            if (lastLineOfTheStatement) {
+                break;
+            }
+        }
+
+        return lines;
+    }
+
+    private void executeQueryAll() {
         executeQuery(sqlQueryTextBox.getText());
     }
 
@@ -219,6 +329,12 @@ final class SqlQueryWindow extends BasicWindow {
     }
 
     private void executeQuery(final String sqlCommand) {
+
+        if (sqlCommand.isBlank()) {
+            TerminalUI.showMessageBox("Empty SQL statement", "No valid SQL statement is specified");
+            return;
+        }
+
 
         final AtomicReference<BackgroundWorker<?>> backgroundWorkerReference = new AtomicReference<>();
 
