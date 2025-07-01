@@ -45,6 +45,8 @@ public class Main {
 
             TerminalUI.showWindowCenter(new MainMenuWindow());
 
+            exitApplication(0);
+
         } catch (IOException ex) {
             // handles cases TerminalUI.getInstance() throws an exception, too
             handleUnexpectedException(Thread.currentThread(), ex);
