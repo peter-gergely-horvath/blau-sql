@@ -21,84 +21,72 @@ import com.github.blausql.TerminalUI;
 import com.github.blausql.core.connection.ConnectionDefinition;
 import com.github.blausql.core.preferences.ConnectionDefinitionRepository;
 import com.github.blausql.core.preferences.LoadException;
-import com.github.blausql.ui.components.CloseOnEscapeKeyPressWindow;
-import com.github.blausql.ui.util.DefaultErrorHandlerAction;
+import com.github.blausql.ui.util.ApplicationWindow;
 
 import com.github.blausql.ui.util.HotKeyWindowListener;
-import com.googlecode.lanterna.gui2.Button;
+import com.googlecode.lanterna.gui2.Panel;
+import com.googlecode.lanterna.gui2.Panels;
 
 
 import java.util.List;
 
-@SuppressWarnings("FieldCanBeLocal")
-class ManageConnectionsWindow extends CloseOnEscapeKeyPressWindow {
-
+class ManageConnectionsWindow extends ApplicationWindow {
 
     ManageConnectionsWindow() {
 
         super("Manage Connections");
 
-        addComponent(new Button("BACK (ESC)", new Runnable() {
+        Panel mainPanel = Panels.vertical(
+                button("BACK (ESC)", this::close),
+                button("[A]dd connection", this::onAddConnectionButtonSelectedRunnable),
+                button("[E]dit connection", this::onEditConnectionButtonSelected),
+                button("[C]opy connection", this::onCopyConnectionButtonSelected),
+                button("[D]elete connection", this::onDeleteConnectionButtonSelected));
 
-            public void run() {
-                ManageConnectionsWindow.this.close();
-            }
-        }));
-        addComponent(new Button("[A]dd connection", onAddConnectionButtonSelectedRunnable));
-        addComponent(new Button("[E]dit connection", onEditConnectionButtonSelectedRunnable));
-        addComponent(new Button("[C]opy connection", onCopyConnectionButtonSelectedRunnable));
-        addComponent(new Button("[D]elete connection", onDeleteConnectionButtonSelectedRunnable));
+        setComponent(mainPanel);
 
         addWindowListener(HotKeyWindowListener.builder()
-                .character('A').invoke(onAddConnectionButtonSelectedRunnable)
-                .character('E').invoke(onEditConnectionButtonSelectedRunnable)
-                .character('C').invoke(onCopyConnectionButtonSelectedRunnable)
-                .character('D').invoke(onDeleteConnectionButtonSelectedRunnable)
+                .character('A').invoke(this::onAddConnectionButtonSelectedRunnable)
+                .character('E').invoke(withDefaultExceptionHandler(this::onEditConnectionButtonSelected))
+                .character('C').invoke(withDefaultExceptionHandler(this::onCopyConnectionButtonSelected))
+                .character('D').invoke(withDefaultExceptionHandler(this::onDeleteConnectionButtonSelected))
                 .build());
     }
 
 
-    private final Runnable onAddConnectionButtonSelectedRunnable = new Runnable() {
+    private void onAddConnectionButtonSelectedRunnable() {
 
-        public void run() {
-            ManageConnectionsWindow.this.close();
-            TerminalUI.showWindowCenter(new ConnectionSettingsWindow());
-        }
-    };
+        ManageConnectionsWindow.this.close();
+        TerminalUI.showWindowCenter(new ConnectionSettingsWindow());
+    }
 
-    private final Runnable onCopyConnectionButtonSelectedRunnable = new DefaultErrorHandlerAction() {
+    private void onCopyConnectionButtonSelected() throws LoadException {
 
-        public void runWithErrorHandler() throws LoadException {
-            ManageConnectionsWindow.this.close();
+        this.close();
 
-            List<ConnectionDefinition> connectionDefinitions =
-                    ConnectionDefinitionRepository.getInstance().getConnectionDefinitions();
+        List<ConnectionDefinition> connectionDefinitions =
+                ConnectionDefinitionRepository.getInstance().getConnectionDefinitions();
 
-            TerminalUI.showWindowCenter(new SelectConnectionToCopyWindow(connectionDefinitions));
-        }
-    };
+        TerminalUI.showWindowCenter(new SelectConnectionToCopyWindow(connectionDefinitions));
+    }
 
-    private final Runnable onEditConnectionButtonSelectedRunnable = new DefaultErrorHandlerAction() {
+    private void onEditConnectionButtonSelected() throws LoadException {
 
-        public void runWithErrorHandler() throws LoadException {
-            ManageConnectionsWindow.this.close();
+        this.close();
 
-            List<ConnectionDefinition> connectionDefinitions =
-                    ConnectionDefinitionRepository.getInstance().getConnectionDefinitions();
+        List<ConnectionDefinition> connectionDefinitions =
+                ConnectionDefinitionRepository.getInstance().getConnectionDefinitions();
 
-            TerminalUI.showWindowCenter(new SelectConnectionToEditWindow(connectionDefinitions));
-        }
-    };
+        TerminalUI.showWindowCenter(new SelectConnectionToEditWindow(connectionDefinitions));
+    }
 
-    private final Runnable onDeleteConnectionButtonSelectedRunnable = new DefaultErrorHandlerAction() {
+    private void onDeleteConnectionButtonSelected() throws LoadException {
 
-        public void runWithErrorHandler() throws LoadException {
-            ManageConnectionsWindow.this.close();
+        this.close();
 
-            List<ConnectionDefinition> connectionDefinitions =
-                    ConnectionDefinitionRepository.getInstance().getConnectionDefinitions();
+        List<ConnectionDefinition> connectionDefinitions =
+                ConnectionDefinitionRepository.getInstance().getConnectionDefinitions();
 
-            TerminalUI.showWindowCenter(new SelectConnectionToDeleteWindow(connectionDefinitions));
-        }
-    };
+        TerminalUI.showWindowCenter(new SelectConnectionToDeleteWindow(connectionDefinitions));
+    }
 }

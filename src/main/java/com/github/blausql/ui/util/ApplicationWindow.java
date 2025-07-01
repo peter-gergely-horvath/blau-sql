@@ -21,6 +21,7 @@ public abstract class ApplicationWindow extends BasicWindow {
         super(title);
     }
 
+
     protected ActionButton button(String text, ExceptionHandledAction action) {
         return new ActionButton(text, withDefaultExceptionHandler(action));
     }
