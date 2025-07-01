@@ -18,10 +18,10 @@
 package com.github.blausql.ui;
 
 import com.github.blausql.core.connection.ConnectionDefinition;
-import com.github.blausql.ui.components.CloseOnEscapeKeyPressWindow;
 import com.googlecode.lanterna.gui2.*;
 
 import com.googlecode.lanterna.input.KeyStroke;
+import com.googlecode.lanterna.input.KeyType;
 
 import java.util.List;
 import java.util.Map;
@@ -29,7 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 
-abstract class SelectConnectionWindow extends CloseOnEscapeKeyPressWindow {
+abstract class SelectConnectionWindow extends BasicWindow {
 
     private final Map<Character, ConnectionDefinition> hotKeyMap = new ConcurrentHashMap<>();
 
@@ -93,6 +93,10 @@ abstract class SelectConnectionWindow extends CloseOnEscapeKeyPressWindow {
                 if (connectionDefinition != null) {
                     SelectConnectionWindow.this.onConnectionSelected(connectionDefinition);
                 }
+            }
+
+            if (KeyType.Escape.equals(keyStroke.getKeyType())) {
+                SelectConnectionWindow.this.close();
             }
         }
     }

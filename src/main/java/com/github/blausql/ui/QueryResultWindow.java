@@ -21,21 +21,23 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.github.blausql.ui.components.CloseOnEscapeKeyPressWindow;
+import com.github.blausql.ui.util.HotKeyWindowListener;
+import com.googlecode.lanterna.gui2.BasicWindow;
 import com.googlecode.lanterna.gui2.Component;
 import com.googlecode.lanterna.gui2.Label;
 import com.googlecode.lanterna.gui2.table.Table;
 import com.googlecode.lanterna.gui2.table.TableModel;
+import com.googlecode.lanterna.input.KeyType;
 
 
-class QueryResultWindow extends CloseOnEscapeKeyPressWindow {
+class QueryResultWindow extends BasicWindow {
 
     //CHECKSTYLE.OFF: AvoidInlineConditionals
     QueryResultWindow(List<Map<String, Object>> queryResult) {
         super("Query result (press Enter/ESC to close)");
 
         if (queryResult.isEmpty()) {
-            addComponent(new Label("(query yielded no results)"));
+            setComponent(new Label("(query yielded no results)"));
         } else {
 
             Map<String, Object> firstRow = queryResult.get(0);
@@ -64,7 +66,11 @@ class QueryResultWindow extends CloseOnEscapeKeyPressWindow {
                 tableModel.addRow(components);
             }
 
-            addComponent(table);
+            setComponent(table);
+
+            addWindowListener(HotKeyWindowListener.builder()
+                    .keyType(KeyType.Escape).invoke(this::close)
+                    .build());
 
         }
 
