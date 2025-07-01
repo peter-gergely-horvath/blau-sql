@@ -17,7 +17,6 @@
 
 package com.github.blausql.ui;
 
-import com.github.blausql.DialogResult;
 import com.github.blausql.TerminalUI;
 import com.github.blausql.core.connection.ConnectionDefinition;
 import com.github.blausql.core.connection.DatabaseConnectionFactory;
@@ -25,6 +24,7 @@ import com.github.blausql.core.connection.DatabaseConnection;
 import com.github.blausql.ui.components.WaitDialog;
 import com.github.blausql.ui.util.BackgroundWorker;
 import com.googlecode.lanterna.gui2.Window;
+import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -48,8 +48,8 @@ final class SelectConnectionForQueryWindow extends SelectConnectionWindow {
 
             TerminalUI.showWindowCenter(credentialsDialog);
 
-            DialogResult dialogResult = credentialsDialog.getDialogResult();
-            if (dialogResult == DialogResult.CANCEL) {
+            MessageDialogButton dialogResult = credentialsDialog.getSelectedButton();
+            if (dialogResult == MessageDialogButton.Cancel) {
 
                 return;
             }
