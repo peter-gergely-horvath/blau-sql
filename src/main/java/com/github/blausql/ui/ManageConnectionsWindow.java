@@ -26,6 +26,7 @@ import com.github.blausql.ui.components.ApplicationWindow;
 import com.github.blausql.ui.hotkey.HotKeyWindowListener;
 import com.googlecode.lanterna.gui2.Panel;
 import com.googlecode.lanterna.gui2.Panels;
+import com.googlecode.lanterna.input.KeyType;
 
 
 import java.util.List;
@@ -38,7 +39,7 @@ class ManageConnectionsWindow extends ApplicationWindow {
 
         Panel mainPanel = Panels.vertical(
                 button("BACK (ESC)", this::close),
-                button("[A]dd connection", this::onAddConnectionButtonSelectedRunnable),
+                button("[A]dd connection", this::onAddConnectionButtonSelected),
                 button("[E]dit connection", this::onEditConnectionButtonSelected),
                 button("[C]opy connection", this::onCopyConnectionButtonSelected),
                 button("[D]elete connection", this::onDeleteConnectionButtonSelected));
@@ -46,7 +47,8 @@ class ManageConnectionsWindow extends ApplicationWindow {
         setComponent(mainPanel);
 
         addWindowListener(HotKeyWindowListener.builder()
-                .character('A').invoke(this::onAddConnectionButtonSelectedRunnable)
+                .keyType(KeyType.Escape).invoke(this::close)
+                .character('A').invoke(this::onAddConnectionButtonSelected)
                 .character('E').invoke(withDefaultExceptionHandler(this::onEditConnectionButtonSelected))
                 .character('C').invoke(withDefaultExceptionHandler(this::onCopyConnectionButtonSelected))
                 .character('D').invoke(withDefaultExceptionHandler(this::onDeleteConnectionButtonSelected))
@@ -54,7 +56,7 @@ class ManageConnectionsWindow extends ApplicationWindow {
     }
 
 
-    private void onAddConnectionButtonSelectedRunnable() {
+    private void onAddConnectionButtonSelected() {
 
         ManageConnectionsWindow.this.close();
         TerminalUI.showWindowCenter(new ConnectionSettingsWindow());

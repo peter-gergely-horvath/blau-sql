@@ -136,7 +136,7 @@ final class SetClasspathWindow extends BasicWindow {
         if (thereAreUnsavedChanges) {
 
             DialogResult dialogResult = TerminalUI.showMessageBox("Discard changes?",
-                    "Classpath settings are not saved yet: do you want to discard all changes?",
+                    "Classpath settings are not saved yet: \ndo you want to discard all changes?",
                     DialogButtons.OK_CANCEL);
 
             if (dialogResult == DialogResult.CANCEL) {
