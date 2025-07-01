@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class HotKeyWindowListener extends WindowListenerAdapter {
 
-    private static final class Rule {
+    public static final class Rule {
 
         private final KeyType keyType;
         private final Character character;
@@ -183,6 +183,10 @@ public final class HotKeyWindowListener extends WindowListenerAdapter {
                 break;
             }
         }
+    }
+
+    public List<Rule> getRules() {
+        return List.copyOf(rules);
     }
 }
 

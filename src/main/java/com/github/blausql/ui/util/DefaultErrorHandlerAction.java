@@ -21,6 +21,8 @@ import com.github.blausql.TerminalUI;
 
 public abstract class DefaultErrorHandlerAction implements Runnable {
 
+
+
     @Override
     public final void run() {
 

@@ -19,6 +19,8 @@ package com.github.blausql;
 
 import com.github.blausql.ui.MainMenuWindow;
 
+import java.io.IOException;
+
 //CHECKSTYLE.OFF: FinalClass: must be extensible for the testing frameworks
 public class Main {
 
@@ -42,6 +44,10 @@ public class Main {
             Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler(terminalUI));
 
             TerminalUI.showWindowCenter(new MainMenuWindow());
+
+        } catch (IOException ex) {
+            // handles cases TerminalUI.getInstance() throws an exception, too
+            handleUnexpectedException(Thread.currentThread(), ex);
         }
     }
 
@@ -58,21 +64,8 @@ public class Main {
 
             closeUISafely();
 
-            System.err.format("--- UNHANDLED EXCEPTION in Thread '%s': exiting the JVM! --- %n", t.getName());
-
-            e.printStackTrace();
-
-            System.err.println();
-
-            logApplicationVersionSafely();
-
-            System.err.println("The application encountered a fatal error and must shut down.");
-            System.err.println("Please report this via the GitHub issue tracker, ");
-            System.err.println("attaching the above debug information!");
-
-            exitApplication(1);
+            handleUnexpectedException(t, e);
         }
-
 
         private void closeUISafely() {
             try {
@@ -85,22 +78,38 @@ public class Main {
                 System.err.println();
             }
         }
+    }
 
-        private static void logApplicationVersionSafely() {
+    private static void handleUnexpectedException(Thread t, Throwable e) {
+        System.err.format("--- UNHANDLED EXCEPTION in Thread '%s': exiting the JVM! --- %n", t.getName());
 
-            String version = "unknown";
+        e.printStackTrace();
 
-            try {
-                version = Version.VERSION_STRING;
-            } catch (Throwable throwable) {
-                // added out of paranoia: should not happen,
-                // if it does happen, it is best to just ignore
-            }
+        System.err.println();
 
-            System.err.format("Application version: %s %n", version);
-            System.err.println();
+        logApplicationVersionSafely();
+
+        System.err.println("The application encountered a fatal error and must shut down.");
+        System.err.println("Please report this via the GitHub issue tracker, ");
+        System.err.println("attaching the above debug information!");
+
+        exitApplication(1);
+    }
+
+
+    private static void logApplicationVersionSafely() {
+
+        String version = "unknown";
+
+        try {
+            version = Version.VERSION_STRING;
+        } catch (Throwable throwable) {
+            // added out of paranoia: should not happen,
+            // if it does happen, it is best to just ignore
         }
 
+        System.err.format("Application version: %s %n", version);
+        System.err.println();
     }
 }
 //CHECKSTYLE.ON

@@ -74,12 +74,8 @@ public class TerminalUI implements AutoCloseable {
     }
 
 
-    public void close() {
-        try {
-            LazyHolder.INSTANCE.screen.stopScreen();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    public void close() throws IOException {
+        LazyHolder.INSTANCE.screen.stopScreen();
     }
 
     public static void showErrorMessageFromThrowable(Throwable throwable) {
