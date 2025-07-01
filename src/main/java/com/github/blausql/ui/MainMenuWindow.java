@@ -25,8 +25,8 @@ import com.github.blausql.core.preferences.ConfigurationRepository;
 import com.github.blausql.core.preferences.ConnectionDefinitionRepository;
 import com.github.blausql.core.preferences.LoadException;
 import com.github.blausql.ui.components.ActionButton;
-import com.github.blausql.ui.util.ApplicationWindow;
-import com.github.blausql.ui.util.HotKeyWindowListener;
+import com.github.blausql.ui.components.ApplicationWindow;
+import com.github.blausql.ui.hotkey.HotKeyWindowListener;
 import com.googlecode.lanterna.gui2.Panels;
 
 

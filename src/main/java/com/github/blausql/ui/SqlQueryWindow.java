@@ -24,7 +24,7 @@ import com.github.blausql.core.connection.DatabaseConnection;
 import com.github.blausql.core.connection.StatementResult;
 import com.github.blausql.core.util.TextUtils;
 import com.github.blausql.ui.util.BackgroundWorker;
-import com.github.blausql.ui.util.HotKeyWindowListener;
+import com.github.blausql.ui.hotkey.HotKeyWindowListener;
 import com.googlecode.lanterna.TerminalPosition;
 import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.gui2.*;

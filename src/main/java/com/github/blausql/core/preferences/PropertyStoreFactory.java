@@ -1,7 +1,5 @@
 package com.github.blausql.core.preferences;
 
-import com.github.blausql.core.storage.StorageService;
-
 import java.io.File;
 
 final class PropertyStoreFactory {
@@ -10,7 +8,9 @@ final class PropertyStoreFactory {
         // no instances allowed
     }
 
-    public static final File STORAGE_DIRECTORY = StorageService.getInstance().getApplicationSettingsDirectory();
+    private static final File USER_HOME = new File(System.getProperty("user.home"));
+
+    public static final File STORAGE_DIRECTORY = new File(USER_HOME, ".blauSQL");
 
     private static final File SETTINGS_PROPERTIES_FILE = new File(STORAGE_DIRECTORY, "settings.properties");
 

@@ -21,9 +21,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.github.blausql.ui.util.HotKeyWindowListener;
+import com.github.blausql.ui.hotkey.HotKeyWindowListener;
 import com.googlecode.lanterna.gui2.BasicWindow;
-import com.googlecode.lanterna.gui2.Component;
 import com.googlecode.lanterna.gui2.Label;
 import com.googlecode.lanterna.gui2.table.Table;
 import com.googlecode.lanterna.gui2.table.TableModel;

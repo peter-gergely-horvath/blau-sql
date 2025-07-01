@@ -1,7 +1,6 @@
-package com.github.blausql.ui.util;
+package com.github.blausql.ui.components;
 
 import com.github.blausql.TerminalUI;
-import com.github.blausql.ui.components.ActionButton;
 import com.googlecode.lanterna.gui2.BasicWindow;
 import com.googlecode.lanterna.gui2.Window;
 import com.googlecode.lanterna.gui2.dialogs.MessageDialogBuilder;

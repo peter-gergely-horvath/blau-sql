@@ -25,7 +25,7 @@ import com.github.blausql.core.preferences.ConnectionDefinitionRepository;
 import com.github.blausql.core.preferences.LoadException;
 import com.github.blausql.core.preferences.SaveException;
 import com.github.blausql.ui.components.PasswordBox;
-import com.github.blausql.ui.util.HotKeyWindowListener;
+import com.github.blausql.ui.hotkey.HotKeyWindowListener;
 import com.googlecode.lanterna.gui2.*;
 import com.googlecode.lanterna.input.KeyType;
 

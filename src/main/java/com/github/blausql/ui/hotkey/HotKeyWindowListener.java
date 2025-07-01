@@ -1,4 +1,4 @@
-package com.github.blausql.ui.util;
+package com.github.blausql.ui.hotkey;
 
 import com.googlecode.lanterna.gui2.Window;
 import com.googlecode.lanterna.gui2.WindowListenerAdapter;

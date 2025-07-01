@@ -22,7 +22,7 @@ import com.github.blausql.TerminalUI;
 import com.github.blausql.core.preferences.ConfigurationRepository;
 import com.github.blausql.core.preferences.SaveException;
 import com.github.blausql.ui.util.BackgroundWorker;
-import com.github.blausql.ui.util.HotKeyWindowListener;
+import com.github.blausql.ui.hotkey.HotKeyWindowListener;
 import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.gui2.*;
 
