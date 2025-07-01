@@ -46,10 +46,10 @@ class QueryResultWindow extends BasicWindow {
                     firstRow.keySet());
             final int numberOfColumns = columnLabels.size();
 
-            Table<Component> table = new Table<>(columnLabels.toArray(new String[0]));
-            TableModel<Component> tableModel = table.getTableModel();
+            Table<String> table = new Table<>(columnLabels.toArray(new String[0]));
+            TableModel<String> tableModel = table.getTableModel();
 
-            Component[] components = new Component[numberOfColumns];
+            String[] rowValues = new String[numberOfColumns];
 
             for (Map<String, Object> row : queryResult) {
 
@@ -57,13 +57,10 @@ class QueryResultWindow extends BasicWindow {
                     final String currentColumnLabel = columnLabels.get(i);
                     final Object valueForCurrentColumn = row.get(currentColumnLabel);
 
-                    final Label labelForCurrentColumnValue = (valueForCurrentColumn != null)
-                            ? new Label(valueForCurrentColumn.toString()) : new Label("null");
-
-                    components[i] = labelForCurrentColumnValue;
+                    rowValues[i] = String.valueOf(valueForCurrentColumn);
                 }
 
-                tableModel.addRow(components);
+                tableModel.addRow(rowValues);
             }
 
             setComponent(table);
