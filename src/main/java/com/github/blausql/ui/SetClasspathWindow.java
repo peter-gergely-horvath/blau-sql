@@ -17,15 +17,16 @@
 
 package com.github.blausql.ui;
 
-import com.github.blausql.DialogResult;
 import com.github.blausql.TerminalUI;
 import com.github.blausql.core.preferences.ConfigurationRepository;
 import com.github.blausql.core.preferences.SaveException;
+import com.github.blausql.ui.components.ApplicationWindow;
 import com.github.blausql.ui.util.BackgroundWorker;
 import com.github.blausql.ui.hotkey.HotKeyWindowListener;
 import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.gui2.*;
 
+import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton;
 import com.googlecode.lanterna.input.KeyType;
 
 
@@ -34,19 +35,19 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-final class SetClasspathWindow extends BasicWindow {
+final class SetClasspathWindow extends ApplicationWindow {
 
     private final ActionListBox driverJarFilesActionList;
 
     private boolean thereAreUnsavedChanges = false;
 
-    SetClasspathWindow(List<String> classpath) {
+    SetClasspathWindow(List<String> classpath, TerminalUI terminalUI) {
 
-        super("Set JDBC Driver Classpath");
+        super("Set JDBC Driver Classpath", terminalUI);
 
         Button addFileToClasspathButton = new Button("Add file to Classpath", this::addNewJarFileButtonSelected);
 
-        TerminalSize terminalSize = TerminalUI.getTerminalSize();
+        TerminalSize terminalSize = getApplicationTextGUI().getScreen().getTerminalSize();
         TerminalSize size = getDesiredDriverJarFilesActionListSize(terminalSize);
         driverJarFilesActionList = new ActionListBox(size);
 
@@ -79,12 +80,13 @@ final class SetClasspathWindow extends BasicWindow {
         });
     }
 
+
     private static TerminalSize getDesiredDriverJarFilesActionListSize(TerminalSize terminalSize) {
         return new TerminalSize(terminalSize.getColumns() - 2, terminalSize.getRows() - 2);
     }
 
     private void addNewJarFileButtonSelected() {
-        File file = TerminalUI.showFileSelectorDialog(
+        File file = showFileSelectorDialog(
                 "Select JDBC Driver JAR file",
                 "Please select the JDBC Driver JAR file",
                 "Select");
@@ -108,11 +110,11 @@ final class SetClasspathWindow extends BasicWindow {
             // with the value of the item label, so this is the way
             String selectedFile = selectedRunnable.toString();
 
-            DialogResult dialogResult = TerminalUI.showMessageBox("Remove this file?",
+            MessageDialogButton dialogResult = showMessageBox("Remove this file?",
                     "Do you want to remove the file: \n" + selectedFile,
-                    DialogButtons.OK_CANCEL);
+                    MessageDialogButton.OK, MessageDialogButton.Cancel);
 
-            if (dialogResult == DialogResult.OK) {
+            if (dialogResult == MessageDialogButton.OK) {
 
                 driverJarFilesActionList.removeItem(selectedIndex);
 
@@ -135,11 +137,11 @@ final class SetClasspathWindow extends BasicWindow {
 
         if (thereAreUnsavedChanges) {
 
-            DialogResult dialogResult = TerminalUI.showMessageBox("Discard changes?",
+            MessageDialogButton dialogResult = showMessageBox("Discard changes?",
                     "Classpath settings are not saved yet: \ndo you want to discard all changes?",
-                    DialogButtons.OK_CANCEL);
+                    MessageDialogButton.OK, MessageDialogButton.Cancel);
 
-            if (dialogResult == DialogResult.CANCEL) {
+            if (dialogResult == MessageDialogButton.Cancel) {
                 return;
             }
         }
@@ -150,9 +152,9 @@ final class SetClasspathWindow extends BasicWindow {
 
     private void saveClasspath(List<String> classPathStrings) {
 
-        final Window showWaitDialog = TerminalUI.showWaitDialog("Please wait", "Validating Classpath settings ...");
+        final Window showWaitDialog = showWaitDialog("Please wait", "Validating Classpath settings ...");
 
-        new BackgroundWorker<Void>() {
+        new BackgroundWorker<Void>(this) {
 
             @Override
             protected Void doBackgroundTask() throws SaveException {
@@ -178,7 +180,7 @@ final class SetClasspathWindow extends BasicWindow {
             @Override
             protected void onBackgroundTaskFailed(Throwable t) {
                 showWaitDialog.close();
-                TerminalUI.showErrorMessageFromThrowable(t);
+                showErrorMessageFromThrowable(t);
             }
 
             @Override

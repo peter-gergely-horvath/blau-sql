@@ -31,8 +31,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 final class SelectConnectionForQueryWindow extends SelectConnectionWindow {
 
-    SelectConnectionForQueryWindow(List<ConnectionDefinition> connectionDefinitions) {
-        super("Select connection to Connect to", connectionDefinitions);
+    SelectConnectionForQueryWindow(List<ConnectionDefinition> connectionDefinitions, TerminalUI terminalUI) {
+        super("Select connection to Connect to", connectionDefinitions, terminalUI);
     }
 
     @Override
@@ -46,7 +46,7 @@ final class SelectConnectionForQueryWindow extends SelectConnectionWindow {
             CredentialsDialog credentialsDialog =
                     new CredentialsDialog(connectionDefinition);
 
-            TerminalUI.showWindowCenter(credentialsDialog);
+            showWindowCenter(credentialsDialog);
 
             MessageDialogButton dialogResult = credentialsDialog.getSelectedButton();
             if (dialogResult == MessageDialogButton.Cancel) {
@@ -72,7 +72,7 @@ final class SelectConnectionForQueryWindow extends SelectConnectionWindow {
             final ConnectionDefinition connectionDefinition) {
 
         final AtomicReference<Window> waitDialogRef = new AtomicReference<>();
-        final BackgroundWorker<DatabaseConnection> backgroundWorker = new BackgroundWorker<>() {
+        final BackgroundWorker<DatabaseConnection> backgroundWorker = new BackgroundWorker<>(this) {
 
             @Override
             protected DatabaseConnection doBackgroundTask() throws InterruptedException {
@@ -89,14 +89,14 @@ final class SelectConnectionForQueryWindow extends SelectConnectionWindow {
             protected void onBackgroundTaskFailed(Throwable throwable) {
                 closeWaitDialog();
 
-                TerminalUI.showErrorMessageFromThrowable(throwable);
+                showErrorMessageFromThrowable(throwable);
             }
 
             @Override
             protected void onBackgroundTaskCompleted(DatabaseConnection databaseConnection) {
                 closeWaitDialog();
 
-                TerminalUI.showWindowFullScreen(new SqlQueryWindow(connectionDefinition, databaseConnection));
+                showWindowFullScreen(new SqlQueryWindow(connectionDefinition, databaseConnection, getTerminalUI()));
 
             }
 
@@ -120,11 +120,11 @@ final class SelectConnectionForQueryWindow extends SelectConnectionWindow {
         backgroundWorker.start();
     }
 
-    private static void showInEventThread(final Window waitDialog) {
-        TerminalUI.runInEventThread(new Runnable() {
+    private void showInEventThread(final Window waitDialog) {
+        runInEventThread(new Runnable() {
             @Override
             public void run() {
-                TerminalUI.showWindowCenter(waitDialog);
+                showWindowCenter(waitDialog);
             }
         });
     }

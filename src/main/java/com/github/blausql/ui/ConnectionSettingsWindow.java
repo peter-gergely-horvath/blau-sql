@@ -24,6 +24,7 @@ import com.github.blausql.core.preferences.ConnectionDefinitionRepository;
 
 import com.github.blausql.core.preferences.LoadException;
 import com.github.blausql.core.preferences.SaveException;
+import com.github.blausql.ui.components.ApplicationWindow;
 import com.github.blausql.ui.components.PasswordBox;
 import com.github.blausql.ui.hotkey.HotKeyWindowListener;
 import com.googlecode.lanterna.gui2.*;
@@ -33,7 +34,7 @@ import com.googlecode.lanterna.input.KeyType;
 import java.util.Objects;
 
 @SuppressWarnings("FieldCanBeLocal")
-public final class ConnectionSettingsWindow extends BasicWindow {
+public final class ConnectionSettingsWindow extends ApplicationWindow {
 
     public enum Mode {
         ADD("Add connection"), EDIT("Edit connection"), COPY("Copy connection");
@@ -77,13 +78,13 @@ public final class ConnectionSettingsWindow extends BasicWindow {
     };
 
 
-    public ConnectionSettingsWindow() {
-        this(null, Mode.ADD);
+    public ConnectionSettingsWindow(TerminalUI terminalUI) {
+        this(null, Mode.ADD, terminalUI);
     }
 
     //CHECKSTYLE.OFF: AvoidInlineConditionals: such conditionals make code here easier to follow
-    public ConnectionSettingsWindow(ConnectionDefinition cd, Mode mode) {
-        super(mode.description);
+    public ConnectionSettingsWindow(ConnectionDefinition cd, Mode mode, TerminalUI terminalUI) {
+        super(mode.description, terminalUI);
         this.dialogMode = mode;
 
         this.originalNameOfExistingConnectionDefinition =
@@ -92,15 +93,15 @@ public final class ConnectionSettingsWindow extends BasicWindow {
         Panel mainPanel = new Panel(new LinearLayout(Direction.VERTICAL));
 
         mainPanel.addComponent(new Label("Connection name:"));
-        connectionNameTextBox = new LegacyTextBox(cd != null ? cd.getConnectionName() : null, CONNECTION_NAME_BOX_LEN);
+        connectionNameTextBox = new SimpleTextBox(cd != null ? cd.getConnectionName() : null, CONNECTION_NAME_BOX_LEN);
         mainPanel.addComponent(connectionNameTextBox);
 
         mainPanel.addComponent(new Label("Driver class:"));
-        driverClassTextBox = new LegacyTextBox(cd != null ? cd.getDriverClassName() : null, DRIVER_CLASS_BOX_LEN);
+        driverClassTextBox = new SimpleTextBox(cd != null ? cd.getDriverClassName() : null, DRIVER_CLASS_BOX_LEN);
         mainPanel.addComponent(driverClassTextBox);
 
         mainPanel.addComponent(new Label("JDBC URL:"));
-        jdbcUrlTextBox = new LegacyTextBox(cd != null ? cd.getJdbcUrl() : null, JDBC_URL_BOX_LEN);
+        jdbcUrlTextBox = new SimpleTextBox(cd != null ? cd.getJdbcUrl() : null, JDBC_URL_BOX_LEN);
         mainPanel.addComponent(jdbcUrlTextBox);
 
         loginAutomaticallyCheckBox = new CheckBox("Log in automatically");
@@ -111,7 +112,7 @@ public final class ConnectionSettingsWindow extends BasicWindow {
         mainPanel.addComponent(loginAutomaticallyCheckBox);
 
         mainPanel.addComponent(new Label("User name:"));
-        userNameTextBox = new LegacyTextBox(cd != null ? cd.getUserName() : null, USERNAME_BOX_LEN);
+        userNameTextBox = new SimpleTextBox(cd != null ? cd.getUserName() : null, USERNAME_BOX_LEN);
         mainPanel.addComponent(userNameTextBox);
 
         mainPanel. addComponent(new Label("Password:"));
@@ -119,11 +120,11 @@ public final class ConnectionSettingsWindow extends BasicWindow {
         mainPanel.addComponent(passwordPasswordBox);
 
         mainPanel.addComponent(new Label("HotKey to select this connection (ONE character, optional):"));
-        hotkeyTextBox = new LegacyTextBox(getHotKeyString(cd), HOTKEY_BOX_LEN);
+        hotkeyTextBox = new SimpleTextBox(getHotKeyString(cd), HOTKEY_BOX_LEN);
         mainPanel.addComponent(hotkeyTextBox);
 
         mainPanel.addComponent(new Label("Number for ordering in list (number, optional):"));
-        orderTextBox = new LegacyTextBox(getOrderText(cd), ORDER_BOX_LEN);
+        orderTextBox = new SimpleTextBox(getOrderText(cd), ORDER_BOX_LEN);
         mainPanel.addComponent(orderTextBox);
 
         Panel buttonPanel = new Panel(new LinearLayout(Direction.HORIZONTAL));
@@ -214,7 +215,7 @@ public final class ConnectionSettingsWindow extends BasicWindow {
             this.close();
 
         } catch (RuntimeException | SaveException e) {
-            TerminalUI.showErrorMessageFromThrowable(e);
+            showErrorMessageFromThrowable(e);
         }
     }
 

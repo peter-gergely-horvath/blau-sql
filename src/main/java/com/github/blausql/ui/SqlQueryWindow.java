@@ -17,17 +17,19 @@
 
 package com.github.blausql.ui;
 
-import com.github.blausql.DialogResult;
 import com.github.blausql.TerminalUI;
 import com.github.blausql.core.connection.ConnectionDefinition;
 import com.github.blausql.core.connection.DatabaseConnection;
 import com.github.blausql.core.connection.StatementResult;
 import com.github.blausql.core.util.TextUtils;
+import com.github.blausql.ui.components.ApplicationWindow;
+import com.github.blausql.ui.components.WaitDialog;
 import com.github.blausql.ui.util.BackgroundWorker;
 import com.github.blausql.ui.hotkey.HotKeyWindowListener;
 import com.googlecode.lanterna.TerminalPosition;
 import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.gui2.*;
+import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton;
 import com.googlecode.lanterna.input.KeyType;
 
 
@@ -41,7 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
-final class SqlQueryWindow extends BasicWindow {
+final class SqlQueryWindow extends ApplicationWindow {
 
     private final DatabaseConnection databaseConnection;
 
@@ -50,14 +52,17 @@ final class SqlQueryWindow extends BasicWindow {
         private final String sqlCommand;
         private final Window showWaitDialog;
 
-        private ExecuteStatementBackgroundWorker(String sqlCommand, Window showWaitDialog) {
+        private ExecuteStatementBackgroundWorker(String sqlCommand,
+                                                 WaitDialog showWaitDialog,
+                                                 ApplicationWindow parent) {
+            super(parent);
             this.sqlCommand = sqlCommand;
             this.showWaitDialog = showWaitDialog;
         }
 
         @Override
         protected StatementResult doBackgroundTask() {
-            TerminalSize terminalSize = TerminalUI.getTerminalSize();
+            TerminalSize terminalSize = getApplicationTextGUI().getScreen().getTerminalSize();
             int limit = terminalSize.getRows() - 2;
 
             return databaseConnection.executeStatement(sqlCommand, limit);
@@ -65,7 +70,7 @@ final class SqlQueryWindow extends BasicWindow {
 
         @Override
         protected void onBackgroundTaskInterrupted(InterruptedException interruptedException) {
-            TerminalUI.showMessageBox("Interrupted",
+            showMessageBox("Interrupted",
                     "The statement was aborted. \n"
                             + "You might have to re-connect before you can run a new one.");
 
@@ -76,7 +81,7 @@ final class SqlQueryWindow extends BasicWindow {
         protected void onBackgroundTaskFailed(Throwable t) {
             showWaitDialog.close();
 
-            TerminalUI.showErrorMessageFromThrowable(t);
+            showErrorMessageFromThrowable(t);
 
             setFocusedInteractable(sqlQueryTextBox);
         }
@@ -91,14 +96,14 @@ final class SqlQueryWindow extends BasicWindow {
 
                 final List<Map<String, Object>> queryResult = statementResult.getQueryResult();
 
-                TerminalUI.showWindowFullScreen(new QueryResultWindow(queryResult));
+                showWindowFullScreen(new QueryResultWindow(queryResult));
             } else {
 
                 final int updateCount = statementResult.getUpdateCount();
 
                 final String message = String.format("%s row(s) changed", updateCount);
 
-                TerminalUI.showMessageBox("Statement executed", message);
+                showMessageBox("Statement executed", message);
             }
         }
     }
@@ -107,8 +112,11 @@ final class SqlQueryWindow extends BasicWindow {
     private final String connectionName;
     private final String statementSeparator = ";";
 
-    SqlQueryWindow(ConnectionDefinition connectionDefinition, DatabaseConnection databaseConnection) {
-        super(String.format(" %s ", connectionDefinition.getConnectionName()));
+    SqlQueryWindow(ConnectionDefinition connectionDefinition,
+                   DatabaseConnection databaseConnection,
+                   TerminalUI terminalUI) {
+
+        super(String.format(" %s ", connectionDefinition.getConnectionName()), terminalUI);
 
         connectionName = connectionDefinition.getConnectionName();
 
@@ -152,9 +160,9 @@ final class SqlQueryWindow extends BasicWindow {
         setFocusedInteractable(sqlQueryTextBox);
     }
 
-    private static TerminalSize getDesiredSizeForSqlQueryTextBox() {
+    private TerminalSize getDesiredSizeForSqlQueryTextBox() {
 
-        TerminalSize screenTerminalSize = TerminalUI.getTerminalSize();
+        TerminalSize screenTerminalSize = getApplicationTextGUI().getScreen().getTerminalSize();
 
         final int sqlQueryTextBoxColumns = screenTerminalSize.getColumns() - 4;
         final int sqlQueryTextBoxRows = screenTerminalSize.getRows() - 2;
@@ -276,12 +284,12 @@ final class SqlQueryWindow extends BasicWindow {
 
     private void closeWindow() {
 
-        DialogResult dialogResult = TerminalUI.showMessageBox(
+        MessageDialogButton dialogResult = showMessageBox(
                 "Quit now?",
                 "Do you want to quit the session now?",
-                DialogButtons.OK_CANCEL);
+                MessageDialogButton.OK, MessageDialogButton.Cancel);
 
-        if (dialogResult == DialogResult.OK) {
+        if (dialogResult == MessageDialogButton.OK) {
             databaseConnection.disconnect();
             close();
         }
@@ -289,7 +297,7 @@ final class SqlQueryWindow extends BasicWindow {
 
     private void saveSqlFile() {
 
-        File file = TerminalUI.showFileSelectorDialog("Save SQL file",
+        File file = showFileSelectorDialog("Save SQL file",
                 "Please specify the location to save the file to", "Save");
 
         if (file != null) {
@@ -301,14 +309,14 @@ final class SqlQueryWindow extends BasicWindow {
                         StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 
             } catch (RuntimeException | IOException e) {
-                TerminalUI.showErrorMessageFromThrowable(e);
+                showErrorMessageFromThrowable(e);
             }
         }
     }
 
     private void selectSqlFileToLoad() {
 
-        File file = TerminalUI.showFileSelectorDialog("Select SQL file to load",
+        File file = showFileSelectorDialog("Select SQL file to load",
                 "Please specify the location to load the file from", "Select");
 
         if (file != null) {
@@ -318,7 +326,7 @@ final class SqlQueryWindow extends BasicWindow {
                 setEditorContent(sqlContent);
 
             } catch (RuntimeException | IOException e) {
-                TerminalUI.showErrorMessageFromThrowable(e);
+                showErrorMessageFromThrowable(e);
             }
         }
     }
@@ -331,14 +339,14 @@ final class SqlQueryWindow extends BasicWindow {
     private void executeQuery(final String sqlCommand) {
 
         if (sqlCommand.isBlank()) {
-            TerminalUI.showMessageBox("Empty SQL statement", "No valid SQL statement is specified");
+            showMessageBox("Empty SQL statement", "No valid SQL statement is specified");
             return;
         }
 
 
         final AtomicReference<BackgroundWorker<?>> backgroundWorkerReference = new AtomicReference<>();
 
-        final Window showWaitDialog = TerminalUI.showWaitDialog("Please wait",
+        final WaitDialog showWaitDialog = showWaitDialog("Please wait",
                 String.format("Executing statement against %s ...", connectionName), new Runnable() {
                     @Override
                     public void run() {
@@ -350,7 +358,7 @@ final class SqlQueryWindow extends BasicWindow {
                 });
 
         BackgroundWorker<StatementResult> statementExecutorBackgroundWorker =
-                new ExecuteStatementBackgroundWorker(sqlCommand, showWaitDialog);
+                new ExecuteStatementBackgroundWorker(sqlCommand, showWaitDialog, this);
 
         backgroundWorkerReference.set(statementExecutorBackgroundWorker);
 

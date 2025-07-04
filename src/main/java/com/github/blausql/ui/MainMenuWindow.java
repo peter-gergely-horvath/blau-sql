@@ -34,9 +34,9 @@ import java.util.List;
 
 public class MainMenuWindow extends ApplicationWindow {
 
-    public MainMenuWindow() {
+    public MainMenuWindow(TerminalUI terminalUI) {
 
-        super(String.format(" %s ", Constants.APPLICATION_BANNER));
+        super(String.format(" %s ", Constants.APPLICATION_BANNER), terminalUI);
 
         ActionButton connectToDatabaseButton =
                 button("[C]onnect to database", this::onConnectorToDatabaseButtonSelected);
@@ -74,17 +74,17 @@ public class MainMenuWindow extends ApplicationWindow {
         List<ConnectionDefinition> connectionDefinitions =
                 ConnectionDefinitionRepository.getInstance().getConnectionDefinitions();
 
-        showWindowCenter(new SelectConnectionForQueryWindow(connectionDefinitions));
+        showWindowCenter(new SelectConnectionForQueryWindow(connectionDefinitions, getTerminalUI()));
     }
 
     private void onManageConnectionButtonSelected() {
-        TerminalUI.showWindowCenter(new ManageConnectionsWindow());
+        showWindowCenter(new ManageConnectionsWindow(getTerminalUI()));
     }
 
     private void onSetClasspathButtonSelected() throws LoadException {
         List<String> classpath = ConfigurationRepository.getInstance().getClasspath();
 
-        showWindowFullScreen(new SetClasspathWindow(classpath));
+        showWindowFullScreen(new SetClasspathWindow(classpath, getTerminalUI()));
     }
 
     private void onAboutButtonSelected() {

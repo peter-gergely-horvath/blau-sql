@@ -33,9 +33,9 @@ import java.util.List;
 
 class ManageConnectionsWindow extends ApplicationWindow {
 
-    ManageConnectionsWindow() {
+    ManageConnectionsWindow(TerminalUI terminalUI) {
 
-        super("Manage Connections");
+        super("Manage Connections", terminalUI);
 
         Panel mainPanel = Panels.vertical(
                 button("BACK (ESC)", this::close),
@@ -59,7 +59,7 @@ class ManageConnectionsWindow extends ApplicationWindow {
     private void onAddConnectionButtonSelected() {
 
         ManageConnectionsWindow.this.close();
-        TerminalUI.showWindowCenter(new ConnectionSettingsWindow());
+        showWindowCenter(new ConnectionSettingsWindow(getTerminalUI()));
     }
 
     private void onCopyConnectionButtonSelected() throws LoadException {
@@ -69,7 +69,7 @@ class ManageConnectionsWindow extends ApplicationWindow {
         List<ConnectionDefinition> connectionDefinitions =
                 ConnectionDefinitionRepository.getInstance().getConnectionDefinitions();
 
-        TerminalUI.showWindowCenter(new SelectConnectionToCopyWindow(connectionDefinitions));
+        showWindowCenter(new SelectConnectionToCopyWindow(connectionDefinitions, getTerminalUI()));
     }
 
     private void onEditConnectionButtonSelected() throws LoadException {
@@ -79,7 +79,7 @@ class ManageConnectionsWindow extends ApplicationWindow {
         List<ConnectionDefinition> connectionDefinitions =
                 ConnectionDefinitionRepository.getInstance().getConnectionDefinitions();
 
-        TerminalUI.showWindowCenter(new SelectConnectionToEditWindow(connectionDefinitions));
+        showWindowCenter(new SelectConnectionToEditWindow(connectionDefinitions, getTerminalUI()));
     }
 
     private void onDeleteConnectionButtonSelected() throws LoadException {
@@ -89,6 +89,6 @@ class ManageConnectionsWindow extends ApplicationWindow {
         List<ConnectionDefinition> connectionDefinitions =
                 ConnectionDefinitionRepository.getInstance().getConnectionDefinitions();
 
-        TerminalUI.showWindowCenter(new SelectConnectionToDeleteWindow(connectionDefinitions));
+        showWindowCenter(new SelectConnectionToDeleteWindow(connectionDefinitions, getTerminalUI()));
     }
 }

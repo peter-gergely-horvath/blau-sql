@@ -17,7 +17,9 @@
 
 package com.github.blausql.ui;
 
+import com.github.blausql.TerminalUI;
 import com.github.blausql.core.connection.ConnectionDefinition;
+import com.github.blausql.ui.components.ApplicationWindow;
 import com.googlecode.lanterna.gui2.*;
 
 import com.googlecode.lanterna.input.KeyStroke;
@@ -29,12 +31,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 
-abstract class SelectConnectionWindow extends BasicWindow {
+abstract class SelectConnectionWindow extends ApplicationWindow {
 
     private final Map<Character, ConnectionDefinition> hotKeyMap = new ConcurrentHashMap<>();
 
-    SelectConnectionWindow(String title, List<ConnectionDefinition> connectionDefinitions) {
-        super(title);
+    SelectConnectionWindow(String title, List<ConnectionDefinition> connectionDefinitions, TerminalUI terminalUI) {
+        super(title, terminalUI);
 
         addWindowListener(new HotKeyWindowListener());
 

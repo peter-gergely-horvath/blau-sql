@@ -39,11 +39,11 @@ public class Main {
 
     public static void main(String[] args) {
 
-        try (TerminalUI terminalUI = TerminalUI.getInstance()) {
+        try (StandardTerminalUI terminalUI = new StandardTerminalUI()) {
 
             Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler(terminalUI));
 
-            TerminalUI.showWindowCenter(new MainMenuWindow());
+            terminalUI.showWindowCenter(new MainMenuWindow(terminalUI));
 
             exitApplication(0);
 
@@ -56,9 +56,9 @@ public class Main {
 
     private static final class UncaughtExceptionHandler implements Thread.UncaughtExceptionHandler {
 
-        private final TerminalUI terminalUI;
+        private final StandardTerminalUI terminalUI;
 
-        private UncaughtExceptionHandler(TerminalUI terminalUI) {
+        private UncaughtExceptionHandler(StandardTerminalUI terminalUI) {
             this.terminalUI = terminalUI;
         }
 

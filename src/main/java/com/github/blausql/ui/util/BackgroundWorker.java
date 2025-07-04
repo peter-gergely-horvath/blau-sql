@@ -17,8 +17,11 @@
 
 package com.github.blausql.ui.util;
 
-import com.github.blausql.TerminalUI;
+import com.github.blausql.ui.components.ApplicationWindow;
+import com.googlecode.lanterna.gui2.TextGUI;
+import com.googlecode.lanterna.gui2.TextGUIThread;
 
+import java.util.Objects;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
@@ -47,6 +50,20 @@ public abstract class BackgroundWorker<R> {
     private Future<?> future;
 
     private final ReentrantLock lock = new ReentrantLock();
+
+    private final TextGUIThread textGUIThread;
+
+    protected BackgroundWorker(ApplicationWindow parent) {
+        Objects.requireNonNull(parent, "Argument parent cannot be null");
+
+        TextGUI textGUI = parent.getApplicationTextGUI();
+        Objects.requireNonNull(textGUI, "textGUI");
+
+        TextGUIThread guiThread = textGUI.getGUIThread();
+        Objects.requireNonNull(guiThread, "guiThread");
+
+        this.textGUIThread = guiThread;
+    }
 
     public final void start() {
 
@@ -141,15 +158,19 @@ public abstract class BackgroundWorker<R> {
         }
 
         private void dispatchInterrupted(final InterruptedException interruptedException) {
-            TerminalUI.runInEventThread(() -> onBackgroundTaskInterrupted(interruptedException));
+            runInEventThread(() -> onBackgroundTaskInterrupted(interruptedException));
         }
 
         private void dispatchFailure(final Throwable t) {
-            TerminalUI.runInEventThread(() -> onBackgroundTaskFailed(t));
+            runInEventThread(() -> onBackgroundTaskFailed(t));
         }
 
         private void dispatchCompleted(final R result) {
-            TerminalUI.runInEventThread(() -> onBackgroundTaskCompleted(result));
+            runInEventThread(() -> onBackgroundTaskCompleted(result));
+        }
+
+        private void runInEventThread(Runnable runnable) {
+            textGUIThread.invokeLater(runnable);
         }
     }
 }
