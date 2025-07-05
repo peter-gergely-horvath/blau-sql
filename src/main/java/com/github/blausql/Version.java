@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020 Peter G. Horvath, All Rights Reserved.
+ * Copyright (c) 2017-2025 Peter G. Horvath, All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
  
 /*
- * Copyright (c) 2016, 2017-2020 Peter G. Horvath, All Rights Reserved.
+ * Copyright (c) 2016, 2017-2025 Peter G. Horvath, All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
