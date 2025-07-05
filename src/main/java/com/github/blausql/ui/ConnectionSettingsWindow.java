@@ -115,7 +115,7 @@ public final class ConnectionSettingsWindow extends ApplicationWindow {
                 ConnectionSettingsWindow::getHotKeyString, HOTKEY_BOX_LEN, mainPanel);
 
         orderTextBox = addTextEntryComponents("Number for ordering in list (number, optional)", cd,
-                ConnectionSettingsWindow::getOrderText, HOTKEY_BOX_LEN, mainPanel);
+                ConnectionSettingsWindow::getOrderText, ORDER_BOX_LEN, mainPanel);
 
         Panel buttonPanel = getButtonPanel();
 
