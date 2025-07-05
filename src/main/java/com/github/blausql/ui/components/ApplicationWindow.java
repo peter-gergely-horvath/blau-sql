@@ -1,18 +1,10 @@
 package com.github.blausql.ui.components;
 
 import com.github.blausql.TerminalUI;
-import com.github.blausql.core.util.ExceptionUtils;
-import com.github.blausql.core.util.TextUtils;
 import com.googlecode.lanterna.gui2.*;
-import com.googlecode.lanterna.gui2.dialogs.FileDialogBuilder;
-import com.googlecode.lanterna.gui2.dialogs.MessageDialogBuilder;
 import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton;
 
 import java.io.File;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.sql.SQLException;
-import java.util.Collections;
 import java.util.Objects;
 
 public abstract class ApplicationWindow extends BasicWindow {
@@ -34,14 +26,12 @@ public abstract class ApplicationWindow extends BasicWindow {
     }
 
     public final WindowBasedTextGUI getApplicationTextGUI() {
-        return terminalUI.getTextGUI();
+        return terminalUI.getWindowBasedTextGUI();
     }
 
     protected TerminalUI getTerminalUI() {
         return terminalUI;
     }
-
-
 
 
     protected ActionButton button(String text, ExceptionHandledAction action) {
@@ -59,118 +49,37 @@ public abstract class ApplicationWindow extends BasicWindow {
     }
 
     public void showWindowCenter(Window w) {
-        w.setHints(Collections.singletonList(Window.Hint.CENTERED));
-        getApplicationTextGUI().addWindowAndWait(w);
+        terminalUI.showWindowCenter(w);
     }
 
     public void showWindowFullScreen(Window w) {
-        w.setHints(Collections.singletonList(Window.Hint.FULL_SCREEN));
-        getApplicationTextGUI().addWindowAndWait(w);
+        terminalUI.showWindowFullScreen(w);
     }
 
 
     public void showErrorMessageFromThrowable(Throwable throwable) {
 
-        StringBuilder sb = new StringBuilder();
-
-        final Throwable rootCause = ExceptionUtils.getRootCause(throwable);
-
-        if (rootCause instanceof ClassNotFoundException) {
-            sb.append("Class not found: ").append(rootCause.getMessage());
-        } else if (throwable instanceof SQLException) {
-            sb.append(extractMessageFrom(throwable));
-        } else {
-            String rootCauseMessage = extractMessageFrom(rootCause);
-            if (rootCauseMessage != null && !rootCauseMessage.isBlank()) {
-                sb.append(rootCauseMessage);
-            } else {
-                Throwable t = throwable;
-                while (t != null) {
-                    String extractedMessage = extractMessageFrom(t);
-                    if (!extractedMessage.isEmpty()) {
-                        if (sb.length() > 0) {
-                            sb.append(": ");
-                        }
-                        sb.append(extractedMessage);
-                    }
-                    t = t.getCause();
-                }
-
-                StringWriter stringWriter = new StringWriter();
-                try (PrintWriter pw = new PrintWriter(stringWriter)) {
-                    rootCause.printStackTrace(pw);
-                }
-                String fullStackTrace = stringWriter.toString();
-                sb.append(fullStackTrace);
-            }
-        }
-
-        String theString = sb.toString();
-
-        showErrorMessageFromString(theString);
-
-    }
-
-    public static String extractMessageFrom(Throwable t) {
-        StringBuilder sb = new StringBuilder();
-
-        if (t instanceof SQLException) {
-            SQLException sqlEx = (SQLException) t;
-
-            String sqlState = sqlEx.getSQLState();
-            if (sqlState != null && !sqlState.isBlank()) {
-                sb.append("SQLState: ").append(sqlState)
-                        .append(TextUtils.LINE_SEPARATOR);
-            }
-
-            int errorCode = sqlEx.getErrorCode();
-            sb.append("Error Code: ").append(errorCode)
-                    .append(TextUtils.LINE_SEPARATOR);
-        }
-        String localizedMessage = t.getLocalizedMessage();
-        String message = t.getMessage();
-
-        if (localizedMessage != null && !"".equals(localizedMessage)) {
-
-            sb.append(localizedMessage);
-
-        } else if (message != null && !"".equals(message)) {
-            sb.append(message);
-        }
-
-        String throwableAsString = sb.toString();
-
-        return throwableAsString.trim();
+        terminalUI.showErrorMessageFromThrowable(throwable);
     }
 
 
     public void showErrorMessageFromString(String errorMessage) {
 
-        showErrorMessageFromString("Error", errorMessage);
+        terminalUI.showErrorMessageFromString("Error", errorMessage);
     }
 
     public File showFileSelectorDialog(
             final String title, final String description, final String actionLabel) {
 
-        return new FileDialogBuilder()
-                .setTitle(title)
-                .setDescription(description)
-                .setActionLabel(actionLabel)
-                .build()
-                .showDialog(getApplicationTextGUI());
+        return terminalUI.showFileSelectorDialog(title, description, actionLabel);
     }
 
     public void showErrorMessageFromString(String dialogTitle, String errorMessage) {
-        final int columns = getApplicationTextGUI().getScreen().getTerminalSize().getColumns();
-        final int maxLineLen = columns - TerminalUI.LINE_SIZE_DIFF;
-
-        String multilineErrorMsgString = TextUtils.breakLine(errorMessage, maxLineLen);
-
-        showMessageBox(dialogTitle, multilineErrorMsgString);
+        terminalUI.showErrorMessageFromString(dialogTitle, errorMessage);
     }
 
     protected void showMessageBox(String title, String messageText) {
-        showMessageBox(title, messageText, MessageDialogButton.OK);
+        terminalUI.showMessageBox(title, messageText);
     }
 
 
@@ -179,41 +88,21 @@ public abstract class ApplicationWindow extends BasicWindow {
                                                  MessageDialogButton firstButton,
                                                  MessageDialogButton... additionalButtons) {
 
-        MessageDialogBuilder messageDialogBuilder = new MessageDialogBuilder()
-                .setTitle(title)
-                .setText(messageText);
-
-        messageDialogBuilder
-                .addButton(firstButton);
-
-        for (MessageDialogButton messageDialogButton : additionalButtons) {
-            messageDialogBuilder
-                    .addButton(messageDialogButton);
-        }
-
-        return messageDialogBuilder.build().showDialog(getApplicationTextGUI());
+        return terminalUI.showMessageBox(title, messageText, firstButton, additionalButtons);
     }
 
 
     protected Window showWaitDialog(String title, String text) {
-        return showWaitDialog(title, text, null);
+        return terminalUI.showWaitDialog(title, text);
     }
 
     protected WaitDialog showWaitDialog(String title, String text, Runnable onCancel) {
 
-        WaitDialog w = WaitDialog.showDialog(getApplicationTextGUI(), title, text, onCancel);
-
-        runInEventThread(() -> showWindowCenter(w));
-
-        return w;
-
+        return terminalUI.showWaitDialog(title, text, onCancel);
     }
 
     protected void runInEventThread(Runnable runnable) {
-        WindowBasedTextGUI textGUI = getApplicationTextGUI();
-        TextGUIThread guiThread = textGUI.getGUIThread();
-        guiThread.invokeLater(runnable);
+
+        terminalUI.runInGUIThread(runnable);
     }
-
-
 }

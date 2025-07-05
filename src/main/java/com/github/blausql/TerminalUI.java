@@ -1,267 +1,41 @@
-/*
- * Copyright (c) 2017-2020 Peter G. Horvath, All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
- 
 package com.github.blausql;
 
-import com.github.blausql.core.util.ExceptionUtils;
-import com.github.blausql.core.util.TextUtils;
-import com.github.blausql.ui.DialogButtons;
 import com.github.blausql.ui.components.WaitDialog;
-
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.gui2.MultiWindowTextGUI;
 import com.googlecode.lanterna.gui2.Window;
 import com.googlecode.lanterna.gui2.WindowBasedTextGUI;
-import com.googlecode.lanterna.gui2.dialogs.FileDialogBuilder;
-import com.googlecode.lanterna.gui2.dialogs.MessageDialogBuilder;
 import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton;
-import com.googlecode.lanterna.gui2.dialogs.TextInputDialogBuilder;
-import com.googlecode.lanterna.screen.Screen;
-import com.googlecode.lanterna.screen.TerminalScreen;
-import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
-import com.googlecode.lanterna.terminal.Terminal;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.sql.SQLException;
-import java.util.Collections;
 
-//CHECKSTYLE.OFF: FinalClass: must be extensible for the testing frameworks
-public class TerminalUI implements AutoCloseable {
+public interface TerminalUI extends AutoCloseable {
 
-    private static final int LINE_SIZE_DIFF = 8;
+    int LINE_SIZE_DIFF = 8;
 
-    private final Screen screen;
-    private final WindowBasedTextGUI textGUI;
+    void showWindowCenter(Window w);
 
-    private TerminalUI() {
-        try {
-            Terminal terminal = new DefaultTerminalFactory().createTerminal();
-            screen = new TerminalScreen(terminal);
-            screen.startScreen();
+    void showWindowFullScreen(Window w);
 
-            textGUI = new MultiWindowTextGUI(screen);
+    void showErrorMessageFromThrowable(Throwable throwable);
 
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
+    void showErrorMessageFromString(String errorMessage);
 
+    File showFileSelectorDialog(
+            String title, String description, String actionLabel);
 
-    private static class LazyHolder {
-        static final TerminalUI INSTANCE = new TerminalUI();
-    }
+    void showErrorMessageFromString(String dialogTitle, String errorMessage);
 
-    public static TerminalUI getInstance() {
-        return LazyHolder.INSTANCE;
+    void showMessageBox(String title, String messageText);
 
-    }
+    MessageDialogButton showMessageBox(String title,
+                                       String messageText,
+                                       MessageDialogButton firstButton,
+                                       MessageDialogButton... additionalButtons);
 
+    Window showWaitDialog(String title, String text);
 
-    public void close() throws IOException {
-        LazyHolder.INSTANCE.screen.stopScreen();
-    }
+    WaitDialog showWaitDialog(String title, String text, Runnable onCancel);
 
-    public static void showErrorMessageFromThrowable(Throwable throwable) {
+    void runInGUIThread(Runnable runnable);
 
-        StringBuilder sb = new StringBuilder();
-
-        final Throwable rootCause = ExceptionUtils.getRootCause(throwable);
-
-        if (rootCause instanceof ClassNotFoundException) {
-            sb.append("Class not found: ").append(rootCause.getMessage());
-        } else if (throwable instanceof SQLException) {
-            sb.append(extractMessageFrom(throwable));
-        } else {
-            String rootCauseMessage = extractMessageFrom(rootCause);
-            if (rootCauseMessage != null && !rootCauseMessage.isBlank()) {
-                sb.append(rootCauseMessage);
-            } else {
-                Throwable t = throwable;
-                while (t != null) {
-                    String extractedMessage = extractMessageFrom(t);
-                    if (!extractedMessage.isEmpty()) {
-                        if (sb.length() > 0) {
-                            sb.append(": ");
-                        }
-                        sb.append(extractedMessage);
-                    }
-                    t = t.getCause();
-                }
-
-                StringWriter stringWriter = new StringWriter();
-                try (PrintWriter pw = new PrintWriter(stringWriter)) {
-                    rootCause.printStackTrace(pw);
-                }
-                String fullStackTrace = stringWriter.toString();
-                sb.append(fullStackTrace);
-            }
-        }
-
-        String theString = sb.toString();
-
-        showErrorMessageFromString(theString);
-
-    }
-
-    public static void showErrorMessageFromString(String errorMessage) {
-
-        showErrorMessageFromString("Error", errorMessage);
-    }
-
-    public static void showErrorMessageFromString(String dialogTitle, String errorMessage) {
-        final int columns = LazyHolder.INSTANCE.screen.getTerminalSize().getColumns();
-        final int maxLineLen = columns - LINE_SIZE_DIFF;
-
-        String multilineErrorMsgString = TextUtils.breakLine(errorMessage, maxLineLen);
-
-        showMessageBox(dialogTitle, multilineErrorMsgString);
-    }
-
-    public static String extractMessageFrom(Throwable t) {
-        StringBuilder sb = new StringBuilder();
-
-        if (t instanceof SQLException) {
-            SQLException sqlEx = (SQLException) t;
-
-            String sqlState = sqlEx.getSQLState();
-            if (sqlState != null && !sqlState.isBlank()) {
-                sb.append("SQLState: ").append(sqlState)
-                        .append(TextUtils.LINE_SEPARATOR);
-            }
-
-            int errorCode = sqlEx.getErrorCode();
-            sb.append("Error Code: ").append(errorCode)
-                    .append(TextUtils.LINE_SEPARATOR);
-        }
-        String localizedMessage = t.getLocalizedMessage();
-        String message = t.getMessage();
-
-        if (localizedMessage != null && !"".equals(localizedMessage)) {
-
-            sb.append(localizedMessage);
-
-        } else if (message != null && !"".equals(message)) {
-            sb.append(message);
-        }
-
-        String throwableAsString = sb.toString();
-
-        return throwableAsString.trim();
-    }
-
-    public static void showMessageBox(String title, String messageText) {
-        showMessageBox(title, messageText, DialogButtons.OK);
-    }
-
-    public static DialogResult showMessageBox(String title,
-                                              String messageText, DialogButtons buttons) {
-
-        MessageDialogBuilder messageDialogBuilder = new MessageDialogBuilder()
-                .setTitle(title)
-                .setText(messageText);
-
-
-        if (buttons == DialogButtons.OK || buttons == DialogButtons.OK_CANCEL) {
-            messageDialogBuilder
-                    .addButton(MessageDialogButton.OK);
-        }
-
-        if (buttons == DialogButtons.OK_CANCEL) {
-            messageDialogBuilder
-                    .addButton(MessageDialogButton.Cancel);
-        }
-
-        MessageDialogButton messageDialogButton = messageDialogBuilder
-                .build()
-                .showDialog(getTextGUI());
-
-        switch (messageDialogButton) {
-            case OK:
-                return DialogResult.OK;
-            case Cancel:
-                return DialogResult.CANCEL;
-
-            default:
-                throw new IllegalStateException("Unexpected button");
-        }
-
-    }
-
-    public static String showTextInputDialog(
-            final String title, final String description, final String initialText, final int textBoxWidth) {
-
-        return new TextInputDialogBuilder()
-                .setTitle(title)
-                .setDescription(description)
-                .build()
-                .showDialog(getTextGUI());
-    }
-
-    public static File showFileSelectorDialog(
-            final String title, final String description, final String actionLabel) {
-
-        return new FileDialogBuilder()
-                .setTitle(title)
-                .setDescription(description)
-                .setActionLabel(actionLabel)
-                .build()
-                .showDialog(getTextGUI());
-    }
-
-
-    public static void showWindowCenter(Window w) {
-        w.setHints(Collections.singletonList(Window.Hint.CENTERED));
-        getTextGUI().addWindowAndWait(w);
-    }
-
-    public static void showWindowFullScreen(Window w) {
-        w.setHints(Collections.singletonList(Window.Hint.FULL_SCREEN));
-        getTextGUI().addWindowAndWait(w);
-
-    }
-
-    public static Window showWaitDialog(String title, String text) {
-        return showWaitDialog(title, text, null);
-    }
-
-    public static Window showWaitDialog(String title, String text, Runnable onCancel) {
-
-        final Window w = WaitDialog.showDialog(getTextGUI(), title, text, onCancel);
-
-        runInEventThread(() -> showWindowCenter(w));
-
-
-        return w;
-
-    }
-
-    public static void runInEventThread(Runnable runnable) {
-        getTextGUI().getGUIThread().invokeLater(runnable);
-    }
-
-    private static WindowBasedTextGUI getTextGUI() {
-        return LazyHolder.INSTANCE.textGUI;
-    }
-
-    public static TerminalSize getTerminalSize() {
-        return LazyHolder.INSTANCE.screen.getTerminalSize();
-    }
+    WindowBasedTextGUI getWindowBasedTextGUI();
 }
-//CHECKSTYLE.ON
