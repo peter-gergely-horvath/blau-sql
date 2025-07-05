@@ -22,45 +22,31 @@ import com.github.blausql.core.classloader.DelegatingDriver;
 import com.github.blausql.core.preferences.ConfigurationRepository;
 import com.github.blausql.core.preferences.LoadException;
 
+import java.lang.reflect.Constructor;
 import java.net.MalformedURLException;
 import java.sql.*;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.List;
 
-public final class Database {
+public final class DatabaseConnectionFactory {
 
-    private final AtomicReference<DatabaseConnection> currentConnectionHolder = new AtomicReference<>();
-
-
-    private static final Database INSTANCE = new Database();
-
-    private Database() {
+    private DatabaseConnectionFactory() {
         // no external instances
     }
 
-    public static Database getInstance() {
-        return INSTANCE;
-    }
-
-    public void establishConnection(ConnectionDefinition cd) {
-
-        DatabaseConnection existingConn = currentConnectionHolder.get();
-        if (existingConn != null) {
-            throw new IllegalStateException(
-                    "Current connection exists: must close it first");
-        }
+    public static DatabaseConnection getDatabaseConnection(ConnectionDefinition cd) {
 
         ClassLoader originalContextClassLoader = Thread.currentThread().getContextClassLoader();
         try {
-            String[] classpath = ConfigurationRepository.getInstance().getClasspath();
+            List<String> classpath = ConfigurationRepository.getInstance().getClasspath();
 
-            if (classpath.length != 0) {
+            if (!classpath.isEmpty()) {
 
                 ClassLoader classLoader = ClassLoaderFactory.getClassLoaderForClasspath(classpath);
                 Thread.currentThread().setContextClassLoader(classLoader);
             }
 
             String driverClassName = cd.getDriverClassName();
-            if (driverClassName != null && !"".equals(driverClassName.trim())) {
+            if (driverClassName != null && !driverClassName.isBlank()) {
                 initDriver(driverClassName);
             }
 
@@ -69,19 +55,16 @@ public final class Database {
 
             databaseConnection.establishConnection();
 
-            currentConnectionHolder.set(databaseConnection);
-
+            return databaseConnection;
 
         } catch (MalformedURLException e) {
             throw new RuntimeException(
                     "Malformed URL: " + e.getMessage());
 
-        } catch (IllegalAccessException | InstantiationException | SQLException e) {
-            throw new RuntimeException("Problem loading the driver", e);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Could not load JDBC Driver class: " + e.getMessage(), e);
+        } catch (ReflectiveOperationException | SQLException e) {
+            throw new RuntimeException("Failure loading the JDBC driver", e);
         } catch (LoadException e) {
-            throw new RuntimeException("Failed to load Configuration", e);
+            throw new RuntimeException("Failure loading Configuration", e);
         } finally {
             Thread.currentThread().setContextClassLoader(originalContextClassLoader);
         }
@@ -89,36 +72,13 @@ public final class Database {
 
     }
 
-    private void initDriver(String driverClassName)
-            throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
+    private static void initDriver(String driverClassName) throws ReflectiveOperationException, SQLException {
         ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
 
         @SuppressWarnings("unchecked")
         Class<Driver> driverClass = (Class<Driver>) Class.forName(driverClassName, true, contextClassLoader);
-        Driver driver = driverClass.newInstance();
+        Constructor<Driver> declaredConstructor = driverClass.getDeclaredConstructor();
+        Driver driver = declaredConstructor.newInstance();
         DriverManager.registerDriver(new DelegatingDriver(driver));
-    }
-
-    public void disconnect() {
-
-        DatabaseConnection existingConn = currentConnectionHolder.get();
-        if (existingConn == null) {
-            throw new IllegalStateException(
-                    "No current connection: must establish first");
-        }
-
-        existingConn.disconnect();
-
-        currentConnectionHolder.set(null);
-    }
-
-    public StatementResult executeStatement(final String sql, int limit) {
-
-        DatabaseConnection databaseConnection = currentConnectionHolder.get();
-        if (databaseConnection == null) {
-            throw new IllegalStateException("databaseConnection is null");
-        }
-
-        return databaseConnection.executeStatement(sql, limit);
     }
 }

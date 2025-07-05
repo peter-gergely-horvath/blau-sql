@@ -18,55 +18,38 @@
 package com.github.blausql.ui;
 
 import com.github.blausql.core.connection.ConnectionDefinition;
-import com.github.blausql.ui.components.CloseOnEscapeKeyPressWindow;
+import com.github.blausql.ui.components.PasswordBox;
+import com.github.blausql.ui.hotkey.HotKeyWindowListener;
+import com.googlecode.lanterna.TerminalSize;
+import com.googlecode.lanterna.gui2.*;
+import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton;
+import com.googlecode.lanterna.input.KeyType;
 
-import com.googlecode.lanterna.gui.Action;
-import com.googlecode.lanterna.gui.Border;
-import com.googlecode.lanterna.gui.component.Button;
-import com.googlecode.lanterna.gui.component.EmptySpace;
-import com.googlecode.lanterna.gui.component.Label;
-import com.googlecode.lanterna.gui.component.Panel;
-import com.googlecode.lanterna.gui.component.PasswordBox;
-import com.googlecode.lanterna.gui.component.TextBox;
-import com.googlecode.lanterna.gui.dialog.DialogResult;
 
-final class CredentialsDialog extends CloseOnEscapeKeyPressWindow {
+final class CredentialsDialog extends BasicWindow {
 
     private static final int USERNAME_BOX_LEN = 20;
     private static final int PASSWORD_BOX_LEN = 20;
 
     private final TextBox userNameTextBox;
-    private final PasswordBox passwordPasswordBox;
+    private final TextBox passwordPasswordBox;
 
-    private DialogResult dialogResult = DialogResult.CANCEL;
+    private MessageDialogButton selectedButton = null;
 
     CredentialsDialog(ConnectionDefinition cd) {
 
         super("Enter credentials for " + cd.getConnectionName());
 
-        addComponent(new Label("User name:"));
-        userNameTextBox = new TextBox(cd.getUserName(), USERNAME_BOX_LEN);
-        addComponent(userNameTextBox);
+        userNameTextBox = new TextBox(new TerminalSize(USERNAME_BOX_LEN, 1),
+                cd.getUserName(), TextBox.Style.SINGLE_LINE);
 
-        addComponent(new Label("Password:"));
         passwordPasswordBox = new PasswordBox(cd.getPassword(), PASSWORD_BOX_LEN);
-        addComponent(passwordPasswordBox);
 
-        Button okButton = new Button("OK", new Action() {
-            public void doAction() {
-                dialogResult = DialogResult.OK;
-                close();
-            }
-        });
-        Button cancelButton = new Button("Cancel", new Action() {
-            public void doAction() {
-                dialogResult = DialogResult.CANCEL;
-                close();
-            }
-        });
+        Button okButton = new Button("OK", this::onOkButtonSelected);
+        Button cancelButton = new Button("Cancel", this::onCancelButtonSelected);
 
         int labelWidth = userNameTextBox.getPreferredSize().getColumns();
-        Panel buttonPanel = new Panel(new Border.Invisible(), Panel.Orientation.HORISONTAL);
+        Panel buttonPanel = new Panel(new LinearLayout(Direction.HORIZONTAL));
         int leftPadding = 0;
         int buttonsWidth = okButton.getPreferredSize().getColumns()
                 + cancelButton.getPreferredSize().getColumns() + 1;
@@ -75,17 +58,41 @@ final class CredentialsDialog extends CloseOnEscapeKeyPressWindow {
         }
 
         if (leftPadding > 0) {
-            buttonPanel.addComponent(new EmptySpace(leftPadding, 1));
+            buttonPanel.addComponent(new EmptySpace(new TerminalSize(1, 1)));
         }
         buttonPanel.addComponent(okButton);
         buttonPanel.addComponent(cancelButton);
-        addComponent(new EmptySpace());
-        addComponent(buttonPanel);
-        setFocus(okButton);
+
+        Panel mainPanel = Panels.vertical(
+                new Label("User name:"),
+                userNameTextBox,
+                new Label("Password:"),
+                passwordPasswordBox,
+                new EmptySpace(),
+                buttonPanel
+        );
+
+        setComponent(mainPanel);
+
+        setFocusedInteractable(okButton);
+
+        addWindowListener(HotKeyWindowListener.builder()
+                .keyType(KeyType.Escape).invoke(this::onCancelButtonSelected)
+                .build());
     }
 
-    public DialogResult getDialogResult() {
-        return dialogResult;
+    private void onOkButtonSelected() {
+        selectedButton = MessageDialogButton.OK;
+        close();
+    }
+
+    private void onCancelButtonSelected() {
+        selectedButton = MessageDialogButton.Cancel;
+        close();
+    }
+
+    public MessageDialogButton getSelectedButton() {
+        return selectedButton;
     }
 
     public String getUserName() {

@@ -1,5 +1,6 @@
 package com.github.blausql.core.util;
 
+import java.util.HashSet;
 import java.util.Objects;
 
 public final class ExceptionUtils {
@@ -37,6 +38,29 @@ public final class ExceptionUtils {
 
         return false;
 
+    }
+
+
+    public static Throwable getRootCause(Throwable throwable) {
+
+        if (throwable == null) {
+            return null;
+        }
+
+        HashSet<Throwable> seen = new HashSet<>();
+
+        Throwable rootCause = throwable;
+
+        Throwable cause;
+        while ((cause = rootCause.getCause()) != null) {
+            rootCause = cause;
+
+            boolean wasSeenBefore = !seen.add(cause);
+            if (wasSeenBefore) {
+                throw new IllegalStateException("Cannot extract root cause: loop detected in causes chain", throwable);
+            }
+        }
+        return rootCause;
     }
 
 }

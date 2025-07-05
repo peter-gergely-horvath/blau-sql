@@ -21,38 +21,22 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.googlecode.lanterna.gui.Component;
-import com.googlecode.lanterna.gui.Window;
-import com.googlecode.lanterna.gui.component.Label;
-import com.googlecode.lanterna.gui.component.Table;
-import com.googlecode.lanterna.gui.listener.WindowAdapter;
-import com.googlecode.lanterna.input.Key;
-import com.googlecode.lanterna.input.Key.Kind;
+import com.github.blausql.ui.hotkey.HotKeyWindowListener;
+import com.googlecode.lanterna.gui2.BasicWindow;
+import com.googlecode.lanterna.gui2.Label;
+import com.googlecode.lanterna.gui2.table.Table;
+import com.googlecode.lanterna.gui2.table.TableModel;
+import com.googlecode.lanterna.input.KeyType;
 
-class QueryResultWindow extends Window {
 
-    @SuppressWarnings("FieldCanBeLocal")
-    private final WindowAdapter closeOnEscOrEnterWindowListener = new WindowAdapter() {
-
-        @Override
-        public void onUnhandledKeyboardInteraction(Window window, Key key) {
-
-            if (Kind.Escape.equals(key.getKind())
-                    || Kind.Enter.equals(key.getKind())) {
-
-                QueryResultWindow.this.close();
-            }
-        }
-    };
+class QueryResultWindow extends BasicWindow {
 
     //CHECKSTYLE.OFF: AvoidInlineConditionals
     QueryResultWindow(List<Map<String, Object>> queryResult) {
         super("Query result (press Enter/ESC to close)");
 
-        addWindowListener(closeOnEscOrEnterWindowListener);
-
-        if (queryResult.size() == 0) {
-            addComponent(new Label("(query yielded no results)"));
+        if (queryResult.isEmpty()) {
+            setComponent(new Label("(query yielded no results)"));
         } else {
 
             Map<String, Object> firstRow = queryResult.get(0);
@@ -61,14 +45,10 @@ class QueryResultWindow extends Window {
                     firstRow.keySet());
             final int numberOfColumns = columnLabels.size();
 
-            Table table = new Table(numberOfColumns);
+            Table<String> table = new Table<>(columnLabels.toArray(new String[0]));
+            TableModel<String> tableModel = table.getTableModel();
 
-            Component[] components = new Component[numberOfColumns];
-
-            for (int i = 0; i < numberOfColumns; i++) {
-                components[i] = new Label(columnLabels.get(i));
-            }
-            table.addRow(components);
+            String[] rowValues = new String[numberOfColumns];
 
             for (Map<String, Object> row : queryResult) {
 
@@ -76,16 +56,17 @@ class QueryResultWindow extends Window {
                     final String currentColumnLabel = columnLabels.get(i);
                     final Object valueForCurrentColumn = row.get(currentColumnLabel);
 
-                    final Label labelForCurrentColumnValue = (valueForCurrentColumn != null)
-                            ? new Label(valueForCurrentColumn.toString()) : new Label("null", true);
-
-                    components[i] = labelForCurrentColumnValue;
+                    rowValues[i] = String.valueOf(valueForCurrentColumn);
                 }
 
-                table.addRow(components);
+                tableModel.addRow(rowValues);
             }
 
-            addComponent(table);
+            setComponent(table);
+
+            addWindowListener(HotKeyWindowListener.builder()
+                    .keyType(KeyType.Escape).invoke(this::close)
+                    .build());
 
         }
 

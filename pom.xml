@@ -1,433 +1,452 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-	<groupId>com.github.peter-gergely-horvath</groupId>
-	<artifactId>blau-sql</artifactId>
-	<version>1.7.0</version>
+    <groupId>com.github.peter-gergely-horvath</groupId>
+    <artifactId>blau-sql</artifactId>
+    <version>2.0.0-SNAPSHOT</version>
 
-	<name>blau-sql</name>
+    <name>blau-sql</name>
 
-	<licenses>
-		<license>
-			<name>Apache-2.0</name>
-			<url>https://opensource.org/licenses/Apache-2.0</url>
-			<distribution>repo</distribution>
-			<comments>Apache License, Version 2.0</comments>
-		</license>
-	</licenses>
+    <licenses>
+        <license>
+            <name>Apache-2.0</name>
+            <url>https://opensource.org/licenses/Apache-2.0</url>
+            <distribution>repo</distribution>
+            <comments>Apache License, Version 2.0</comments>
+        </license>
+    </licenses>
 
-	<scm>
-		<connection>
-			scm:git:https://github.com/peter-gergely-horvath/blau-sql.git
-		</connection>
-		<developerConnection>
-			scm:git:https://github.com/peter-gergely-horvath/blau-sql.git
-		</developerConnection>
-		<tag>HEAD</tag>
-		<url>https://github.com/peter-gergely-horvath/blau-sql</url>
-	</scm>
+    <scm>
+        <connection>
+            scm:git:https://github.com/peter-gergely-horvath/blau-sql.git
+        </connection>
+        <developerConnection>
+            scm:git:https://github.com/peter-gergely-horvath/blau-sql.git
+        </developerConnection>
+        <tag>HEAD</tag>
+        <url>https://github.com/peter-gergely-horvath/blau-sql</url>
+    </scm>
 
-	<developers>
-		<developer>
-			<id>peter-gergely-horvath</id>
-			<name>Peter G. Horvath</name>
-			<email>peter.gergely.horvath@gmail.com</email>
-			<roles>
-				<role>developer</role>
-			</roles>
-			<timezone>Europe/Vienna</timezone>
-		</developer>
-	</developers>
+    <developers>
+        <developer>
+            <id>peter-gergely-horvath</id>
+            <name>Peter G. Horvath</name>
+            <roles>
+                <role>developer</role>
+            </roles>
+            <timezone>Europe/Vienna</timezone>
+        </developer>
+    </developers>
 
-	<issueManagement>
-		<system>GitHub issue tracker of blau-sql project</system>
-		<url>https://github.com/peter-gergely-horvath/blau-sql/issues</url>
-	</issueManagement>
+    <issueManagement>
+        <system>GitHub issue tracker of blau-sql project</system>
+        <url>https://github.com/peter-gergely-horvath/blau-sql/issues</url>
+    </issueManagement>
 
-	<properties>
-		<!-- Project configuration -->
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<displayName>Blau SQL</displayName>
-		<javaVersion>7</javaVersion>
-		<maven.compiler.source>1.${javaVersion}</maven.compiler.source>
-		<maven.compiler.target>1.${javaVersion}</maven.compiler.target>
+    <properties>
+        <!-- Project configuration -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <displayName>Blau SQL</displayName>
+        <javaVersion>11</javaVersion>
+        <maven.compiler.source>${javaVersion}</maven.compiler.source>
+        <maven.compiler.target>${javaVersion}</maven.compiler.target>
 
-		<!-- Dependency versions: used for testing ONLY -->
-		<testng.version>6.8.21</testng.version>
-		<groovy.version>2.4.8</groovy.version>
+        <!-- Dependency versions: used for testing ONLY -->
+        <testng.version>6.8.21</testng.version>
+        <groovy.version>2.4.8</groovy.version>
 
-		<!-- Used to generate build information -->
-		<product-name>${project.name}</product-name>
-		<build-timestamp>${maven.build.timestamp}</build-timestamp>
-		<maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
-
-
-		<!-- Maven plugin versions -->
-		<maven-project-info-reports-plugin.version>2.8.1</maven-project-info-reports-plugin.version>
-		<maven-javadoc-plugin.version>2.10.3</maven-javadoc-plugin.version>
-		<maven-jxr-plugin.version>2.5</maven-jxr-plugin.version>
-		<maven-checkstyle-plugin.version>2.17</maven-checkstyle-plugin.version>
-		<maven-pmd-plugin.version>3.6</maven-pmd-plugin.version>
-		<findbugs-maven-plugin.version>3.0.5</findbugs-maven-plugin.version>
-		<xml-maven-plugin.version>1.0</xml-maven-plugin.version>
-		<maven-surefire-plugin.version>2.20</maven-surefire-plugin.version>
-		<maven-source-plugin.version>3.0.0</maven-source-plugin.version>
-		<maven-javadoc-plugin.version>2.10.3</maven-javadoc-plugin.version>
-	</properties>
-
-	<url>https://github.com/peter-gergely-horvath/blau-sql</url>
-	<description>
-		BlauSQL is Universal text mode JDBC database client,
-		with a menu-oriented user interface.
-	</description>
-	<inceptionYear>2017</inceptionYear>
-
-	<dependencies>
-
-		<dependency>
-			<groupId>com.googlecode.lanterna</groupId>
-			<artifactId>lanterna</artifactId>
-			<version>2.1.9</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-jdbc</artifactId>
-			<version>4.0.5.RELEASE</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.google.guava</groupId>
-			<artifactId>guava</artifactId>
-			<version>17.0</version>
-		</dependency>
+        <!-- Used to generate build information -->
+        <product-name>${project.name}</product-name>
+        <build-timestamp>${maven.build.timestamp}</build-timestamp>
+        <maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
 
 
+        <!-- Maven plugin versions -->
+        <maven-project-info-reports-plugin.version>2.8.1</maven-project-info-reports-plugin.version>
+        <maven-javadoc-plugin.version>2.10.3</maven-javadoc-plugin.version>
+        <maven-jxr-plugin.version>2.5</maven-jxr-plugin.version>
+        <maven-checkstyle-plugin.version>2.17</maven-checkstyle-plugin.version>
+        <maven-pmd-plugin.version>3.26.0</maven-pmd-plugin.version>
+        <findbugs-maven-plugin.version>3.0.5</findbugs-maven-plugin.version>
+        <xml-maven-plugin.version>1.0</xml-maven-plugin.version>
+        <maven-surefire-plugin.version>2.20</maven-surefire-plugin.version>
+        <maven-source-plugin.version>3.0.0</maven-source-plugin.version>
+        <maven-javadoc-plugin.version>2.10.3</maven-javadoc-plugin.version>
+    </properties>
 
-		<dependency>
-			<groupId>org.testng</groupId>
-			<artifactId>testng</artifactId>
-			<version>${testng.version}</version>
-			<scope>test</scope>
-		</dependency>
+    <url>https://github.com/peter-gergely-horvath/blau-sql</url>
+    <description>
+        BlauSQL is Universal text mode JDBC database client,
+        with a menu-oriented user interface.
+    </description>
+    <inceptionYear>2017</inceptionYear>
 
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-test</artifactId>
-			<version>4.0.5.RELEASE</version>
-			<scope>test</scope>
-		</dependency>
+    <dependencies>
 
-		<dependency>
-			<groupId>org.easymock</groupId>
-			<artifactId>easymock</artifactId>
-			<version>3.4</version>
-			<scope>test</scope>
-		</dependency>
+        <dependency>
+            <groupId>com.googlecode.lanterna</groupId>
+            <artifactId>lanterna</artifactId>
+            <version>3.1.3</version>
+        </dependency>
 
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>2.3.232</version>
+            <scope>provided</scope>
+        </dependency>
 
-		<dependency>
-			<groupId>org.easymock</groupId>
-			<artifactId>easymockclassextension</artifactId>
-			<version>3.2</version>
-			<scope>test</scope>
-		</dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-jdbc</artifactId>
+            <version>4.0.5.RELEASE</version>
+        </dependency>
 
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>${testng.version}</version>
+            <scope>test</scope>
+        </dependency>
 
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <version>4.0.5.RELEASE</version>
+            <scope>test</scope>
+        </dependency>
 
-		<dependency>
-			<groupId>org.powermock</groupId>
-			<artifactId>powermock-api-easymock</artifactId>
-			<version>1.7.1</version>
-			<scope>test</scope>
-		</dependency>
-
-
-		<dependency>
-			<groupId>org.powermock</groupId>
-			<artifactId>powermock-module-testng</artifactId>
-			<version>1.7.1</version>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.codehaus.groovy</groupId>
-			<artifactId>groovy-all</artifactId>
-			<version>${groovy.version}</version>
-			<scope>test</scope>
-		</dependency>
-
-
-	</dependencies>
-
-	<profiles>
-
-		<profile>
-			<id>default</id>
-			<activation>
-				<activeByDefault>true</activeByDefault>
-				<property>
-					<name>!maven-repo-promotion</name>
-				</property>
-			</activation>
-
-			<build>
-				<plugins>
-
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-checkstyle-plugin</artifactId>
-						<version>${maven-checkstyle-plugin.version}</version>
-						<executions>
-							<execution>
-								<id>validate</id>
-								<phase>validate</phase>
-								<configuration>
-									<configLocation>configuration/checkstyle.xml</configLocation>
-									<encoding>UTF-8</encoding>
-									<consoleOutput>true</consoleOutput>
-									<failsOnError>false</failsOnError>
-								</configuration>
-								<goals>
-									<goal>check</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-pmd-plugin</artifactId>
-						<version>${maven-pmd-plugin.version}</version>
-						<executions>
-							<execution>
-								<phase>compile</phase>
-								<goals>
-									<goal>check</goal>
-									<goal>cpd-check</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-
-					<plugin>
-						<groupId>org.codehaus.mojo</groupId>
-						<artifactId>findbugs-maven-plugin</artifactId>
-						<version>${findbugs-maven-plugin.version}</version>
-						<configuration>
-							<!-- Enables analysis which takes more memory but finds more bugs.
-								If you run out of memory, changes the value of the effort element to 'Low'. -->
-							<effort>Max</effort>
-
-							<!-- Location of FindBugs exclude filter file -->
-							<excludeFilterFile>configuration/findbugs-exclude.xml</excludeFilterFile>
-
-							<!-- Build shall fail if problems are found -->
-							<failOnError>true</failOnError>
-
-							<!-- Reports all bugs (other values are medium and max) -->
-							<threshold>Low</threshold>
-
-							<!-- Produces XML report -->
-							<xmlOutput>true</xmlOutput>
-
-							<!-- Configures the directory in which the XML report is created -->
-							<findbugsXmlOutputDirectory>${project.build.directory}/findbugs</findbugsXmlOutputDirectory>
-						</configuration>
-						<executions>
-							<!-- Ensures that FindBugs inspects source code when project is compiled. -->
-							<execution>
-								<id>analyze-compile</id>
-								<phase>compile</phase>
-								<goals>
-									<goal>check</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-
-					<plugin>
-						<groupId>org.codehaus.mojo</groupId>
-						<artifactId>xml-maven-plugin</artifactId>
-						<version>${xml-maven-plugin.version}</version>
-						<configuration>
-							<transformationSets>
-								<transformationSet>
-									<!-- Configures the source directory of XML files. -->
-									<dir>${project.build.directory}/findbugs</dir>
-									<includes>
-										<!-- only transform findbugsXml.xml to generate FindBugs HTML report -->
-										<include>findbugsXml.xml</include>
-									</includes>
-
-									<!-- Configures the directory in which the FindBugs report is written. -->
-									<outputDir>${project.build.directory}/findbugs</outputDir>
-
-									<!-- Selects the used stylesheet. -->
-									<!-- <stylesheet>fancy-hist.xsl</stylesheet> -->
-									<!--<stylesheet>default.xsl</stylesheet> -->
-									<!--<stylesheet>plain.xsl</stylesheet> -->
-									<stylesheet>fancy.xsl</stylesheet>
-									<!--<stylesheet>summary.xsl</stylesheet> -->
-									<fileMappers>
-										<!-- Configures the file extension of the output files. -->
-										<fileMapper
-												implementation="org.codehaus.plexus.components.io.filemappers.FileExtensionMapper">
-											<targetExtension>.html</targetExtension>
-										</fileMapper>
-									</fileMappers>
-								</transformationSet>
-							</transformationSets>
-						</configuration>
-						<executions>
-							<!-- Ensures that the XSLT transformation is run when the project
-								is compiled. -->
-							<execution>
-								<phase>compile</phase>
-								<goals>
-									<goal>transform</goal>
-								</goals>
-							</execution>
-						</executions>
-						<dependencies>
-							<dependency>
-								<groupId>com.google.code.findbugs</groupId>
-								<artifactId>findbugs</artifactId>
-								<version>2.0.1</version>
-							</dependency>
-						</dependencies>
-					</plugin>
-
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-surefire-plugin</artifactId>
-						<version>${maven-surefire-plugin.version}</version>
-						<configuration>
-							<systemProperties>
-								<property>
-									<name>java.util.logging.config.file</name>
-									<value>src/test/resources/blau-sql.debug.log.config.properties</value>
-								</property>
-							</systemProperties>
-						</configuration>
-					</plugin>
-				</plugins>
-			</build>
-
-		</profile>
-
-		<profile>
-			<id>maven-repo-promotion</id>
-			<activation>
-				<property>
-					<name>maven-repo-promotion</name>
-					<value>true</value>
-				</property>
-			</activation>
-
-			<build>
-				<plugins>
-
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-source-plugin</artifactId>
-						<version>${maven-source-plugin.version}</version>
-						<executions>
-							<execution>
-								<id>attach-sources</id>
-								<goals>
-									<goal>jar</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-javadoc-plugin</artifactId>
-						<version>${maven-javadoc-plugin.version}</version>
-						<executions>
-							<execution>
-								<id>attach-javadocs</id>
-								<goals>
-									<goal>jar</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
+        <dependency>
+            <groupId>org.easymock</groupId>
+            <artifactId>easymock</artifactId>
+            <version>3.4</version>
+            <scope>test</scope>
+        </dependency>
 
 
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-gpg-plugin</artifactId>
-						<version>1.5</version>
-						<executions>
-							<execution>
-								<id>sign-artifacts</id>
-								<phase>verify</phase>
-								<goals>
-									<goal>sign</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-
-					<plugin>
-						<groupId>org.sonatype.plugins</groupId>
-						<artifactId>nexus-staging-maven-plugin</artifactId>
-						<version>1.6.3</version>
-						<extensions>true</extensions>
-						<configuration>
-							<serverId>ossrh</serverId>
-							<nexusUrl>https://oss.sonatype.org/</nexusUrl>
-							<autoReleaseAfterClose>true</autoReleaseAfterClose>
-						</configuration>
-					</plugin>
-				</plugins>
-			</build>
-
-			<distributionManagement>
-				<snapshotRepository>
-					<id>ossrh</id>
-					<url>https://oss.sonatype.org/content/repositories/snapshots</url>
-				</snapshotRepository>
-			</distributionManagement>
-		</profile>
-	</profiles>
+        <dependency>
+            <groupId>org.easymock</groupId>
+            <artifactId>easymockclassextension</artifactId>
+            <version>3.2</version>
+            <scope>test</scope>
+        </dependency>
 
 
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-api-easymock</artifactId>
+            <version>1.7.1</version>
+            <scope>test</scope>
+        </dependency>
 
-	<build>
-		<resources>
-			<resource>
-				<directory>src/main/resources</directory>
-				<filtering>true</filtering>
-			</resource>
-		</resources>
 
-		<testResources>
-			<testResource>
-				<directory>src/test/resources</directory>
-				<filtering>true</filtering>
-			</testResource>
-		</testResources>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-module-testng</artifactId>
+            <version>1.7.1</version>
+            <scope>test</scope>
+        </dependency>
 
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
-				<version>3.0.2</version>
-				<configuration>
-					<archive>
-						<manifest>
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-all</artifactId>
+            <version>${groovy.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+
+    </dependencies>
+
+    <profiles>
+
+        <profile>
+            <id>default</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+                <property>
+                    <name>!maven-repo-promotion</name>
+                </property>
+            </activation>
+
+            <build>
+                <plugins>
+
+                    <plugin>
+
+                        <groupId>com.diffplug.spotless</groupId>
+                        <artifactId>spotless-maven-plugin</artifactId>
+                        <version>2.44.5</version>
+
+
+                        <configuration>
+                            <java>
+                                <!--  formatter and additional steps  -->
+                            </java>
+                        </configuration>
+
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>check</goal>
+                                </goals>
+                                <phase>package</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-checkstyle-plugin</artifactId>
+                        <version>${maven-checkstyle-plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>validate</id>
+                                <phase>validate</phase>
+                                <configuration>
+                                    <configLocation>configuration/checkstyle.xml</configLocation>
+                                    <encoding>UTF-8</encoding>
+                                    <consoleOutput>true</consoleOutput>
+                                    <failsOnError>false</failsOnError>
+                                </configuration>
+                                <goals>
+                                    <goal>check</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-pmd-plugin</artifactId>
+                        <version>${maven-pmd-plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <phase>compile</phase>
+                                <goals>
+                                    <goal>check</goal>
+                                    <goal>cpd-check</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>findbugs-maven-plugin</artifactId>
+                        <version>${findbugs-maven-plugin.version}</version>
+                        <configuration>
+                            <!-- Enables analysis which takes more memory but finds more bugs.
+                                If you run out of memory, changes the value of the effort element to 'Low'. -->
+                            <effort>Max</effort>
+
+                            <!-- Location of FindBugs exclude filter file -->
+                            <excludeFilterFile>configuration/findbugs-exclude.xml</excludeFilterFile>
+
+                            <!-- Build shall fail if problems are found -->
+                            <failOnError>true</failOnError>
+
+                            <!-- Reports all bugs (other values are medium and max) -->
+                            <threshold>Low</threshold>
+
+                            <!-- Produces XML report -->
+                            <xmlOutput>true</xmlOutput>
+
+                            <!-- Configures the directory in which the XML report is created -->
+                            <findbugsXmlOutputDirectory>${project.build.directory}/findbugs</findbugsXmlOutputDirectory>
+                        </configuration>
+                        <executions>
+                            <!-- Ensures that FindBugs inspects source code when project is compiled. -->
+                            <execution>
+                                <id>analyze-compile</id>
+                                <phase>compile</phase>
+                                <goals>
+                                    <goal>check</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>xml-maven-plugin</artifactId>
+                        <version>${xml-maven-plugin.version}</version>
+                        <configuration>
+                            <transformationSets>
+                                <transformationSet>
+                                    <!-- Configures the source directory of XML files. -->
+                                    <dir>${project.build.directory}/findbugs</dir>
+                                    <includes>
+                                        <!-- only transform findbugsXml.xml to generate FindBugs HTML report -->
+                                        <include>findbugsXml.xml</include>
+                                    </includes>
+
+                                    <!-- Configures the directory in which the FindBugs report is written. -->
+                                    <outputDir>${project.build.directory}/findbugs</outputDir>
+
+                                    <!-- Selects the used stylesheet. -->
+                                    <!-- <stylesheet>fancy-hist.xsl</stylesheet> -->
+                                    <!--<stylesheet>default.xsl</stylesheet> -->
+                                    <!--<stylesheet>plain.xsl</stylesheet> -->
+                                    <stylesheet>fancy.xsl</stylesheet>
+                                    <!--<stylesheet>summary.xsl</stylesheet> -->
+                                    <fileMappers>
+                                        <!-- Configures the file extension of the output files. -->
+                                        <fileMapper
+                                                implementation="org.codehaus.plexus.components.io.filemappers.FileExtensionMapper">
+                                            <targetExtension>.html</targetExtension>
+                                        </fileMapper>
+                                    </fileMappers>
+                                </transformationSet>
+                            </transformationSets>
+                        </configuration>
+                        <executions>
+                            <!-- Ensures that the XSLT transformation is run when the project
+                                is compiled. -->
+                            <execution>
+                                <phase>compile</phase>
+                                <goals>
+                                    <goal>transform</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <dependencies>
+                            <dependency>
+                                <groupId>com.google.code.findbugs</groupId>
+                                <artifactId>findbugs</artifactId>
+                                <version>2.0.1</version>
+                            </dependency>
+                        </dependencies>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>${maven-surefire-plugin.version}</version>
+                        <configuration>
+                            <systemProperties>
+                                <property>
+                                    <name>java.util.logging.config.file</name>
+                                    <value>src/test/resources/blau-sql.debug.log.config.properties</value>
+                                </property>
+                            </systemProperties>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+
+        </profile>
+
+        <profile>
+            <id>maven-repo-promotion</id>
+            <activation>
+                <property>
+                    <name>maven-repo-promotion</name>
+                    <value>true</value>
+                </property>
+            </activation>
+
+            <build>
+                <plugins>
+
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>${maven-source-plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>${maven-javadoc-plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.5</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.sonatype.plugins</groupId>
+                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <version>1.6.3</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <serverId>ossrh</serverId>
+                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                            <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+
+            <distributionManagement>
+                <snapshotRepository>
+                    <id>ossrh</id>
+                    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+                </snapshotRepository>
+            </distributionManagement>
+        </profile>
+    </profiles>
+
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+                <filtering>true</filtering>
+            </testResource>
+        </testResources>
+
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.0.2</version>
+                <configuration>
+                    <archive>
+                        <manifest>
                             <mainClass>com.github.blausql.Main</mainClass>
-							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-							<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
-						</manifest>
-					</archive>
-				</configuration>
-			</plugin>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -447,29 +466,29 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.6.2</version>
                 <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
                 </configuration>
             </plugin>
 
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-clean-plugin</artifactId>
-				<version>3.0.0</version>
-				<configuration>
-					<filesets>
-						<fileset>
-							<directory>${project.basedir}/dist/</directory>
-							<followSymlinks>false</followSymlinks>
-						</fileset>
-					</filesets>
-				</configuration>
-			</plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>3.0.0</version>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>${project.basedir}/dist/</directory>
+                            <followSymlinks>false</followSymlinks>
+                        </fileset>
+                    </filesets>
+                </configuration>
+            </plugin>
 
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<version>3.1.0</version>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.1.0</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -478,62 +497,61 @@
                         </goals>
                     </execution>
                 </executions>
-				<configuration>
+                <configuration>
                     <tarLongFileMode>posix</tarLongFileMode>
-					<outputDirectory>dist</outputDirectory>
+                    <outputDirectory>dist</outputDirectory>
                     <descriptors>
                         <descriptor>src/assembly/zip.xml</descriptor>
                     </descriptors>
-				</configuration>
-			</plugin>
+                </configuration>
+            </plugin>
 
-		</plugins>
-	</build>
+        </plugins>
+    </build>
 
 
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>${maven-project-info-reports-plugin.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>${maven-javadoc-plugin.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jxr-plugin</artifactId>
+                <version>${maven-jxr-plugin.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
+                <version>${findbugs-maven-plugin.version}</version>
+                <configuration>
+                    <!-- Enables analysis which takes more memory but finds more bugs. If
+                        you run out of memory, changes the value of the effort element to 'low'. -->
+                    <effort>Max</effort>
+                    <!-- Reports all bugs (other values are medium and max) -->
+                    <threshold>Low</threshold>
 
-	<reporting>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-project-info-reports-plugin</artifactId>
-				<version>${maven-project-info-reports-plugin.version}</version>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>${maven-javadoc-plugin.version}</version>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jxr-plugin</artifactId>
-				<version>${maven-jxr-plugin.version}</version>
-			</plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>findbugs-maven-plugin</artifactId>
-				<version>${findbugs-maven-plugin.version}</version>
-				<configuration>
-					<!-- Enables analysis which takes more memory but finds more bugs. If
-						you run out of memory, changes the value of the effort element to 'low'. -->
-					<effort>Max</effort>
-					<!-- Reports all bugs (other values are medium and max) -->
-					<threshold>Low</threshold>
-
-					<!-- Produces XML report -->
-					<xmlOutput>true</xmlOutput>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-pmd-plugin</artifactId>
-				<configuration>
-					<linkXRef>true</linkXRef>
-					<sourceEncoding>${project.build.sourceEncoding}</sourceEncoding>
-					<minimumTokens>30</minimumTokens>
-				</configuration>
-			</plugin>
-		</plugins>
-	</reporting>
+                    <!-- Produces XML report -->
+                    <xmlOutput>true</xmlOutput>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-pmd-plugin</artifactId>
+                <configuration>
+                    <linkXRef>true</linkXRef>
+                    <sourceEncoding>${project.build.sourceEncoding}</sourceEncoding>
+                    <minimumTokens>30</minimumTokens>
+                </configuration>
+            </plugin>
+        </plugins>
+    </reporting>
 
 </project>

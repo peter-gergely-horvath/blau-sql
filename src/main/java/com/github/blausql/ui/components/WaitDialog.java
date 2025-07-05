@@ -14,138 +14,101 @@
  * limitations under the License.
  */
 
- 
+
 package com.github.blausql.ui.components;
 
-import com.github.blausql.TerminalUI;
-import com.googlecode.lanterna.gui.Action;
-import com.googlecode.lanterna.gui.Window;
-import com.googlecode.lanterna.gui.component.Label;
-import com.googlecode.lanterna.gui.component.Panel;
-
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
+import com.googlecode.lanterna.TerminalSize;
+import com.googlecode.lanterna.gui2.*;
+import com.googlecode.lanterna.gui2.dialogs.DialogWindow;
 
 
 /**
  * Inspired by com.googlecode.lanterna.gui.dialog.WaitingDialog,
- * with the majority of code re-written and bugs fixes
+ * adding the ability to cancel
  */
-public final class WaitDialog extends Window {
+public final class WaitDialog extends DialogWindow {
 
-    private final Thread spinAnimationThread = new Thread(new SpinAnimationTask());
 
-    private final Label spinLabel;
+    private final class CloseWaitDialogAndInvokeRunnable implements Runnable {
 
-    //private static final String[] SPIN_STEPS = new String[]{"-", "\\", "|", "-"};
-    private static final String[] SPIN_STEPS = new String[] {
-            "[#     ]",
-            "[##    ]",
-            "[###   ]",
-            "[####  ]",
-            "[ #### ]",
-            "[  ####]",
-            "[   ###]",
-            "[    ##]",
-            "[     #]" };
+        private final Runnable delegate;
 
-    private final AtomicInteger currentSpinnerStepIndex = new AtomicInteger(0);
-    private final AtomicBoolean isClosed = new AtomicBoolean(false);
-
-    public WaitDialog(String title, String text) {
-        this(title, text, null);
-    }
-
-    public WaitDialog(String title, String text, final Action onCancel) {
-        super(title);
-        spinLabel = new Label(SPIN_STEPS[currentSpinnerStepIndex.get()]);
-        final Panel panel = new Panel(Panel.Orientation.HORISONTAL);
-        panel.addComponent(new Label(text));
-        panel.addComponent(spinLabel);
-
-        if (onCancel != null) {
-            panel.addComponent(new Label("   "));
-
-            panel.addComponent(new ActionButton("Cancel",
-                    new Action() {
-                        @Override
-                        public void doAction() {
-                            WaitDialog.this.close();
-                            onCancel.doAction();
-                        }
-                    }));
+        private CloseWaitDialogAndInvokeRunnable(Runnable delegate) {
+            this.delegate = delegate;
         }
-
-        addComponent(panel);
-
-    }
-
-    @Override
-    protected void onVisible() {
-        super.onVisible();
-
-        if (isClosed.get()) {
-            // if by any chance, onVisible is triggered after close,
-            // ensure that the window will actually be closed
-            close();
-        } else {
-            spinAnimationThread.start();
-        }
-    }
-
-    @Override
-    public void close() {
-        isClosed.set(true);
-
-        if (spinAnimationThread.isAlive()) {
-            spinAnimationThread.interrupt();
-        }
-
-        getOwner().runInEventThread(new Action() {
-            public void doAction() {
-                WaitDialog.super.close();
-            }
-        });
-    }
-
-    private void stepSpinner() {
-
-
-        if (currentSpinnerStepIndex.incrementAndGet() >= SPIN_STEPS.length) {
-            currentSpinnerStepIndex.set(0);
-        }
-
-        String spinnerText = SPIN_STEPS[currentSpinnerStepIndex.get()];
-
-        spinLabel.setText(spinnerText);
-    }
-
-    private final class SpinAnimationTask implements Runnable {
-
-        private static final int SPIN_DELAY = 200;
 
         @Override
         public void run() {
-            try {
-
-                while (!Thread.currentThread().isInterrupted()) {
-
-                    TerminalUI.runInEventThread(new Action() {
-                        public void doAction() {
-                            stepSpinner();
-                        }
-                    });
-
-                    Thread.sleep(SPIN_DELAY);
-
-                }
-            } catch (InterruptedException e) {
-                // stop task on Thread interrupt and
-                // restore the interrupted status
-                Thread.currentThread().interrupt();
-
-            }
+            WaitDialog.this.close();
+            delegate.run();
         }
     }
 
+
+    private WaitDialog(String title, String text, Runnable runnable) {
+        super(title);
+
+        Panel topPanel = Panels.horizontal(
+                new Label(text),
+                new EmptySpace(new TerminalSize(2, 1)),
+                AnimatedLabel.createClassicSpinningLine(),
+                new EmptySpace(new TerminalSize(2, 1)));
+
+        Button cancelButton = new Button("Cancel", new CloseWaitDialogAndInvokeRunnable(runnable));
+
+        Panel mainPanel = Panels.vertical(topPanel, new EmptySpace(), cancelButton);
+
+        setComponent(mainPanel);
+    }
+
+    @Override
+    public Object showDialog(WindowBasedTextGUI textGUI) {
+        showDialog(textGUI, true);
+        return null;
+    }
+
+    /**
+     * Displays the waiting dialog and optionally blocks until another thread closes it
+     *
+     * @param textGUI          GUI to add the dialog to
+     * @param blockUntilClosed If {@code true}, the method call will block until another thread calls {@code close()} on
+     *                         the dialog, otherwise the method call returns immediately
+     */
+    public void showDialog(WindowBasedTextGUI textGUI, boolean blockUntilClosed) {
+        textGUI.addWindow(this);
+
+        if (blockUntilClosed) {
+            //Wait for the window to close, in case the window manager doesn't honor the MODAL hint
+            waitUntilClosed();
+        }
+    }
+
+    /**
+     * Creates a new waiting dialog
+     *
+     * @param title Title of the waiting dialog
+     * @param text  Text to display on the waiting dialog
+     * @return Created waiting dialog
+     */
+    public static WaitDialog createDialog(String title, String text, Runnable onCancelRunnable) {
+        return new WaitDialog(title, text, onCancelRunnable);
+    }
+
+    /**
+     * Creates and displays a waiting dialog without blocking for it to finish
+     *
+     * @param textGUI GUI to add the dialog to
+     * @param title   Title of the waiting dialog
+     * @param text    Text to display on the waiting dialog
+     * @return Created waiting dialog
+     */
+    public static WaitDialog showDialog(WindowBasedTextGUI textGUI,
+                                        String title,
+                                        String text,
+                                        Runnable onCancelRunnable) {
+
+        WaitDialog waitingDialog = createDialog(title, text, onCancelRunnable);
+        waitingDialog.showDialog(textGUI, false);
+        return waitingDialog;
+    }
 }

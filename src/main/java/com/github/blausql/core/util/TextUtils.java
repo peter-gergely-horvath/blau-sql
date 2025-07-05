@@ -17,6 +17,8 @@
 
 package com.github.blausql.core.util;
 
+import java.util.Collection;
+
 public final class TextUtils {
 
     public static final String LINE_SEPARATOR = System.getProperty("line.separator");
@@ -37,6 +39,10 @@ public final class TextUtils {
         return multilineStringBuilder.toString();
     }
 
+    public static String joinStringsWithNewLine(Collection<String> lines) {
+        return String.join(LINE_SEPARATOR, lines);
+    }
+
     public static String joinStringsWithNewLine(String... lines) {
         return joinStringsWithSeparator(LINE_SEPARATOR, lines);
     }
@@ -50,5 +56,13 @@ public final class TextUtils {
         }
 
         return stringBuilder.toString();
+    }
+
+    public static String nullToEmptyString(String initialContent) {
+        if (initialContent != null) {
+            return initialContent;
+        } else {
+            return "";
+        }
     }
 }

@@ -22,16 +22,16 @@ import com.github.blausql.core.connection.ConnectionDefinition;
 import com.github.blausql.core.preferences.ConnectionDefinitionRepository;
 import com.github.blausql.ui.util.BackgroundWorker;
 
-import com.googlecode.lanterna.gui.Window;
-import com.googlecode.lanterna.gui.dialog.DialogButtons;
-import com.googlecode.lanterna.gui.dialog.DialogResult;
+import com.googlecode.lanterna.gui2.Window;
+import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton;
+
 
 import java.util.List;
 
 final class SelectConnectionToDeleteWindow extends SelectConnectionWindow {
 
-    SelectConnectionToDeleteWindow(List<ConnectionDefinition> connectionDefinitions) {
-        super("Select Connection to Delete", connectionDefinitions);
+    SelectConnectionToDeleteWindow(List<ConnectionDefinition> connectionDefinitions, TerminalUI terminalUI) {
+        super("Select Connection to Delete", connectionDefinitions, terminalUI);
     }
 
     @Override
@@ -39,16 +39,16 @@ final class SelectConnectionToDeleteWindow extends SelectConnectionWindow {
             final ConnectionDefinition cd) {
 
 
-        DialogResult dialogResult = TerminalUI.showMessageBox(
+        MessageDialogButton dialogResult = showMessageBox(
                 "Confirm deletion of connection",
                 "Delete connection: " + cd.getConnectionName(),
-                DialogButtons.OK_CANCEL);
+                MessageDialogButton.OK, MessageDialogButton.Cancel);
 
-        if (DialogResult.OK.equals(dialogResult)) {
-            final Window showWaitDialog = TerminalUI.showWaitDialog("Please wait",
+        if (MessageDialogButton.OK.equals(dialogResult)) {
+            final Window showWaitDialog = showWaitDialog("Please wait",
                     "Deleting " + cd.getConnectionName() + "... ");
 
-            new BackgroundWorker<Void>() {
+            new BackgroundWorker<Void>(this) {
 
                 @Override
                 protected Void doBackgroundTask() {
@@ -56,14 +56,17 @@ final class SelectConnectionToDeleteWindow extends SelectConnectionWindow {
                             .deleteConnectionDefinitionByName(cd.getConnectionName());
 
                     return null;
+                }
 
-
+                @Override
+                protected void onBackgroundTaskInterrupted(InterruptedException interruptedException) {
+                    showWaitDialog.close();
                 }
 
                 @Override
                 protected void onBackgroundTaskFailed(Throwable t) {
                     showWaitDialog.close();
-                    TerminalUI.showErrorMessageFromThrowable(t);
+                    showErrorMessageFromThrowable(t);
 
                 }
 
@@ -74,9 +77,7 @@ final class SelectConnectionToDeleteWindow extends SelectConnectionWindow {
                 }
             }.start();
         } else {
-            SelectConnectionToDeleteWindow.this.close();
+            close();
         }
-
-
     }
 }

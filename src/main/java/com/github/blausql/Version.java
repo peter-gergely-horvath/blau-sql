@@ -73,7 +73,7 @@ public final class Version {
 
         }
 
-        VERSION_STRING = properties.getProperty(Version.VERSION_STRING_KEY, UNKNOWN_VERSION_STRING);
+        VERSION_STRING = properties.getProperty(VERSION_STRING_KEY, UNKNOWN_VERSION_STRING);
     }
 
     private Version() {

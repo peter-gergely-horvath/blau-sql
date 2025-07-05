@@ -17,40 +17,42 @@
 
 package com.github.blausql.ui;
 
+import com.github.blausql.TerminalUI;
 import com.github.blausql.core.connection.ConnectionDefinition;
-import com.github.blausql.ui.components.CloseOnEscapeKeyPressWindow;
-import com.googlecode.lanterna.gui.Action;
-import com.googlecode.lanterna.gui.Window;
-import com.googlecode.lanterna.gui.component.Button;
-import com.googlecode.lanterna.gui.component.Label;
-import com.googlecode.lanterna.gui.listener.WindowAdapter;
-import com.googlecode.lanterna.input.Key;
-import org.springframework.util.Assert;
+import com.github.blausql.ui.components.ApplicationWindow;
+import com.googlecode.lanterna.gui2.*;
+
+import com.googlecode.lanterna.input.KeyStroke;
+import com.googlecode.lanterna.input.KeyType;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-abstract class SelectConnectionWindow extends CloseOnEscapeKeyPressWindow {
+
+abstract class SelectConnectionWindow extends ApplicationWindow {
 
     private final Map<Character, ConnectionDefinition> hotKeyMap = new ConcurrentHashMap<>();
 
-    SelectConnectionWindow(String title, List<ConnectionDefinition> connectionDefinitions) {
-        super(title);
+    SelectConnectionWindow(String title, List<ConnectionDefinition> connectionDefinitions, TerminalUI terminalUI) {
+        super(title, terminalUI);
 
         addWindowListener(new HotKeyWindowListener());
 
-        addComponent(new Button("CANCEL (ESC)", new Action() {
+        Panel panel = new Panel();
 
-            public void doAction() {
+        panel.addComponent(new Button("CANCEL (ESC)", new Runnable() {
+
+            public void run() {
                 SelectConnectionWindow.this.close();
             }
         }));
 
 
         if (connectionDefinitions.isEmpty()) {
-            addComponent(new Label("No connections defined"));
-            addComponent(new Label("Go to Manage Connections menu and define connections first!"));
+            panel.addComponent(new Label("No connections defined"));
+            panel.addComponent(new Label("Go to Manage Connections menu and define connections first!"));
         } else {
 
             for (final ConnectionDefinition connectionDefinition : connectionDefinitions) {
@@ -65,35 +67,38 @@ abstract class SelectConnectionWindow extends CloseOnEscapeKeyPressWindow {
                     connectionName = connectionDefinition.getConnectionName();
                 }
 
-                addComponent(new Button(connectionName, new Action() {
+                panel.addComponent(new Button(connectionName, new Runnable() {
 
-                    public void doAction() {
+                    public void run() {
                         SelectConnectionWindow.this.onConnectionSelected(connectionDefinition);
                     }
                 }));
             }
         }
+
+        setComponent(panel);
     }
 
-    private final class HotKeyWindowListener extends WindowAdapter {
+    private final class HotKeyWindowListener extends WindowListenerAdapter {
+
         @Override
-        public void onUnhandledKeyboardInteraction(Window window, Key key) {
+        public void onUnhandledInput(Window basePane, KeyStroke keyStroke, AtomicBoolean hasBeenHandled) {
 
-            final Key.Kind keyKind = key.getKind();
+            Character character = keyStroke.getCharacter();
+            if (character != null) {
 
-            Assert.notNull(keyKind, "kind retrieved from key is null");
-
-            if (keyKind == Key.Kind.NormalKey) {
-                final char characterKey = key.getCharacter();
-
-                ConnectionDefinition connectionDefinition = hotKeyMap.get(Character.toUpperCase(characterKey));
+                ConnectionDefinition connectionDefinition = hotKeyMap.get(Character.toUpperCase(character));
                 if (connectionDefinition == null) {
-                    connectionDefinition = hotKeyMap.get(Character.toLowerCase(characterKey));
+                    connectionDefinition = hotKeyMap.get(Character.toLowerCase(character));
                 }
 
                 if (connectionDefinition != null) {
                     SelectConnectionWindow.this.onConnectionSelected(connectionDefinition);
                 }
+            }
+
+            if (KeyType.Escape.equals(keyStroke.getKeyType())) {
+                SelectConnectionWindow.this.close();
             }
         }
     }

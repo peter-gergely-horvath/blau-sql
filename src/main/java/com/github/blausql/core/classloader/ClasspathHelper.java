@@ -20,6 +20,7 @@ package com.github.blausql.core.classloader;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.List;
 
 public final class ClasspathHelper {
 
@@ -28,16 +29,21 @@ public final class ClasspathHelper {
         // no instances
     }
 
-    public static URL[] convertToURLs(String[] urlStrings) throws MalformedURLException {
-        URL[] urlList = new URL[urlStrings.length];
+    public static URL[] convertToURLs(List<String> urlStrings) throws MalformedURLException {
 
-        for (int i = 0; i < urlStrings.length; i++) {
+        return urlStrings.stream()
+                .map(ClasspathHelper::toURL)
+                .toArray(URL[]::new);
+    }
 
-            URL url = new File(urlStrings[i]).toURI().toURL();
+    private static URL toURL(String urlString) {
+        try {
 
-            urlList[i] = url;
+            return new File(urlString).toURI().toURL();
+
+        } catch (MalformedURLException e) {
+
+            throw new RuntimeException("Failed to covert to URL: " + urlString, e);
         }
-
-        return urlList;
     }
 }

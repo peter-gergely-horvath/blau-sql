@@ -24,8 +24,8 @@ import java.util.List;
 
 final class SelectConnectionToCopyWindow extends SelectConnectionWindow {
 
-    SelectConnectionToCopyWindow(List<ConnectionDefinition> connectionDefinitions) {
-        super("Select Connection to Copy", connectionDefinitions);
+    SelectConnectionToCopyWindow(List<ConnectionDefinition> connectionDefinitions, TerminalUI terminalUI) {
+        super("Select Connection to Copy", connectionDefinitions, terminalUI);
     }
 
     @Override
@@ -38,8 +38,9 @@ final class SelectConnectionToCopyWindow extends SelectConnectionWindow {
 
         copyOfConnectionDefinition.setConnectionName("Copy of " + connectionName);
 
-        SelectConnectionToCopyWindow.this.close();
-        TerminalUI.showWindowCenter(
-                new ConnectionSettingsWindow(copyOfConnectionDefinition, ConnectionSettingsWindow.Mode.COPY));
+        close();
+
+        showWindowCenter(new ConnectionSettingsWindow(
+                copyOfConnectionDefinition, ConnectionSettingsWindow.Mode.COPY, getTerminalUI()));
     }
 }

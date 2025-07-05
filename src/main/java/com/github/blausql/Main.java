@@ -19,6 +19,8 @@ package com.github.blausql;
 
 import com.github.blausql.ui.MainMenuWindow;
 
+import java.io.IOException;
+
 //CHECKSTYLE.OFF: FinalClass: must be extensible for the testing frameworks
 public class Main {
 
@@ -28,7 +30,6 @@ public class Main {
     }
 
     public static void exitApplication(int exitCode) {
-        TerminalUI.close();
         System.exit(exitCode);
     }
 
@@ -38,25 +39,80 @@ public class Main {
 
     public static void main(String[] args) {
 
-        Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler());
+        try (StandardTerminalUI terminalUI = new StandardTerminalUI()) {
 
-        TerminalUI.init();
+            Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler(terminalUI));
 
-        TerminalUI.showWindowCenter(new MainMenuWindow());
+            terminalUI.showWindowCenter(new MainMenuWindow(terminalUI));
+
+            exitApplication(0);
+
+        } catch (IOException ex) {
+            // handles cases TerminalUI.getInstance() throws an exception, too
+            handleUnexpectedException(Thread.currentThread(), ex);
+        }
     }
 
 
     private static final class UncaughtExceptionHandler implements Thread.UncaughtExceptionHandler {
 
-        public void uncaughtException(Thread t, Throwable e) {
-            TerminalUI.close();
+        private final StandardTerminalUI terminalUI;
 
-            System.err.format("--- UNHANDLED EXCEPTION in Thread '%s': exiting the JVM! --- %n", t.getName());
-
-            e.printStackTrace();
-
-            exitApplication(1);
+        private UncaughtExceptionHandler(StandardTerminalUI terminalUI) {
+            this.terminalUI = terminalUI;
         }
+
+        public void uncaughtException(Thread t, Throwable e) {
+
+            closeUISafely();
+
+            handleUnexpectedException(t, e);
+        }
+
+        private void closeUISafely() {
+            try {
+                terminalUI.close();
+            } catch (Throwable uiCloseThrowable) {
+                System.err.println("--- IGNORING Throwable during abrupt UI shutdown ---");
+                uiCloseThrowable.printStackTrace();
+
+                System.err.println();
+                System.err.println();
+            }
+        }
+    }
+
+    private static void handleUnexpectedException(Thread t, Throwable e) {
+        System.err.format("--- UNHANDLED EXCEPTION in Thread '%s': exiting the JVM! --- %n", t.getName());
+
+        e.printStackTrace();
+
+        System.err.println();
+
+        logApplicationVersionSafely();
+
+        System.err.println("The application encountered a fatal error and must shut down.");
+        System.err.println("Please report this via the GitHub issue tracker, ");
+        System.err.println("attaching the above debug information!");
+
+        exitApplication(1);
+    }
+
+
+    private static void logApplicationVersionSafely() {
+
+        String version = "unknown";
+
+        try {
+            version = Version.VERSION_STRING;
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+            // added out of paranoia: should not happen,
+            // if it does happen, it is best to just ignore
+        }
+
+        System.err.format("Application version: %s %n", version);
+        System.err.println();
     }
 }
 //CHECKSTYLE.ON

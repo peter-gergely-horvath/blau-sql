@@ -21,86 +21,74 @@ import com.github.blausql.TerminalUI;
 import com.github.blausql.core.connection.ConnectionDefinition;
 import com.github.blausql.core.preferences.ConnectionDefinitionRepository;
 import com.github.blausql.core.preferences.LoadException;
-import com.github.blausql.ui.components.CloseOnEscapeKeyPressWindow;
-import com.github.blausql.ui.util.DefaultErrorHandlerAction;
-import com.github.blausql.ui.util.HotKeySupportListener;
+import com.github.blausql.ui.components.ApplicationWindow;
 
-import com.google.common.collect.ImmutableMap;
-import com.googlecode.lanterna.gui.Action;
-import com.googlecode.lanterna.gui.component.Button;
+import com.github.blausql.ui.hotkey.HotKeyWindowListener;
+import com.googlecode.lanterna.gui2.Panel;
+import com.googlecode.lanterna.gui2.Panels;
+import com.googlecode.lanterna.input.KeyType;
+
 
 import java.util.List;
 
-@SuppressWarnings("FieldCanBeLocal")
-class ManageConnectionsWindow extends CloseOnEscapeKeyPressWindow {
+class ManageConnectionsWindow extends ApplicationWindow {
 
+    ManageConnectionsWindow(TerminalUI terminalUI) {
 
-    ManageConnectionsWindow() {
+        super("Manage Connections", terminalUI);
 
-        super("Manage Connections");
+        Panel mainPanel = Panels.vertical(
+                button("BACK (ESC)", this::close),
+                button("[A]dd connection", this::onAddConnectionButtonSelected),
+                button("[E]dit connection", this::onEditConnectionButtonSelected),
+                button("[C]opy connection", this::onCopyConnectionButtonSelected),
+                button("[D]elete connection", this::onDeleteConnectionButtonSelected));
 
-        addComponent(new Button("BACK (ESC)", new Action() {
+        setComponent(mainPanel);
 
-            public void doAction() {
-                ManageConnectionsWindow.this.close();
-            }
-        }));
-        addComponent(new Button("[A]dd connection", onAddConnectionButtonSelectedAction));
-        addComponent(new Button("[E]dit connection", onEditConnectionButtonSelectedAction));
-        addComponent(new Button("[C]opy connection", onCopyConnectionButtonSelectedAction));
-        addComponent(new Button("[D]elete connection", onDeleteConnectionButtonSelectedAction));
-
-        addWindowListener(new HotKeySupportListener(
-                ImmutableMap.<Character, Action>builder()
-                        .put('A', onAddConnectionButtonSelectedAction)
-                        .put('E', onEditConnectionButtonSelectedAction)
-                        .put('C', onCopyConnectionButtonSelectedAction)
-                        .put('D', onDeleteConnectionButtonSelectedAction)
-                        .build(), true));
+        addWindowListener(HotKeyWindowListener.builder()
+                .keyType(KeyType.Escape).invoke(this::close)
+                .character('A').invoke(this::onAddConnectionButtonSelected)
+                .character('E').invoke(withDefaultExceptionHandler(this::onEditConnectionButtonSelected))
+                .character('C').invoke(withDefaultExceptionHandler(this::onCopyConnectionButtonSelected))
+                .character('D').invoke(withDefaultExceptionHandler(this::onDeleteConnectionButtonSelected))
+                .build());
     }
 
 
-    private final Action onAddConnectionButtonSelectedAction = new Action() {
+    private void onAddConnectionButtonSelected() {
 
-        public void doAction() {
-            ManageConnectionsWindow.this.close();
-            TerminalUI.showWindowCenter(new ConnectionSettingsWindow());
-        }
-    };
+        this.close();
+        showWindowCenter(new ConnectionSettingsWindow(getTerminalUI()));
+    }
 
-    private final Action onCopyConnectionButtonSelectedAction = new DefaultErrorHandlerAction() {
+    private void onCopyConnectionButtonSelected() throws LoadException {
 
-        public void doActionWithErrorHandler() throws LoadException {
-            ManageConnectionsWindow.this.close();
+        this.close();
 
-            List<ConnectionDefinition> connectionDefinitions =
-                    ConnectionDefinitionRepository.getInstance().getConnectionDefinitions();
+        List<ConnectionDefinition> connectionDefinitions =
+                ConnectionDefinitionRepository.getInstance().getConnectionDefinitions();
 
-            TerminalUI.showWindowCenter(new SelectConnectionToCopyWindow(connectionDefinitions));
-        }
-    };
+        showWindowCenter(new SelectConnectionToCopyWindow(connectionDefinitions, getTerminalUI()));
+    }
 
-    private final Action onEditConnectionButtonSelectedAction = new DefaultErrorHandlerAction() {
+    private void onEditConnectionButtonSelected() throws LoadException {
 
-        public void doActionWithErrorHandler() throws LoadException {
-            ManageConnectionsWindow.this.close();
+        this.close();
 
-            List<ConnectionDefinition> connectionDefinitions =
-                    ConnectionDefinitionRepository.getInstance().getConnectionDefinitions();
+        List<ConnectionDefinition> connectionDefinitions =
+                ConnectionDefinitionRepository.getInstance().getConnectionDefinitions();
 
-            TerminalUI.showWindowCenter(new SelectConnectionToEditWindow(connectionDefinitions));
-        }
-    };
+        showWindowCenter(new SelectConnectionToEditWindow(connectionDefinitions, getTerminalUI()));
+    }
 
-    private final Action onDeleteConnectionButtonSelectedAction = new DefaultErrorHandlerAction() {
+    private void onDeleteConnectionButtonSelected() throws LoadException {
 
-        public void doActionWithErrorHandler() throws LoadException {
-            ManageConnectionsWindow.this.close();
+        this.close();
 
-            List<ConnectionDefinition> connectionDefinitions =
-                    ConnectionDefinitionRepository.getInstance().getConnectionDefinitions();
+        List<ConnectionDefinition> connectionDefinitions =
+                ConnectionDefinitionRepository.getInstance().getConnectionDefinitions();
 
-            TerminalUI.showWindowCenter(new SelectConnectionToDeleteWindow(connectionDefinitions));
-        }
-    };
+        showWindowCenter(new SelectConnectionToDeleteWindow(connectionDefinitions, getTerminalUI()));
+    }
 }

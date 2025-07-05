@@ -19,21 +19,20 @@ package com.github.blausql.ui;
 
 import com.github.blausql.TerminalUI;
 import com.github.blausql.core.connection.ConnectionDefinition;
-import com.github.blausql.core.connection.Database;
+import com.github.blausql.core.connection.DatabaseConnectionFactory;
+import com.github.blausql.core.connection.DatabaseConnection;
 import com.github.blausql.ui.components.WaitDialog;
 import com.github.blausql.ui.util.BackgroundWorker;
-import com.github.blausql.core.util.ExceptionUtils;
-import com.googlecode.lanterna.gui.Action;
-import com.googlecode.lanterna.gui.Window;
-import com.googlecode.lanterna.gui.dialog.DialogResult;
+import com.googlecode.lanterna.gui2.Window;
+import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 final class SelectConnectionForQueryWindow extends SelectConnectionWindow {
 
-    SelectConnectionForQueryWindow(List<ConnectionDefinition> connectionDefinitions) {
-        super("Select connection to Connect to", connectionDefinitions);
+    SelectConnectionForQueryWindow(List<ConnectionDefinition> connectionDefinitions, TerminalUI terminalUI) {
+        super("Select connection to Connect to", connectionDefinitions, terminalUI);
     }
 
     @Override
@@ -47,10 +46,10 @@ final class SelectConnectionForQueryWindow extends SelectConnectionWindow {
             CredentialsDialog credentialsDialog =
                     new CredentialsDialog(connectionDefinition);
 
-            TerminalUI.showWindowCenter(credentialsDialog);
+            showWindowCenter(credentialsDialog);
 
-            DialogResult dialogResult = credentialsDialog.getDialogResult();
-            if (dialogResult == DialogResult.CANCEL) {
+            MessageDialogButton dialogResult = credentialsDialog.getSelectedButton();
+            if (dialogResult == MessageDialogButton.Cancel) {
 
                 return;
             }
@@ -73,31 +72,31 @@ final class SelectConnectionForQueryWindow extends SelectConnectionWindow {
             final ConnectionDefinition connectionDefinition) {
 
         final AtomicReference<Window> waitDialogRef = new AtomicReference<>();
-        final BackgroundWorker backgroundWorker = new BackgroundWorker<Void>() {
+        final BackgroundWorker<DatabaseConnection> backgroundWorker = new BackgroundWorker<>(this) {
 
             @Override
-            protected Void doBackgroundTask() {
-                Database.getInstance()
-                        .establishConnection(connectionDefinition);
-                return null;
+            protected DatabaseConnection doBackgroundTask() throws InterruptedException {
+
+                return DatabaseConnectionFactory.getDatabaseConnection(connectionDefinition);
+            }
+
+            @Override
+            protected void onBackgroundTaskInterrupted(InterruptedException interruptedException) {
+                // do nothing
             }
 
             @Override
             protected void onBackgroundTaskFailed(Throwable throwable) {
                 closeWaitDialog();
 
-                final boolean causedByCancellation = ExceptionUtils.causesContainType(
-                        throwable, InterruptedException.class);
-                if (!causedByCancellation) {
-                    TerminalUI.showErrorMessageFromThrowable(throwable);
-                }
+                showErrorMessageFromThrowable(throwable);
             }
 
             @Override
-            protected void onBackgroundTaskCompleted(Void result) {
+            protected void onBackgroundTaskCompleted(DatabaseConnection databaseConnection) {
                 closeWaitDialog();
 
-                TerminalUI.showWindowFullScreen(new SqlCommandWindow(connectionDefinition));
+                showWindowFullScreen(new SqlQueryWindow(connectionDefinition, databaseConnection, getTerminalUI()));
 
             }
 
@@ -109,7 +108,8 @@ final class SelectConnectionForQueryWindow extends SelectConnectionWindow {
             }
         };
 
-        final Window waitDialog = new WaitDialog("Please wait",
+        final Window waitDialog = WaitDialog.createDialog(
+                "Please wait",
                         "Connecting to " + connectionDefinition.getConnectionName() + "... ",
                         closeThisAndCancelBackgroundWorker(backgroundWorker));
 
@@ -120,19 +120,19 @@ final class SelectConnectionForQueryWindow extends SelectConnectionWindow {
         backgroundWorker.start();
     }
 
-    private static void showInEventThread(final Window waitDialog) {
-        TerminalUI.runInEventThread(new Action() {
+    private void showInEventThread(final Window waitDialog) {
+        runInEventThread(new Runnable() {
             @Override
-            public void doAction() {
-                TerminalUI.showWindowCenter(waitDialog);
+            public void run() {
+                showWindowCenter(waitDialog);
             }
         });
     }
 
-    private Action closeThisAndCancelBackgroundWorker(final BackgroundWorker backgroundWorker) {
-        return new Action() {
+    private Runnable closeThisAndCancelBackgroundWorker(final BackgroundWorker<?> backgroundWorker) {
+        return new Runnable() {
             @Override
-            public void doAction() {
+            public void run() {
                 SelectConnectionForQueryWindow.this.close();
 
                 backgroundWorker.cancel();

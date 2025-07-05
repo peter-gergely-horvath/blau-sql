@@ -24,16 +24,17 @@ import java.util.List;
 
 final class SelectConnectionToEditWindow extends SelectConnectionWindow {
 
-    SelectConnectionToEditWindow(List<ConnectionDefinition> connectionDefinitions) {
-        super("Select Connection to Edit", connectionDefinitions);
+    SelectConnectionToEditWindow(List<ConnectionDefinition> connectionDefinitions, TerminalUI terminalUI) {
+        super("Select Connection to Edit", connectionDefinitions, terminalUI);
     }
 
     @Override
     protected void onConnectionSelected(
             final ConnectionDefinition cd) {
 
-        SelectConnectionToEditWindow.this.close();
-        TerminalUI.showWindowCenter(
-                new ConnectionSettingsWindow(cd, ConnectionSettingsWindow.Mode.EDIT));
+        close();
+
+        showWindowCenter(
+                new ConnectionSettingsWindow(cd, ConnectionSettingsWindow.Mode.EDIT, getTerminalUI()));
     }
 }

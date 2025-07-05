@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
- 
+
 package com.github.blausql.ui;
 
 
-import com.github.blausql.Main;
 import com.github.blausql.TerminalUI;
 import com.github.blausql.core.Constants;
 import com.github.blausql.core.connection.ConnectionDefinition;
@@ -26,96 +25,69 @@ import com.github.blausql.core.preferences.ConfigurationRepository;
 import com.github.blausql.core.preferences.ConnectionDefinitionRepository;
 import com.github.blausql.core.preferences.LoadException;
 import com.github.blausql.ui.components.ActionButton;
-import com.github.blausql.ui.util.DefaultErrorHandlerAction;
-import com.github.blausql.ui.util.HotKeySupportListener;
-import com.google.common.collect.ImmutableMap;
+import com.github.blausql.ui.components.ApplicationWindow;
+import com.github.blausql.ui.hotkey.HotKeyWindowListener;
+import com.googlecode.lanterna.gui2.Panels;
 
-import com.googlecode.lanterna.gui.Action;
-import com.googlecode.lanterna.gui.Window;
 
 import java.util.List;
 
-public class MainMenuWindow extends Window {
+public class MainMenuWindow extends ApplicationWindow {
 
-    public MainMenuWindow() {
+    public MainMenuWindow(TerminalUI terminalUI) {
 
-        super(Constants.APPLICATION_BANNER);
+        super(String.format(" %s ", Constants.APPLICATION_BANNER), terminalUI);
 
-        addComponent(connectToDatabaseButton);
-        addComponent(manageConnectionButton);
-        addComponent(setApplicationClasspathButton);
-        addComponent(manageBookmarkedSqlFilesButton);
-        addComponent(aboutButton);
+        ActionButton connectToDatabaseButton =
+                button("[C]onnect to database", this::onConnectorToDatabaseButtonSelected);
 
-        addComponent(quitApplicationButton);
+        ActionButton manageConnectionsButton  =
+                button("[M]anage Connections", this::onManageConnectionButtonSelected);
 
-        addWindowListener(new HotKeySupportListener(
-                ImmutableMap.<Character, Action>builder()
-                        .put('C', connectToDatabaseButton)
-                        .put('M', manageConnectionButton)
-                        .put('B', manageBookmarkedSqlFilesButton)
-                        .put('S', setApplicationClasspathButton)
-                        .put('A', aboutButton)
-                        .put('Q', quitApplicationButton)
-                        .build(), false));
+        ActionButton setClasspathButton  =
+                button("[S]et Classpath", this::onSetClasspathButtonSelected);
+
+        ActionButton aboutButton  =
+                button("[A]bout", this::onAboutButtonSelected);
+
+        ActionButton quitApplicationButton  =
+                button("[Q]uit", this::close);
+
+        setComponent(Panels.vertical(
+                connectToDatabaseButton,
+                manageConnectionsButton,
+                setClasspathButton,
+                aboutButton,
+                quitApplicationButton));
+
+        addWindowListener(HotKeyWindowListener.builder()
+                .character('C').invoke(connectToDatabaseButton)
+                .character('M').invoke(manageConnectionsButton)
+                .character('S').invoke(setClasspathButton)
+                .character('A').invoke(aboutButton)
+                .character('Q').invoke(quitApplicationButton)
+                .build());
     }
 
 
+    private void onConnectorToDatabaseButtonSelected() throws LoadException {
+        List<ConnectionDefinition> connectionDefinitions =
+                ConnectionDefinitionRepository.getInstance().getConnectionDefinitions();
 
-    private final ActionButton connectToDatabaseButton =
-            new ActionButton("[C]onnect to database", new DefaultErrorHandlerAction() {
+        showWindowCenter(new SelectConnectionForQueryWindow(connectionDefinitions, getTerminalUI()));
+    }
 
-                public void doActionWithErrorHandler() throws LoadException {
+    private void onManageConnectionButtonSelected() {
+        showWindowCenter(new ManageConnectionsWindow(getTerminalUI()));
+    }
 
-                    List<ConnectionDefinition> connectionDefinitions =
-                            ConnectionDefinitionRepository.getInstance().getConnectionDefinitions();
+    private void onSetClasspathButtonSelected() throws LoadException {
+        List<String> classpath = ConfigurationRepository.getInstance().getClasspath();
 
-                    TerminalUI.showWindowCenter(new SelectConnectionForQueryWindow(connectionDefinitions));
-                }
-            });
+        showWindowFullScreen(new SetClasspathWindow(classpath, getTerminalUI()));
+    }
 
-    private final ActionButton manageConnectionButton = new ActionButton("[M]anage Connections", new Action() {
-
-        public void doAction() {
-            TerminalUI.showWindowCenter(new ManageConnectionsWindow());
-        }
-
-    });
-
-    private final ActionButton setApplicationClasspathButton = new ActionButton("[S]et Classpath",
-            new DefaultErrorHandlerAction() {
-
-        public void doActionWithErrorHandler() throws LoadException {
-
-            String[] classpath = ConfigurationRepository.getInstance().getClasspath();
-
-            TerminalUI.showWindowCenter(new SetClasspathWindow(classpath));
-        }
-
-    });
-
-    private final ActionButton manageBookmarkedSqlFilesButton = new ActionButton("[B]ookmarked SQL Files",
-            new DefaultErrorHandlerAction() {
-
-                public void doActionWithErrorHandler() throws LoadException {
-
-                    TerminalUI.showWindowCenter(new ManageBookmarkedSqlFilesWindow());
-                }
-
-            });
-
-    private final ActionButton aboutButton = new ActionButton("[A]bout", new Action() {
-
-        public void doAction() {
-            TerminalUI.showMessageBox("About BlauSQL", Constants.ABOUT_TEXT);
-        }
-    });
-
-    private final ActionButton quitApplicationButton = new ActionButton("[Q]uit Application", new Action() {
-
-        public void doAction() {
-            Main.exitApplication(0);
-
-        }
-    });
+    private void onAboutButtonSelected() {
+        showMessageBox("About BlauSQL", Constants.ABOUT_TEXT);
+    }
 }
