@@ -32,9 +32,14 @@ import com.googlecode.lanterna.input.KeyType;
 
 
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 @SuppressWarnings("FieldCanBeLocal")
 public final class ConnectionSettingsWindow extends ApplicationWindow {
+
+    public static final String EMPTY_VALUE = "";
 
     public enum Mode {
         ADD("Add connection"), EDIT("Edit connection"), COPY("Copy connection");
@@ -70,13 +75,6 @@ public final class ConnectionSettingsWindow extends ApplicationWindow {
 
     private final String originalNameOfExistingConnectionDefinition;
 
-    private final Runnable onSaveConnectionButtonSelectedRunnable = new Runnable() {
-
-        public void run() {
-            ConnectionSettingsWindow.this.onSaveButtonSelected();
-        }
-    };
-
 
     public ConnectionSettingsWindow(TerminalUI terminalUI) {
         this(null, Mode.ADD, terminalUI);
@@ -92,45 +90,34 @@ public final class ConnectionSettingsWindow extends ApplicationWindow {
 
         Panel mainPanel = new Panel(new LinearLayout(Direction.VERTICAL));
 
-        mainPanel.addComponent(new Label("Connection name:"));
-        connectionNameTextBox = new SimpleTextBox(cd != null ? cd.getConnectionName() : null, CONNECTION_NAME_BOX_LEN);
-        mainPanel.addComponent(connectionNameTextBox);
+        connectionNameTextBox = addTextEntryComponents("Connection name", cd,
+                ConnectionDefinition::getConnectionName, CONNECTION_NAME_BOX_LEN, mainPanel);
 
-        mainPanel.addComponent(new Label("Driver class:"));
-        driverClassTextBox = new SimpleTextBox(cd != null ? cd.getDriverClassName() : null, DRIVER_CLASS_BOX_LEN);
-        mainPanel.addComponent(driverClassTextBox);
+        driverClassTextBox = addTextEntryComponents("Driver class", cd,
+                ConnectionDefinition::getDriverClassName, DRIVER_CLASS_BOX_LEN, mainPanel);
 
-        mainPanel.addComponent(new Label("JDBC URL:"));
-        jdbcUrlTextBox = new SimpleTextBox(cd != null ? cd.getJdbcUrl() : null, JDBC_URL_BOX_LEN);
-        mainPanel.addComponent(jdbcUrlTextBox);
+
+        jdbcUrlTextBox = addTextEntryComponents("JDBC URL", cd,
+                ConnectionDefinition::getJdbcUrl, JDBC_URL_BOX_LEN, mainPanel);
 
         loginAutomaticallyCheckBox = new CheckBox("Log in automatically");
-        if (cd != null) {
-            boolean loginAutomatically = cd.getLoginAutomatically();
-            loginAutomaticallyCheckBox.setChecked(loginAutomatically);
-        }
+        loginAutomaticallyCheckBox.setChecked(
+                Optional.ofNullable(cd).map(ConnectionDefinition::getLoginAutomatically).orElse(false));
         mainPanel.addComponent(loginAutomaticallyCheckBox);
 
-        mainPanel.addComponent(new Label("User name:"));
-        userNameTextBox = new SimpleTextBox(cd != null ? cd.getUserName() : null, USERNAME_BOX_LEN);
-        mainPanel.addComponent(userNameTextBox);
+        userNameTextBox = addTextEntryComponents("User name", cd,
+                ConnectionDefinition::getUserName, USERNAME_BOX_LEN, mainPanel);
 
-        mainPanel. addComponent(new Label("Password:"));
-        passwordPasswordBox = new PasswordBox(PASSWORD_BOX_LEN, cd != null ? cd.getPassword() : null);
-        mainPanel.addComponent(passwordPasswordBox);
+        passwordPasswordBox = addPasswordEntryComponents("Password", cd,
+                ConnectionDefinition::getPassword, PASSWORD_BOX_LEN, mainPanel);
 
-        mainPanel.addComponent(new Label("HotKey to select this connection (ONE character, optional):"));
-        hotkeyTextBox = new SimpleTextBox(getHotKeyString(cd), HOTKEY_BOX_LEN);
-        mainPanel.addComponent(hotkeyTextBox);
+        hotkeyTextBox = addTextEntryComponents("HotKey to select this connection (ONE character, optional):", cd,
+                ConnectionSettingsWindow::getHotKeyString, HOTKEY_BOX_LEN, mainPanel);
 
-        mainPanel.addComponent(new Label("Number for ordering in list (number, optional):"));
-        orderTextBox = new SimpleTextBox(getOrderText(cd), ORDER_BOX_LEN);
-        mainPanel.addComponent(orderTextBox);
+        orderTextBox = addTextEntryComponents("Number for ordering in list (number, optional):", cd,
+                ConnectionSettingsWindow::getOrderText, HOTKEY_BOX_LEN, mainPanel);
 
-        Panel buttonPanel = new Panel(new LinearLayout(Direction.HORIZONTAL));
-
-        buttonPanel.addComponent(new Button("Save Connection (F5)", onSaveConnectionButtonSelectedRunnable));
-        buttonPanel.addComponent(new Button("Discard Changes (ESC)", this::onCancelButtonSelected));
+        Panel buttonPanel = getButtonPanel();
 
         mainPanel.addComponent(new EmptySpace());
 
@@ -139,23 +126,63 @@ public final class ConnectionSettingsWindow extends ApplicationWindow {
         setComponent(mainPanel);
 
         addWindowListener(HotKeyWindowListener.builder()
-                .keyType(KeyType.F5).invoke(onSaveConnectionButtonSelectedRunnable)
+                .keyType(KeyType.F5).invoke(this::onSaveButtonSelected)
                 .keyType(KeyType.Escape).invoke(this::onCancelButtonSelected)
                 .build());
     }
 
-    private String getHotKeyString(ConnectionDefinition cd) {
+    private static TextBox addTextEntryComponents(String label, ConnectionDefinition cd,
+                                                  Function<ConnectionDefinition, String> valueFunction,
+                                                  int length,
+                                                  Panel mainPanel) {
+
+        return addDataEntryComponent(SimpleTextBox::new, label, cd, valueFunction, length, mainPanel);
+    }
+
+    private static PasswordBox addPasswordEntryComponents(String label, ConnectionDefinition cd,
+                                                          Function<ConnectionDefinition, String> valueFunction,
+                                                          int length,
+                                                          Panel mainPanel) {
+
+        return addDataEntryComponent(PasswordBox::new, label, cd, valueFunction, length, mainPanel);
+    }
+
+    private static <T extends Component> T addDataEntryComponent(BiFunction<String, Integer, T> componentFunction,
+                                                                 String label,
+                                                                 ConnectionDefinition cd,
+                                                                 Function<ConnectionDefinition, String> valueFunction,
+                                                                 int length,
+                                                                 Panel mainPanel) {
+
+        mainPanel.addComponent(new Label(String.format("%s:", label)));
+
+        String value;
+        if (cd == null) {
+            value = EMPTY_VALUE;
+        } else {
+            value = valueFunction.apply(cd);
+            if (value == null) {
+                value = EMPTY_VALUE;
+            }
+        }
+
+        T textBox = componentFunction.apply(value, length);
+        mainPanel.addComponent(textBox);
+        return textBox;
+    }
+
+    private static String getHotKeyString(ConnectionDefinition cd) {
         String hotkeyString;
         if (cd != null && cd.getHotkey() != null) {
             Character hotkey = cd.getHotkey();
-            hotkeyString = new String(new char[]{hotkey});
+            hotkeyString = String.valueOf(hotkey);
         } else {
             hotkeyString = null;
         }
         return hotkeyString;
     }
 
-    private String getOrderText(ConnectionDefinition cd) {
+    private static String getOrderText(ConnectionDefinition cd) {
         String orderText;
         if (cd != null && cd.getOrder() != null) {
             orderText = cd.getOrder().toString();
@@ -163,6 +190,15 @@ public final class ConnectionSettingsWindow extends ApplicationWindow {
             orderText = null;
         }
         return orderText;
+    }
+
+
+    private Panel getButtonPanel() {
+        Panel buttonPanel = new Panel(new LinearLayout(Direction.HORIZONTAL));
+
+        buttonPanel.addComponent(new Button("Save Connection (F5)", this::onSaveButtonSelected));
+        buttonPanel.addComponent(new Button("Discard Changes (ESC)", this::onCancelButtonSelected));
+        return buttonPanel;
     }
 
     //CHECKSTYLE.ON
@@ -282,7 +318,6 @@ public final class ConnectionSettingsWindow extends ApplicationWindow {
         } catch (LoadException e) {
             throw new SaveException("Failed to save connection definition", e);
         }
-
 
 
     }

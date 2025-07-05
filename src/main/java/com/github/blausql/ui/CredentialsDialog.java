@@ -43,7 +43,7 @@ final class CredentialsDialog extends BasicWindow {
         userNameTextBox = new TextBox(new TerminalSize(USERNAME_BOX_LEN, 1),
                 cd.getUserName(), TextBox.Style.SINGLE_LINE);
 
-        passwordPasswordBox = new PasswordBox(PASSWORD_BOX_LEN, cd.getPassword());
+        passwordPasswordBox = new PasswordBox(cd.getPassword(), PASSWORD_BOX_LEN);
 
         Button okButton = new Button("OK", this::onOkButtonSelected);
         Button cancelButton = new Button("Cancel", this::onCancelButtonSelected);

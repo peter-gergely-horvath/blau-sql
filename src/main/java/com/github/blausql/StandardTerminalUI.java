@@ -40,9 +40,7 @@ import java.sql.SQLException;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class StandardTerminalUI implements TerminalUI {
-
-
+public final class StandardTerminalUI implements TerminalUI {
 
     private final AtomicBoolean isClosed = new AtomicBoolean(false);
 
@@ -172,7 +170,7 @@ public class StandardTerminalUI implements TerminalUI {
     @Override
     public void showErrorMessageFromString(String dialogTitle, String errorMessage) {
         final int columns = windowBasedTextGUI.getScreen().getTerminalSize().getColumns();
-        final int maxLineLen = columns - TerminalUI.LINE_SIZE_DIFF;
+        final int maxLineLen = columns - LINE_SIZE_DIFF;
 
         String multilineErrorMsgString = TextUtils.breakLine(errorMessage, maxLineLen);
 

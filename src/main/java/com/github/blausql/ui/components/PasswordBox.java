@@ -6,7 +6,7 @@ import com.googlecode.lanterna.gui2.TextBox;
 
 public class PasswordBox extends TextBox {
 
-    public PasswordBox(int length, String initialContent) {
+    public PasswordBox(String initialContent, int length) {
         super(new TerminalSize(length, 1), TextUtils.nullToEmptyString(initialContent));
 
         setMask('*');

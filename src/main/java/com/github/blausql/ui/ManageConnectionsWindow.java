@@ -58,7 +58,7 @@ class ManageConnectionsWindow extends ApplicationWindow {
 
     private void onAddConnectionButtonSelected() {
 
-        ManageConnectionsWindow.this.close();
+        this.close();
         showWindowCenter(new ConnectionSettingsWindow(getTerminalUI()));
     }
 

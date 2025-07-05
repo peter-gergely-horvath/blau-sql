@@ -106,6 +106,7 @@ public class Main {
         try {
             version = Version.VERSION_STRING;
         } catch (Throwable throwable) {
+            throwable.printStackTrace();
             // added out of paranoia: should not happen,
             // if it does happen, it is best to just ignore
         }

@@ -15,7 +15,7 @@ public abstract class ApplicationWindow extends BasicWindow {
     }
 
 
-    protected final TerminalUI terminalUI;
+    private final TerminalUI terminalUI;
 
     protected ApplicationWindow(String title, TerminalUI terminalUI) {
         super(title);
@@ -29,16 +29,16 @@ public abstract class ApplicationWindow extends BasicWindow {
         return terminalUI.getWindowBasedTextGUI();
     }
 
-    protected TerminalUI getTerminalUI() {
+    protected final TerminalUI getTerminalUI() {
         return terminalUI;
     }
 
 
-    protected ActionButton button(String text, ExceptionHandledAction action) {
+    protected final ActionButton button(String text, ExceptionHandledAction action) {
         return new ActionButton(text, withDefaultExceptionHandler(action));
     }
 
-    protected Runnable withDefaultExceptionHandler(ExceptionHandledAction action) {
+    protected final Runnable withDefaultExceptionHandler(ExceptionHandledAction action) {
         return () -> {
             try {
                 action.execute();
@@ -48,42 +48,42 @@ public abstract class ApplicationWindow extends BasicWindow {
         };
     }
 
-    public void showWindowCenter(Window w) {
+    protected final void showWindowCenter(Window w) {
         terminalUI.showWindowCenter(w);
     }
 
-    public void showWindowFullScreen(Window w) {
+    protected final void showWindowFullScreen(Window w) {
         terminalUI.showWindowFullScreen(w);
     }
 
 
-    public void showErrorMessageFromThrowable(Throwable throwable) {
+    protected final void showErrorMessageFromThrowable(Throwable throwable) {
 
         terminalUI.showErrorMessageFromThrowable(throwable);
     }
 
 
-    public void showErrorMessageFromString(String errorMessage) {
+    protected final void showErrorMessageFromString(String errorMessage) {
 
         terminalUI.showErrorMessageFromString("Error", errorMessage);
     }
 
-    public File showFileSelectorDialog(
+    protected final File showFileSelectorDialog(
             final String title, final String description, final String actionLabel) {
 
         return terminalUI.showFileSelectorDialog(title, description, actionLabel);
     }
 
-    public void showErrorMessageFromString(String dialogTitle, String errorMessage) {
+    protected final void showErrorMessageFromString(String dialogTitle, String errorMessage) {
         terminalUI.showErrorMessageFromString(dialogTitle, errorMessage);
     }
 
-    protected void showMessageBox(String title, String messageText) {
+    protected final void showMessageBox(String title, String messageText) {
         terminalUI.showMessageBox(title, messageText);
     }
 
 
-    protected MessageDialogButton showMessageBox(String title,
+    protected final MessageDialogButton showMessageBox(String title,
                                                  String messageText,
                                                  MessageDialogButton firstButton,
                                                  MessageDialogButton... additionalButtons) {
@@ -92,16 +92,16 @@ public abstract class ApplicationWindow extends BasicWindow {
     }
 
 
-    protected Window showWaitDialog(String title, String text) {
+    protected final Window showWaitDialog(String title, String text) {
         return terminalUI.showWaitDialog(title, text);
     }
 
-    protected WaitDialog showWaitDialog(String title, String text, Runnable onCancel) {
+    protected final WaitDialog showWaitDialog(String title, String text, Runnable onCancel) {
 
         return terminalUI.showWaitDialog(title, text, onCancel);
     }
 
-    protected void runInEventThread(Runnable runnable) {
+    protected final void runInEventThread(Runnable runnable) {
 
         terminalUI.runInGUIThread(runnable);
     }

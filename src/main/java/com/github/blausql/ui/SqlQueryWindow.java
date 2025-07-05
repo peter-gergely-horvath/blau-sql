@@ -153,7 +153,9 @@ final class SqlQueryWindow extends ApplicationWindow {
                 TerminalSize desiredSizeForSqlQueryTextBox = getDesiredSizeForSqlQueryTextBox();
                 sqlQueryTextBox.setSize(desiredSizeForSqlQueryTextBox);
 
-                verticalPanel.setSize(desiredSizeForSqlQueryTextBox.withRelativeRows(-2));
+                final int topAndBottomHeight = -2;
+
+                verticalPanel.setSize(desiredSizeForSqlQueryTextBox.withRelativeRows(topAndBottomHeight));
             }
         });
 
