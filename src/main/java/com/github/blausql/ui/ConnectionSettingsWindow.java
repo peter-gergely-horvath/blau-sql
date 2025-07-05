@@ -42,7 +42,9 @@ public final class ConnectionSettingsWindow extends ApplicationWindow {
     public static final String EMPTY_VALUE = "";
 
     public enum Mode {
-        ADD("Add connection"), EDIT("Edit connection"), COPY("Copy connection");
+        ADD("Add connection"),
+        EDIT("Edit connection"),
+        COPY("Copy connection");
 
         private final String description;
 

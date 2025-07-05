@@ -19,6 +19,7 @@ package com.github.blausql;
 
 import com.github.blausql.core.util.ExceptionUtils;
 import com.github.blausql.core.util.TextUtils;
+import com.github.blausql.ui.DisplayThrowableDialog;
 import com.github.blausql.ui.components.WaitDialog;
 import com.googlecode.lanterna.gui2.MultiWindowTextGUI;
 import com.googlecode.lanterna.gui2.TextGUIThread;
@@ -77,44 +78,10 @@ public final class StandardTerminalUI implements TerminalUI {
     @Override
     public void showErrorMessageFromThrowable(Throwable throwable) {
 
-        StringBuilder sb = new StringBuilder();
+        DisplayThrowableDialog dialog = new DisplayThrowableDialog(
+                "Error occurred", "Error:", throwable, this);
 
-        final Throwable rootCause = ExceptionUtils.getRootCause(throwable);
-
-        if (rootCause instanceof ClassNotFoundException) {
-            sb.append("Class not found: ").append(rootCause.getMessage());
-        } else if (throwable instanceof SQLException) {
-            sb.append(extractMessageFrom(throwable));
-        } else {
-            String rootCauseMessage = extractMessageFrom(rootCause);
-            if (rootCauseMessage != null && !rootCauseMessage.isBlank()) {
-                sb.append(rootCauseMessage);
-            } else {
-                Throwable t = throwable;
-                while (t != null) {
-                    String extractedMessage = extractMessageFrom(t);
-                    if (!extractedMessage.isEmpty()) {
-                        if (sb.length() > 0) {
-                            sb.append(": ");
-                        }
-                        sb.append(extractedMessage);
-                    }
-                    t = t.getCause();
-                }
-
-                StringWriter stringWriter = new StringWriter();
-                try (PrintWriter pw = new PrintWriter(stringWriter)) {
-                    rootCause.printStackTrace(pw);
-                }
-                String fullStackTrace = stringWriter.toString();
-                sb.append(fullStackTrace);
-            }
-        }
-
-        String theString = sb.toString();
-
-        showErrorMessageFromString(theString);
-
+        showWindowCenter(dialog);
     }
 
     private static String extractMessageFrom(Throwable t) {
