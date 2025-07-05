@@ -111,10 +111,10 @@ public final class ConnectionSettingsWindow extends ApplicationWindow {
         passwordPasswordBox = addPasswordEntryComponents("Password", cd,
                 ConnectionDefinition::getPassword, PASSWORD_BOX_LEN, mainPanel);
 
-        hotkeyTextBox = addTextEntryComponents("HotKey to select this connection (ONE character, optional):", cd,
+        hotkeyTextBox = addTextEntryComponents("HotKey to select this connection (ONE character, optional)", cd,
                 ConnectionSettingsWindow::getHotKeyString, HOTKEY_BOX_LEN, mainPanel);
 
-        orderTextBox = addTextEntryComponents("Number for ordering in list (number, optional):", cd,
+        orderTextBox = addTextEntryComponents("Number for ordering in list (number, optional)", cd,
                 ConnectionSettingsWindow::getOrderText, HOTKEY_BOX_LEN, mainPanel);
 
         Panel buttonPanel = getButtonPanel();
