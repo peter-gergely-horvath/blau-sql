@@ -35,7 +35,7 @@ public abstract class ApplicationWindow extends BasicWindow {
     private final TerminalUI terminalUI;
 
     protected ApplicationWindow(String title, TerminalUI terminalUI) {
-        super(title);
+        super(String.format(" %s ", title));
 
         Objects.requireNonNull(terminalUI, "argument terminalUI can not be null");
 
@@ -77,12 +77,6 @@ public abstract class ApplicationWindow extends BasicWindow {
     protected final void showErrorMessageFromThrowable(Throwable throwable) {
 
         terminalUI.showErrorMessageFromThrowable(throwable);
-    }
-
-
-    protected final void showErrorMessageFromString(String errorMessage) {
-
-        terminalUI.showErrorMessageFromString("Error", errorMessage);
     }
 
     protected final File showFileSelectorDialog(

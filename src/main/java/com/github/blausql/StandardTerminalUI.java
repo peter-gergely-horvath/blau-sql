@@ -17,7 +17,6 @@
 
 package com.github.blausql;
 
-import com.github.blausql.core.util.ExceptionUtils;
 import com.github.blausql.core.util.TextUtils;
 import com.github.blausql.ui.DisplayThrowableDialog;
 import com.github.blausql.ui.components.WaitDialog;
@@ -35,9 +34,6 @@ import com.googlecode.lanterna.terminal.Terminal;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.sql.SQLException;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -79,41 +75,9 @@ public final class StandardTerminalUI implements TerminalUI {
     public void showErrorMessageFromThrowable(Throwable throwable) {
 
         DisplayThrowableDialog dialog = new DisplayThrowableDialog(
-                "Error occurred", "Error:", throwable, this);
+                "Error occurred", "Could not connect", throwable, this);
 
         showWindowCenter(dialog);
-    }
-
-    private static String extractMessageFrom(Throwable t) {
-        StringBuilder sb = new StringBuilder();
-
-        if (t instanceof SQLException) {
-            SQLException sqlEx = (SQLException) t;
-
-            String sqlState = sqlEx.getSQLState();
-            if (sqlState != null && !sqlState.isBlank()) {
-                sb.append("SQLState: ").append(sqlState)
-                        .append(TextUtils.LINE_SEPARATOR);
-            }
-
-            int errorCode = sqlEx.getErrorCode();
-            sb.append("Error Code: ").append(errorCode)
-                    .append(TextUtils.LINE_SEPARATOR);
-        }
-        String localizedMessage = t.getLocalizedMessage();
-        String message = t.getMessage();
-
-        if (localizedMessage != null && !"".equals(localizedMessage)) {
-
-            sb.append(localizedMessage);
-
-        } else if (message != null && !"".equals(message)) {
-            sb.append(message);
-        }
-
-        String throwableAsString = sb.toString();
-
-        return throwableAsString.trim();
     }
 
     @Override

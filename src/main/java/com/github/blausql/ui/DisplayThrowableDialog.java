@@ -18,27 +18,97 @@
 package com.github.blausql.ui;
 
 import com.github.blausql.TerminalUI;
+import com.github.blausql.core.util.ExceptionUtils;
 import com.github.blausql.ui.components.ApplicationWindow;
+import com.github.blausql.ui.hotkey.HotKeyWindowListener;
 import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.gui2.*;
+import com.googlecode.lanterna.input.KeyType;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.nio.file.Files;
 import java.util.List;
+import java.util.Optional;
 
 public class DisplayThrowableDialog extends ApplicationWindow {
 
-    private final Component summaryComponent;
-    private final Panel detailsPanel;
+    private interface SelectablePanel extends Component {
+        void onSelected();
+    }
+
+    private final class SummaryPanel extends Panel implements SelectablePanel {
+
+        private final Button closeButton;
+
+        private SummaryPanel(String message) {
+            setLayoutManager(new LinearLayout(Direction.VERTICAL));
+
+            closeButton = new Button("Close (ESC)",
+                    DisplayThrowableDialog.this::onCloseButtonSelected);
+
+            addComponent(new EmptySpace());
+            addComponent(new Label(String.format(" %s ", message)));
+            addComponent(new EmptySpace());
+
+            addComponent(Panels.horizontal(
+                    new EmptySpace(),
+                    closeButton,
+                    new Button("Show Details (F4)",
+                            DisplayThrowableDialog.this::onDetailButtonSelected)));
+        }
+
+        @Override
+        public void onSelected() {
+            setFocusedInteractable(closeButton);
+        }
+    }
+
+    private final class DetailsPanel extends Panel implements SelectablePanel {
+
+        private final Button closeButton;
+
+        private DetailsPanel() {
+            TerminalSize terminalSize = terminalUI.getWindowBasedTextGUI().getScreen().getTerminalSize();
+
+            closeButton = new Button("Close (ESC)",
+                    DisplayThrowableDialog.this::onCloseButtonSelected);
+
+            TerminalSize detailSize = terminalSize
+                    .withRows(terminalSize.getRows() / 2)
+                    .withColumns(terminalSize.getColumns() / 2);
+
+
+            TextBox stackTraceTextBox = new TextBox(detailSize, stackTraceString, TextBox.Style.MULTI_LINE);
+            stackTraceTextBox.setReadOnly(true);
+
+            addComponent(stackTraceTextBox);
+
+            addComponent(new EmptySpace());
+
+            addComponent(
+                    Panels.horizontal(
+                            new EmptySpace(),
+                            closeButton,
+                            new Button("Show summary (F3)", DisplayThrowableDialog.this::onSummaryButtonSelected),
+                            new Button("Save Details (F5)", DisplayThrowableDialog.this::onSaveDetailsToFile))
+            );
+        }
+
+        @Override
+        public void onSelected() {
+            setFocusedInteractable(closeButton);
+        }
+    }
 
 
     private final Panel contentPanel;
+
+    private final SummaryPanel summaryPanel;
+    private final DetailsPanel detailsPanel;
+
     private final TerminalUI terminalUI;
     private final String stackTraceString;
-
 
     public DisplayThrowableDialog(String title,
                                   String text,
@@ -49,62 +119,46 @@ public class DisplayThrowableDialog extends ApplicationWindow {
 
         setHints(List.of(Hint.MODAL));
 
-        summaryComponent = Panels.vertical(new Label(throwableToDisplay.getMessage()))
-                .withBorder(Borders.singleLine(String.format(" %s ", text)));
 
-        Panel topPanel = Panels.horizontal(
-                new Button("Summary", this::onSummaryButtonSelected),
-                new Button("Details", this::onDetailButtonSelected));
+        String message = ExceptionUtils.extractMessageFrom(throwableToDisplay)
+                .or(() -> Optional.ofNullable(text))
+                .orElse("Error");
 
-        contentPanel = Panels.vertical(summaryComponent);
+        stackTraceString = ExceptionUtils.getStackTraceAsString(throwableToDisplay);
 
-        stackTraceString = getStackTraceAsString(throwableToDisplay);
+        summaryPanel = new SummaryPanel(message);
 
-        TerminalSize terminalSize = terminalUI.getWindowBasedTextGUI().getScreen().getTerminalSize();
+        detailsPanel = new DetailsPanel();
 
-        TerminalSize detailSize = terminalSize
-                .withRelativeRows(terminalSize.getRows() / 2)
-                .withRelativeColumns(terminalSize.getColumns() / 2);
+        contentPanel = Panels.vertical(summaryPanel);
 
-        TextBox stackTraceTextBox = new TextBox(detailSize, stackTraceString, TextBox.Style.MULTI_LINE);
-        stackTraceTextBox.setReadOnly(true);
+        setComponent(contentPanel);
 
-        detailsPanel = Panels.vertical(stackTraceTextBox);
-
-        Panel buttonPanel = Panels.horizontal(
-                new Button("OK", this::onOKButtonSelected),
-                new Button("Save details to a file", this::onSaveDetailsToFile));
-
-        Panel mainPanel = Panels.vertical(topPanel, contentPanel, buttonPanel);
-
-        setComponent(mainPanel);
-    }
-
-    private static String getStackTraceAsString(Throwable throwableToDisplay) {
-
-        try (StringWriter stringWriter = new StringWriter();
-             PrintWriter printWriter = new PrintWriter(stringWriter)) {
-
-            throwableToDisplay.printStackTrace(printWriter);
-            return stringWriter.toString();
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        addWindowListener(HotKeyWindowListener.builder()
+                .keyType(KeyType.Escape).invoke(this::onCloseButtonSelected)
+                .keyType(KeyType.F3).invoke(this::onSummaryButtonSelected)
+                .keyType(KeyType.F4).invoke(this::onDetailButtonSelected)
+                .keyType(KeyType.F5).invoke(this::onSaveDetailsToFile)
+                .build());
     }
 
     private void onSummaryButtonSelected() {
-        contentPanel.removeAllComponents();
-        contentPanel.addComponent(summaryComponent);
+        selectPanel(summaryPanel);
     }
 
 
     private void onDetailButtonSelected() {
-        contentPanel.removeAllComponents();
-        contentPanel.addComponent(detailsPanel);
+        selectPanel(detailsPanel);
     }
 
-    private void onOKButtonSelected() {
+
+    private void selectPanel(SelectablePanel selectablePanel) {
+        contentPanel.removeAllComponents();
+        contentPanel.addComponent(selectablePanel);
+        selectablePanel.onSelected();
+    }
+
+    private void onCloseButtonSelected() {
         this.close();
     }
 
@@ -121,13 +175,7 @@ public class DisplayThrowableDialog extends ApplicationWindow {
                 terminalUI.showMessageBox("Could not save error details",
                         "An error has occurred saving the error details: \n"
                                 + e.getMessage());
-
             }
-
         }
-
-
     }
-
-
 }

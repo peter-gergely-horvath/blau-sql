@@ -17,13 +17,56 @@
  
 package com.github.blausql.core.util;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Optional;
 
 public final class ExceptionUtils {
 
     private ExceptionUtils() {
         // no instances
+    }
+
+    public static Optional<String> extractMessageFrom(Throwable t) {
+        StringBuilder sb = new StringBuilder();
+
+        if (t instanceof SQLException) {
+            SQLException sqlEx = (SQLException) t;
+
+            String sqlState = sqlEx.getSQLState();
+            if (sqlState != null && !sqlState.isBlank()) {
+                sb.append("SQLState: ").append(sqlState)
+                        .append(TextUtils.LINE_SEPARATOR);
+            }
+
+            int errorCode = sqlEx.getErrorCode();
+            sb.append("Error Code: ").append(errorCode)
+                    .append(TextUtils.LINE_SEPARATOR);
+        }
+
+        String localizedMessage = t.getLocalizedMessage();
+        String message = t.getMessage();
+
+        if (localizedMessage != null && !"".equals(localizedMessage)) {
+
+            sb.append(localizedMessage).append(TextUtils.LINE_SEPARATOR);
+
+        } else if (message != null && !"".equals(message)) {
+
+            sb.append(message).append(TextUtils.LINE_SEPARATOR);
+        }
+
+        String throwableAsString = sb.toString();
+
+        if (!throwableAsString.isBlank()) {
+            return Optional.of(throwableAsString.trim());
+        } else {
+            return Optional.empty();
+        }
     }
 
     public static <U extends Throwable> boolean causesContainAnyType(Throwable throwableToExamine,
@@ -80,4 +123,16 @@ public final class ExceptionUtils {
         return rootCause;
     }
 
+    public static String getStackTraceAsString(Throwable throwableToDisplay) {
+
+        try (StringWriter stringWriter = new StringWriter();
+             PrintWriter printWriter = new PrintWriter(stringWriter)) {
+
+            throwableToDisplay.printStackTrace(printWriter);
+            return stringWriter.toString();
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
