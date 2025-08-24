@@ -41,6 +41,11 @@ import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.gui2.TextBox;
 import com.googlecode.lanterna.input.KeyType;
 
+import java.io.InputStream;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.Scanner;
+
 
 public class HelpWindow extends ApplicationWindow {
 
@@ -54,9 +59,21 @@ public class HelpWindow extends ApplicationWindow {
         TextBox helpTextBox = new TextBox(getDesiredSizeForHelpTextBox(), "");
         helpTextBox.setReadOnly(true);
 
-        helpTextBox.setText("Help for: " + windowClass);
+        helpTextBox.setText(getHelpStringOf(windowClass));
 
         setComponent(helpTextBox);
+    }
+
+    private static String getHelpStringOf(Class<? extends ApplicationWindow> windowClass) {
+
+        String simpleName = windowClass.getSimpleName();
+
+        InputStream resourceAsStream = windowClass.getResourceAsStream(String.format("%s.help.txt", simpleName));
+        if (resourceAsStream == null) {
+            return "No help is available for: " + windowClass;
+        } else {
+            return new Scanner(resourceAsStream, StandardCharsets.UTF_8).useDelimiter("\\A").next();
+        }
     }
 
     private TerminalSize getDesiredSizeForHelpTextBox() {

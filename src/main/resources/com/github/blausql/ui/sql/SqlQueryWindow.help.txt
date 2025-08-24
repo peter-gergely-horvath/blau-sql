@@ -1,0 +1,44 @@
+This screen provides a full-screen interface for writing and
+executing database queries. Use the editor to compose SQL
+statements and execute them against your connected database.
+
+
+Navigation
+
+  * Access Menu:
+    - Press Up arrow to the top of the editor, then Up once more, or
+    - press F12 at any time
+  * Exit Session: Press ESC or select File > Exit
+
+
+File Operations
+
+Action          Shortcut    Menu Option
+Clear editor    F2          File > Clear
+Save content    F5          File > Save
+Load file       F6          File > Load
+
+
+Query Execution
+
+Action                      Shortcut    Menu Option
+Execute each statement      F7          Execute > Execute Each
+Execute current statement   F8          Execute > Execute Current
+Execute all content         F9          Execute > Execute All
+
+
+Additional Features
+
+Help: Press F1 to display this help screen
+
+
+Tips
+
+  * Position your cursor within a statement before using F8
+    to execute only that specific query
+  * Use F7 to execute multiple statements sequentially
+  * Use F9 to execute the entire editor content as a batch
+
+
+
+
