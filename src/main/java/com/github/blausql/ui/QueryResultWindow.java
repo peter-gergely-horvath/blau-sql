@@ -29,11 +29,20 @@ import com.googlecode.lanterna.gui2.table.TableModel;
 import com.googlecode.lanterna.input.KeyType;
 
 
-class QueryResultWindow extends BasicWindow {
+public class QueryResultWindow extends BasicWindow {
 
     //CHECKSTYLE.OFF: AvoidInlineConditionals
-    QueryResultWindow(List<Map<String, Object>> queryResult) {
-        super("Query result (press Enter/ESC to close)");
+    public QueryResultWindow(List<Map<String, Object>> queryResult) {
+        this(queryResult, "Query result (press ESC to close)");
+    }
+
+    public QueryResultWindow(List<Map<String, Object>> queryResult, String title) {
+        super(String.format("%s (press ESC to close)", title));
+
+        addWindowListener(HotKeyWindowListener.builder()
+                .keyType(KeyType.Enter).invoke(this::close)
+                .keyType(KeyType.Escape).invoke(this::close)
+                .build());
 
         if (queryResult.isEmpty()) {
             setComponent(new Label("(query yielded no results)"));
@@ -63,11 +72,6 @@ class QueryResultWindow extends BasicWindow {
             }
 
             setComponent(table);
-
-            addWindowListener(HotKeyWindowListener.builder()
-                    .keyType(KeyType.Escape).invoke(this::close)
-                    .build());
-
         }
 
     }
