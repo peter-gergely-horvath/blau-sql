@@ -15,16 +15,15 @@
  */
 
  
-package com.github.blausql.core.preferences;
+package com.github.blausql.spi.connections;
 
-public class SaveException extends Exception {
+public class DeleteException extends Exception {
 
-
-    public SaveException(String message) {
+    public DeleteException(String message) {
         super(message);
     }
 
-    public SaveException(String message, Throwable cause) {
+    public DeleteException(String message, Throwable cause) {
         super(message, cause);
     }
 }

@@ -22,8 +22,8 @@ import com.github.blausql.TerminalUI;
 import com.github.blausql.core.Constants;
 import com.github.blausql.core.connection.ConnectionDefinition;
 import com.github.blausql.core.preferences.ConfigurationRepository;
-import com.github.blausql.core.preferences.ConnectionDefinitionRepository;
-import com.github.blausql.core.preferences.LoadException;
+import com.github.blausql.core.preferences.ConnectionDefinitionRepositoryFactory;
+import com.github.blausql.spi.connections.LoadException;
 import com.github.blausql.ui.components.ActionButton;
 import com.github.blausql.ui.components.ApplicationWindow;
 import com.github.blausql.ui.hotkey.HotKeyWindowListener;
@@ -72,7 +72,7 @@ public class MainMenuWindow extends ApplicationWindow {
 
     private void onConnectorToDatabaseButtonSelected() throws LoadException {
         List<ConnectionDefinition> connectionDefinitions =
-                ConnectionDefinitionRepository.getInstance().getConnectionDefinitions();
+                ConnectionDefinitionRepositoryFactory.getRepository().getConnectionDefinitions();
 
         showWindowCenter(new SelectConnectionForQueryWindow(connectionDefinitions, getTerminalUI()));
     }

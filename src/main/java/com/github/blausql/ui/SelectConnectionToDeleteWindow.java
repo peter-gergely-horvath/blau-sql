@@ -19,12 +19,12 @@ package com.github.blausql.ui;
 
 import com.github.blausql.TerminalUI;
 import com.github.blausql.core.connection.ConnectionDefinition;
-import com.github.blausql.core.preferences.ConnectionDefinitionRepository;
+import com.github.blausql.core.preferences.ConnectionDefinitionRepositoryFactory;
+import com.github.blausql.spi.connections.DeleteException;
 import com.github.blausql.ui.util.BackgroundWorker;
 
 import com.googlecode.lanterna.gui2.Window;
 import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton;
-
 
 import java.util.List;
 
@@ -51,8 +51,8 @@ final class SelectConnectionToDeleteWindow extends SelectConnectionWindow {
             new BackgroundWorker<Void>(this) {
 
                 @Override
-                protected Void doBackgroundTask() {
-                    ConnectionDefinitionRepository.getInstance()
+                protected Void doBackgroundTask() throws DeleteException {
+                    ConnectionDefinitionRepositoryFactory.getRepository()
                             .deleteConnectionDefinitionByName(cd.getConnectionName());
 
                     return null;

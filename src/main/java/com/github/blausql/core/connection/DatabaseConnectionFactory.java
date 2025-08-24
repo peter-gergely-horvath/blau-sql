@@ -20,7 +20,7 @@ package com.github.blausql.core.connection;
 import com.github.blausql.core.classloader.ClassLoaderFactory;
 import com.github.blausql.core.classloader.DelegatingDriver;
 import com.github.blausql.core.preferences.ConfigurationRepository;
-import com.github.blausql.core.preferences.LoadException;
+import com.github.blausql.spi.connections.LoadException;
 
 import java.lang.reflect.Constructor;
 import java.net.MalformedURLException;

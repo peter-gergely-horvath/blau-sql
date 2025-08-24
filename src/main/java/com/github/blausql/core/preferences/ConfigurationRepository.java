@@ -17,6 +17,9 @@
 
 package com.github.blausql.core.preferences;
 
+import com.github.blausql.spi.connections.LoadException;
+import com.github.blausql.spi.connections.SaveException;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Properties;

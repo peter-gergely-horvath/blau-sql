@@ -14,59 +14,56 @@
  * limitations under the License.
  */
 
-
 package com.github.blausql.core.preferences;
 
 import com.github.blausql.core.connection.ConnectionDefinition;
+import com.github.blausql.spi.connections.ConnectionDefinitionRepository;
+import com.github.blausql.spi.connections.LoadException;
+import com.github.blausql.spi.connections.SaveException;
 
 import java.io.IOException;
 import java.util.*;
 
-public final class ConnectionDefinitionRepository {
+/**
+ * Default implementation of {@link ConnectionDefinitionRepository} that stores connection definitions
+ * in a properties file.
+ */
+final class PropertiesBasedConnectionDefinitionRepository implements ConnectionDefinitionRepository {
+
+    private static final String STATEMENT_SEPARATOR = ";";
 
     private static final String PROPERTY_SEPARATOR = "\\.";
 
     private static final PropertyStore CONNECTIONS_PROPERTY_STORE = PropertyStoreFactory.getConnectionsPropertyStore();
 
     private static final Comparator<ConnectionDefinition> CONNECTION_DEFINITION_COMPARATOR =
-            new Comparator<ConnectionDefinition>() {
-
-                @Override
-                public int compare(ConnectionDefinition left, ConnectionDefinition right) {
-                    if (left == null || right == null) {
-                        return 0;
-                    }
-
-                    // If order is provided, sort them accordingly;
-                    // otherwise, sort based on names
-                    Integer leftOrder = left.getOrder();
-                    Integer rightOrder = right.getOrder();
-                    if (leftOrder != null && rightOrder != null) {
-                        return leftOrder.compareTo(rightOrder);
-                    }
-
-                    String leftConnectionName = left.getConnectionName();
-                    String rightConnectionName = right.getConnectionName();
-
-                    if (leftConnectionName == null || rightConnectionName == null) {
-                        return 0;
-                    }
-
-                    return leftConnectionName.compareTo(rightConnectionName);
+            (left, right) -> {
+                if (left == null || right == null) {
+                    return 0;
                 }
+
+                // If order is provided, sort them accordingly;
+                // otherwise, sort based on names
+                Integer leftOrder = left.getOrder();
+                Integer rightOrder = right.getOrder();
+                if (leftOrder != null && rightOrder != null) {
+                    return leftOrder.compareTo(rightOrder);
+                }
+
+                String leftConnectionName = left.getConnectionName();
+                String rightConnectionName = right.getConnectionName();
+
+                if (leftConnectionName == null || rightConnectionName == null) {
+                    return 0;
+                }
+
+                return leftConnectionName.compareTo(rightConnectionName);
             };
 
-    public static ConnectionDefinitionRepository getInstance() {
-        return INSTANCE;
-    }
-
-    private static final ConnectionDefinitionRepository INSTANCE = new ConnectionDefinitionRepository();
-
+    @Override
     public List<ConnectionDefinition> getConnectionDefinitions() throws LoadException {
         try {
-
             LinkedHashMap<String, ConnectionDefinition> map = new LinkedHashMap<>();
-
             Properties properties = CONNECTIONS_PROPERTY_STORE.loadProperties();
 
             for (Map.Entry<Object, Object> entry : properties.entrySet()) {
@@ -83,25 +80,20 @@ public final class ConnectionDefinitionRepository {
 
                 ConnectionDefinition cd = map.computeIfAbsent(connectionDefinitionName, ConnectionDefinition::new);
 
-                PropertyMapping propertyMapping =
-                        PropertyMapping.valueOf(propertyName);
+                PropertyMapping propertyMapping = PropertyMapping.valueOf(propertyName);
                 propertyMapping.setValue(cd, value);
             }
 
             ArrayList<ConnectionDefinition> connectionDefinitions = new ArrayList<>(map.values());
-
-            Collections.sort(connectionDefinitions, CONNECTION_DEFINITION_COMPARATOR);
-
+            connectionDefinitions.sort(CONNECTION_DEFINITION_COMPARATOR);
             return connectionDefinitions;
-
         } catch (IOException e) {
             throw new LoadException("Failed to load connection definitions", e);
         }
-
     }
 
+    @Override
     public void saveConnectionDefinition(ConnectionDefinition cd) throws SaveException {
-
         Character hotkey = cd.getHotkey();
         if (hotkey != null) {
             List<ConnectionDefinition> existingConnectionDefinitions;
@@ -126,6 +118,10 @@ public final class ConnectionDefinitionRepository {
         try {
             Properties properties = CONNECTIONS_PROPERTY_STORE.loadProperties();
 
+            // Remove all existing properties for this connection
+            properties.keySet().removeIf(key -> key.toString().startsWith(cd.getConnectionName() + PROPERTY_SEPARATOR));
+
+            // Add the updated properties
             for (PropertyMapping propertyMapping : PropertyMapping.values()) {
                 propertyMapping.putPropertyKeyValue(cd, properties);
             }
@@ -134,22 +130,17 @@ public final class ConnectionDefinitionRepository {
         } catch (IOException e) {
             throw new SaveException("Failed to save connection definition", e);
         }
-
     }
 
+    @Override
     public void deleteConnectionDefinitionByName(String connectionName) {
-
         try {
-
             boolean foundInProperties = false;
-
             Properties properties = CONNECTIONS_PROPERTY_STORE.loadProperties();
 
             Iterator<Object> iterator = properties.keySet().iterator();
             while (iterator.hasNext()) {
-
                 String key = iterator.next().toString();
-
                 if (key.split(PROPERTY_SEPARATOR)[0].equals(connectionName)) {
                     iterator.remove();
                     foundInProperties = true;
@@ -164,9 +155,18 @@ public final class ConnectionDefinitionRepository {
         } catch (IOException e) {
             throw new RuntimeException("Failed to delete connection definition", e);
         }
-
     }
-
+    
+    @Override
+    public ConnectionDefinition findConnectionDefinitionByName(String connectionName) throws LoadException {
+        List<ConnectionDefinition> connections = getConnectionDefinitions();
+        for (ConnectionDefinition connection : connections) {
+            if (connectionName.equalsIgnoreCase(connection.getConnectionName())) {
+                return connection;
+            }
+        }
+        return null;
+    }
 
     private enum PropertyMapping {
         connectionName {
@@ -180,7 +180,6 @@ public final class ConnectionDefinitionRepository {
                 cd.setConnectionName(value);
             }
         },
-
         driverClassName {
             @Override
             String getValue(ConnectionDefinition cd) {
@@ -190,7 +189,6 @@ public final class ConnectionDefinitionRepository {
             @Override
             void setValue(ConnectionDefinition cd, String value) {
                 cd.setDriverClassName(value);
-
             }
         },
         jdbcUrl {
@@ -202,7 +200,28 @@ public final class ConnectionDefinitionRepository {
             @Override
             void setValue(ConnectionDefinition cd, String value) {
                 cd.setJdbcUrl(value);
+            }
+        },
+        userName {
+            @Override
+            String getValue(ConnectionDefinition cd) {
+                return cd.getUserName();
+            }
 
+            @Override
+            void setValue(ConnectionDefinition cd, String value) {
+                cd.setUserName(value);
+            }
+        },
+        password {
+            @Override
+            String getValue(ConnectionDefinition cd) {
+                return cd.getPassword();
+            }
+
+            @Override
+            void setValue(ConnectionDefinition cd, String value) {
+                cd.setPassword(value);
             }
         },
         loginAutomatically {
@@ -216,124 +235,52 @@ public final class ConnectionDefinitionRepository {
                 cd.setLoginAutomatically(Boolean.parseBoolean(value));
             }
         },
-        userName {
-            @Override
-            String getValue(ConnectionDefinition cd) {
-                return cd.getUserName();
-            }
-
-            @Override
-            void setValue(ConnectionDefinition cd, String value) {
-                cd.setUserName(value);
-
-            }
-        },
-        password {
-            @Override
-            String getValue(ConnectionDefinition cd) {
-                return cd.getPassword();
-            }
-
-            @Override
-            void setValue(ConnectionDefinition cd, String value) {
-                cd.setPassword(value);
-
-            }
-        },
         statementSeparator {
             @Override
             String getValue(ConnectionDefinition cd) {
-                return cd.getStatementSeparator();
+                String theStatementSeparator = cd.getStatementSeparator();
+                return theStatementSeparator != null ? theStatementSeparator : STATEMENT_SEPARATOR;
             }
 
             @Override
             void setValue(ConnectionDefinition cd, String value) {
-                cd.setStatementSeparator(value);
-
+                cd.setHotkey(value != null && !value.isEmpty() ? value.charAt(0) : null);
             }
         },
         hotkey {
             @Override
             String getValue(ConnectionDefinition cd) {
                 Character hotkey = cd.getHotkey();
-                String stringRepresentation;
-                if (hotkey != null) {
-                    stringRepresentation = new String(new char[]{hotkey});
-                } else {
-                    stringRepresentation = "";
-                }
-                return stringRepresentation;
+                return hotkey != null ? hotkey.toString() : "";
             }
 
             @Override
             void setValue(ConnectionDefinition cd, String value) {
-                if (value != null && value.trim().length() == 1) {
-                    char hotkeyChar = value.charAt(0);
-                    cd.setHotkey(hotkeyChar);
-                } else {
-                    cd.setHotkey(null);
-                }
+                cd.setHotkey(value != null && !value.isEmpty() ? value.charAt(0) : null);
             }
         },
         order {
             @Override
             String getValue(ConnectionDefinition cd) {
                 Integer order = cd.getOrder();
-                if (order != null) {
-                    return order.toString();
-                } else {
-                    return "";
-                }
+                return order != null ? order.toString() : "";
             }
 
             @Override
             void setValue(ConnectionDefinition cd, String value) {
-                if (value == null || value.trim().isEmpty()) {
-                    cd.setOrder(null);
-                } else {
-                    try {
-                        int parsedIntValue = Integer.parseInt(value.trim());
-                        cd.setOrder(parsedIntValue);
-
-                    } catch (NumberFormatException nfe) {
-                        throw new RuntimeException("Could not map value '" + value + "' to Integer", nfe);
-                    }
-                }
+                cd.setOrder(value != null && !value.isEmpty() ? Integer.valueOf(value) : null);
             }
         };
-
-        private String getQualifiedUniquePropertyName(ConnectionDefinition cd) {
-            return String.format("%s.%s", cd.getConnectionName(), this.name());
-        }
-
-        private void putPropertyKeyValue(ConnectionDefinition cd, Properties properties) {
-            if (connectionName != this) {
-                String propertyKey = getQualifiedUniquePropertyName(cd);
-                String propertyValue = getValue(cd);
-
-
-                properties.put(propertyKey, propertyValue);
-            }
-        }
 
         abstract String getValue(ConnectionDefinition cd);
 
         abstract void setValue(ConnectionDefinition cd, String value);
-    }
 
-    public ConnectionDefinition findConnectionDefinitionByName(
-            String connectionName) throws LoadException {
-
-        Objects.requireNonNull(connectionName, "connectionName cannot be null");
-
-        List<ConnectionDefinition> connectionDefinitions = getConnectionDefinitions();
-        for (ConnectionDefinition connectionDefinition : connectionDefinitions) {
-            if (connectionName.equalsIgnoreCase(connectionDefinition.getConnectionName())) {
-                return connectionDefinition;
+        void putPropertyKeyValue(ConnectionDefinition cd, Properties properties) {
+            String value = getValue(cd);
+            if (value != null && !value.isEmpty()) {
+                properties.setProperty(cd.getConnectionName() + "." + name(), value);
             }
         }
-
-        return null;
     }
-
 }

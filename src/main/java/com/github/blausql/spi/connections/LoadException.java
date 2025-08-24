@@ -15,10 +15,9 @@
  */
 
  
-package com.github.blausql.core.preferences;
+package com.github.blausql.spi.connections;
 
 public class LoadException extends Exception {
-
 
     public LoadException(String message) {
         super(message);

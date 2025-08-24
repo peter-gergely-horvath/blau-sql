@@ -19,8 +19,8 @@ package com.github.blausql.ui;
 
 import com.github.blausql.TerminalUI;
 import com.github.blausql.core.connection.ConnectionDefinition;
-import com.github.blausql.core.preferences.ConnectionDefinitionRepository;
-import com.github.blausql.core.preferences.LoadException;
+import com.github.blausql.core.preferences.ConnectionDefinitionRepositoryFactory;
+import com.github.blausql.spi.connections.LoadException;
 import com.github.blausql.ui.components.ApplicationWindow;
 
 import com.github.blausql.ui.hotkey.HotKeyWindowListener;
@@ -67,7 +67,7 @@ class ManageConnectionsWindow extends ApplicationWindow {
         this.close();
 
         List<ConnectionDefinition> connectionDefinitions =
-                ConnectionDefinitionRepository.getInstance().getConnectionDefinitions();
+                ConnectionDefinitionRepositoryFactory.getRepository().getConnectionDefinitions();
 
         showWindowCenter(new SelectConnectionToCopyWindow(connectionDefinitions, getTerminalUI()));
     }
@@ -77,7 +77,7 @@ class ManageConnectionsWindow extends ApplicationWindow {
         this.close();
 
         List<ConnectionDefinition> connectionDefinitions =
-                ConnectionDefinitionRepository.getInstance().getConnectionDefinitions();
+                ConnectionDefinitionRepositoryFactory.getRepository().getConnectionDefinitions();
 
         showWindowCenter(new SelectConnectionToEditWindow(connectionDefinitions, getTerminalUI()));
     }
@@ -87,7 +87,7 @@ class ManageConnectionsWindow extends ApplicationWindow {
         this.close();
 
         List<ConnectionDefinition> connectionDefinitions =
-                ConnectionDefinitionRepository.getInstance().getConnectionDefinitions();
+                ConnectionDefinitionRepositoryFactory.getRepository().getConnectionDefinitions();
 
         showWindowCenter(new SelectConnectionToDeleteWindow(connectionDefinitions, getTerminalUI()));
     }

@@ -19,7 +19,7 @@ package com.github.blausql.ui;
 
 import com.github.blausql.TerminalUI;
 import com.github.blausql.core.preferences.ConfigurationRepository;
-import com.github.blausql.core.preferences.SaveException;
+import com.github.blausql.spi.connections.SaveException;
 import com.github.blausql.ui.components.ApplicationWindow;
 import com.github.blausql.ui.util.BackgroundWorker;
 import com.github.blausql.ui.hotkey.HotKeyWindowListener;

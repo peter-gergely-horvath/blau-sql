@@ -19,11 +19,12 @@ package com.github.blausql.ui;
 
 import com.github.blausql.TerminalUI;
 import com.github.blausql.core.connection.ConnectionDefinition;
-import com.github.blausql.core.preferences.ConnectionDefinitionRepository;
+import com.github.blausql.core.preferences.ConnectionDefinitionRepositoryFactory;
 
 
-import com.github.blausql.core.preferences.LoadException;
-import com.github.blausql.core.preferences.SaveException;
+import com.github.blausql.spi.connections.DeleteException;
+import com.github.blausql.spi.connections.LoadException;
+import com.github.blausql.spi.connections.SaveException;
 import com.github.blausql.ui.components.ApplicationWindow;
 import com.github.blausql.ui.components.PasswordBox;
 import com.github.blausql.ui.components.SimpleTextBox;
@@ -323,18 +324,25 @@ public final class ConnectionSettingsWindow extends ApplicationWindow {
     }
 
     private void updateConnectionDefinition(ConnectionDefinition connectionDefinitionToUpdate) throws SaveException {
-        String connectionName = connectionDefinitionToUpdate.getConnectionName();
 
-        // In this setup, connection name is the primary key:
-        // we can handle renames, but we have to implement it as delete-then-save
-        final boolean nameChanged = !Objects.equals(connectionName, originalNameOfExistingConnectionDefinition);
-        if (nameChanged) {
-            ConnectionDefinitionRepository.getInstance()
-                    .deleteConnectionDefinitionByName(originalNameOfExistingConnectionDefinition);
+        try {
+            String connectionName = connectionDefinitionToUpdate.getConnectionName();
+
+            // In this setup, connection name is the primary key:
+            // we can handle renames, but we have to implement it as delete-then-save
+            final boolean nameChanged = !Objects.equals(connectionName, originalNameOfExistingConnectionDefinition);
+            if (nameChanged) {
+                ConnectionDefinitionRepositoryFactory.getRepository()
+                        .deleteConnectionDefinitionByName(originalNameOfExistingConnectionDefinition);
+            }
+
+            ConnectionDefinitionRepositoryFactory.getRepository()
+                    .saveConnectionDefinition(connectionDefinitionToUpdate);
+
+        } catch (DeleteException e) {
+            throw new SaveException("Could not delete previous state", e);
         }
 
-        ConnectionDefinitionRepository.getInstance()
-                .saveConnectionDefinition(connectionDefinitionToUpdate);
     }
 
     private void saveConnectionDefinition(ConnectionDefinition connectionDefinitionToSave) throws SaveException {
@@ -344,14 +352,14 @@ public final class ConnectionSettingsWindow extends ApplicationWindow {
 
             String connectionName = connectionDefinitionToSave.getConnectionName();
 
-            ConnectionDefinition existingConnectionDefinition = ConnectionDefinitionRepository.getInstance()
+            ConnectionDefinition existingConnectionDefinition = ConnectionDefinitionRepositoryFactory.getRepository()
                     .findConnectionDefinitionByName(connectionName);
 
             if (existingConnectionDefinition != null) {
                 throw new IllegalStateException("Connection with name '" + connectionName + "' already exists");
             }
 
-            ConnectionDefinitionRepository.getInstance().saveConnectionDefinition(connectionDefinitionToSave);
+            ConnectionDefinitionRepositoryFactory.getRepository().saveConnectionDefinition(connectionDefinitionToSave);
 
         } catch (LoadException e) {
             throw new SaveException("Failed to save connection definition", e);
