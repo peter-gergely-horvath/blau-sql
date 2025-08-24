@@ -14,11 +14,28 @@
  * limitations under the License.
  */
 
+ 
+/*
+ * Copyright (c) 2017-2020 Peter G. Horvath, All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 
 package com.github.blausql;
 
+import com.github.blausql.core.util.ExceptionUtils;
 import com.github.blausql.core.util.TextUtils;
-import com.github.blausql.ui.DisplayThrowableDialog;
 import com.github.blausql.ui.components.WaitDialog;
 import com.googlecode.lanterna.gui2.MultiWindowTextGUI;
 import com.googlecode.lanterna.gui2.TextGUIThread;
@@ -34,6 +51,9 @@ import com.googlecode.lanterna.terminal.Terminal;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -74,10 +94,76 @@ public final class StandardTerminalUI implements TerminalUI {
     @Override
     public void showErrorMessageFromThrowable(Throwable throwable) {
 
-        DisplayThrowableDialog dialog = new DisplayThrowableDialog(
-                "Error occurred", "Could not connect", throwable, this);
+        StringBuilder sb = new StringBuilder();
 
-        showWindowCenter(dialog);
+        final Throwable rootCause = ExceptionUtils.getRootCause(throwable);
+
+        if (rootCause instanceof ClassNotFoundException) {
+            sb.append("Class not found: ").append(rootCause.getMessage());
+        } else if (throwable instanceof SQLException) {
+            sb.append(extractMessageFrom(throwable));
+        } else {
+            String rootCauseMessage = extractMessageFrom(rootCause);
+            if (rootCauseMessage != null && !rootCauseMessage.isBlank()) {
+                sb.append(rootCauseMessage);
+            } else {
+                Throwable t = throwable;
+                while (t != null) {
+                    String extractedMessage = extractMessageFrom(t);
+                    if (!extractedMessage.isEmpty()) {
+                        if (sb.length() > 0) {
+                            sb.append(": ");
+                        }
+                        sb.append(extractedMessage);
+                    }
+                    t = t.getCause();
+                }
+
+                StringWriter stringWriter = new StringWriter();
+                try (PrintWriter pw = new PrintWriter(stringWriter)) {
+                    rootCause.printStackTrace(pw);
+                }
+                String fullStackTrace = stringWriter.toString();
+                sb.append(fullStackTrace);
+            }
+        }
+
+        String theString = sb.toString();
+
+        showErrorMessageFromString(theString);
+
+    }
+
+    private static String extractMessageFrom(Throwable t) {
+        StringBuilder sb = new StringBuilder();
+
+        if (t instanceof SQLException) {
+            SQLException sqlEx = (SQLException) t;
+
+            String sqlState = sqlEx.getSQLState();
+            if (sqlState != null && !sqlState.isBlank()) {
+                sb.append("SQLState: ").append(sqlState)
+                        .append(TextUtils.LINE_SEPARATOR);
+            }
+
+            int errorCode = sqlEx.getErrorCode();
+            sb.append("Error Code: ").append(errorCode)
+                    .append(TextUtils.LINE_SEPARATOR);
+        }
+        String localizedMessage = t.getLocalizedMessage();
+        String message = t.getMessage();
+
+        if (localizedMessage != null && !"".equals(localizedMessage)) {
+
+            sb.append(localizedMessage);
+
+        } else if (message != null && !"".equals(message)) {
+            sb.append(message);
+        }
+
+        String throwableAsString = sb.toString();
+
+        return throwableAsString.trim();
     }
 
     @Override

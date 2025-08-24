@@ -22,6 +22,7 @@ import com.github.blausql.core.connection.ConnectionDefinition;
 import com.github.blausql.core.connection.DatabaseConnectionFactory;
 import com.github.blausql.core.connection.DatabaseConnection;
 import com.github.blausql.ui.components.WaitDialog;
+import com.github.blausql.ui.sql.SqlQueryWindow;
 import com.github.blausql.ui.util.BackgroundWorker;
 import com.googlecode.lanterna.gui2.Window;
 import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton;
