@@ -35,7 +35,7 @@ public abstract class ApplicationWindow extends BasicWindow {
     private final TerminalUI terminalUI;
 
     protected ApplicationWindow(String title, TerminalUI terminalUI) {
-        super(String.format(" %s ", title));
+        super(title);
 
         Objects.requireNonNull(terminalUI, "argument terminalUI can not be null");
 
