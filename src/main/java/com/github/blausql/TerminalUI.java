@@ -34,8 +34,6 @@ public interface TerminalUI extends AutoCloseable {
 
     void showErrorMessageFromThrowable(Throwable throwable);
 
-    void showErrorMessageFromString(String errorMessage);
-
     File showFileSelectorDialog(
             String title, String description, String actionLabel);
 

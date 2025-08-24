@@ -48,7 +48,8 @@ public class DisplayThrowableDialog extends ApplicationWindow {
                     DisplayThrowableDialog.this::onCloseButtonSelected);
 
             addComponent(new EmptySpace());
-            addComponent(new Label(String.format(" %s ", message)));
+            addComponent(new Label(message));
+            addComponent(new EmptySpace());
             addComponent(new EmptySpace());
 
             addComponent(Panels.horizontal(
@@ -119,8 +120,9 @@ public class DisplayThrowableDialog extends ApplicationWindow {
 
         setHints(List.of(Hint.MODAL));
 
+        final Throwable rootCause = ExceptionUtils.getRootCause(throwableToDisplay);
 
-        String message = ExceptionUtils.extractMessageFrom(throwableToDisplay)
+        String message = ExceptionUtils.extractMessageFrom(rootCause)
                 .or(() -> Optional.ofNullable(text))
                 .orElse("Error");
 

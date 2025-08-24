@@ -34,20 +34,6 @@ public final class ExceptionUtils {
     public static Optional<String> extractMessageFrom(Throwable t) {
         StringBuilder sb = new StringBuilder();
 
-        if (t instanceof SQLException) {
-            SQLException sqlEx = (SQLException) t;
-
-            String sqlState = sqlEx.getSQLState();
-            if (sqlState != null && !sqlState.isBlank()) {
-                sb.append("SQLState: ").append(sqlState)
-                        .append(TextUtils.LINE_SEPARATOR);
-            }
-
-            int errorCode = sqlEx.getErrorCode();
-            sb.append("Error Code: ").append(errorCode)
-                    .append(TextUtils.LINE_SEPARATOR);
-        }
-
         String localizedMessage = t.getLocalizedMessage();
         String message = t.getMessage();
 
@@ -58,6 +44,27 @@ public final class ExceptionUtils {
         } else if (message != null && !"".equals(message)) {
 
             sb.append(message).append(TextUtils.LINE_SEPARATOR);
+        }
+
+        if (t instanceof SQLException) {
+            SQLException sqlEx = (SQLException) t;
+
+            String sqlState = sqlEx.getSQLState();
+            if (sqlState != null && !sqlState.isBlank()) {
+                if (!sb.toString().isBlank()) {
+                    sb.append(TextUtils.LINE_SEPARATOR);
+                }
+
+                sb.append("SQLState: ").append(sqlState)
+                        .append(TextUtils.LINE_SEPARATOR);
+            }
+
+            int errorCode = sqlEx.getErrorCode();
+            if (!sb.toString().isBlank()) {
+                sb.append(TextUtils.LINE_SEPARATOR);
+            }
+            sb.append("Error Code: ").append(errorCode)
+                    .append(TextUtils.LINE_SEPARATOR);
         }
 
         String throwableAsString = sb.toString();
