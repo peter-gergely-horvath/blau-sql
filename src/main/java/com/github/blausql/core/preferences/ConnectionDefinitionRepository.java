@@ -81,11 +81,7 @@ public final class ConnectionDefinitionRepository {
                 final String connectionDefinitionName = splitString[0];
                 final String propertyName = splitString[1];
 
-                ConnectionDefinition cd = map.get(connectionDefinitionName);
-                if (cd == null) {
-                    cd = new ConnectionDefinition(connectionDefinitionName, null, null, false, null, null, null, null);
-                    map.put(connectionDefinitionName, cd);
-                }
+                ConnectionDefinition cd = map.computeIfAbsent(connectionDefinitionName, ConnectionDefinition::new);
 
                 PropertyMapping propertyMapping =
                         PropertyMapping.valueOf(propertyName);
@@ -241,6 +237,18 @@ public final class ConnectionDefinitionRepository {
             @Override
             void setValue(ConnectionDefinition cd, String value) {
                 cd.setPassword(value);
+
+            }
+        },
+        statementSeparator {
+            @Override
+            String getValue(ConnectionDefinition cd) {
+                return cd.getStatementSeparator();
+            }
+
+            @Override
+            void setValue(ConnectionDefinition cd, String value) {
+                cd.setStatementSeparator(value);
 
             }
         },

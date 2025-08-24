@@ -26,20 +26,20 @@ import com.github.blausql.core.preferences.LoadException;
 import com.github.blausql.core.preferences.SaveException;
 import com.github.blausql.ui.components.ApplicationWindow;
 import com.github.blausql.ui.components.PasswordBox;
+import com.github.blausql.ui.components.SimpleTextBox;
 import com.github.blausql.ui.hotkey.HotKeyWindowListener;
+import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.gui2.*;
 import com.googlecode.lanterna.input.KeyType;
+import com.googlecode.lanterna.screen.Screen;
 
 
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
 @SuppressWarnings("FieldCanBeLocal")
 public final class ConnectionSettingsWindow extends ApplicationWindow {
-
-    public static final String EMPTY_VALUE = "";
 
     public enum Mode {
         ADD("Add connection"),
@@ -53,11 +53,15 @@ public final class ConnectionSettingsWindow extends ApplicationWindow {
         }
     }
 
+    private static final String EMPTY_VALUE = "";
+    private static final String DEFAULT_STATEMENT_SEPARATOR = ";";
+
     private static final int CONNECTION_NAME_BOX_LEN = 50;
-    private static final int DRIVER_CLASS_BOX_LEN = 150;
+    private static final int DRIVER_CLASS_BOX_LEN = 100;
     private static final int JDBC_URL_BOX_LEN = 150;
     private static final int USERNAME_BOX_LEN = 50;
     private static final int PASSWORD_BOX_LEN = 40;
+    private static final int STATEMENT_SEPARATOR_BOX_LEN = 8;
     private static final int HOTKEY_BOX_LEN = 4;
     private static final int ORDER_BOX_LEN = 5;
 
@@ -71,6 +75,8 @@ public final class ConnectionSettingsWindow extends ApplicationWindow {
 
     private final TextBox userNameTextBox;
     private final TextBox passwordPasswordBox;
+
+    private final TextBox statementSeparatorBox;
 
     private final TextBox hotkeyTextBox;
     private final TextBox orderTextBox;
@@ -87,8 +93,7 @@ public final class ConnectionSettingsWindow extends ApplicationWindow {
         super(mode.description, terminalUI);
         this.dialogMode = mode;
 
-        this.originalNameOfExistingConnectionDefinition =
-                dialogMode == Mode.EDIT ? cd.getConnectionName() : null;
+        this.originalNameOfExistingConnectionDefinition = dialogMode == Mode.EDIT ? cd.getConnectionName() : null;
 
         Panel mainPanel = new Panel(new LinearLayout(Direction.VERTICAL));
 
@@ -98,13 +103,11 @@ public final class ConnectionSettingsWindow extends ApplicationWindow {
         driverClassTextBox = addTextEntryComponents("Driver class", cd,
                 ConnectionDefinition::getDriverClassName, DRIVER_CLASS_BOX_LEN, mainPanel);
 
-
         jdbcUrlTextBox = addTextEntryComponents("JDBC URL", cd,
-                ConnectionDefinition::getJdbcUrl, JDBC_URL_BOX_LEN, mainPanel);
+                ConnectionDefinition::getJdbcUrl, getBoxLength(terminalUI, JDBC_URL_BOX_LEN), mainPanel);
 
         loginAutomaticallyCheckBox = new CheckBox("Log in automatically");
-        loginAutomaticallyCheckBox.setChecked(
-                Optional.ofNullable(cd).map(ConnectionDefinition::getLoginAutomatically).orElse(false));
+        loginAutomaticallyCheckBox.setChecked(isLoginAutomaticallyEnabled(cd));
         mainPanel.addComponent(loginAutomaticallyCheckBox);
 
         userNameTextBox = addTextEntryComponents("User name", cd,
@@ -113,10 +116,17 @@ public final class ConnectionSettingsWindow extends ApplicationWindow {
         passwordPasswordBox = addPasswordEntryComponents("Password", cd,
                 ConnectionDefinition::getPassword, PASSWORD_BOX_LEN, mainPanel);
 
-        hotkeyTextBox = addTextEntryComponents("HotKey to select this connection (ONE character, optional)", cd,
+        statementSeparatorBox = addTextEntryComponents("Statement separator", cd,
+                ConnectionDefinition::getStatementSeparator, STATEMENT_SEPARATOR_BOX_LEN, mainPanel);
+
+        if (mode == Mode.ADD) {
+            statementSeparatorBox.setText(DEFAULT_STATEMENT_SEPARATOR);
+        }
+
+        hotkeyTextBox = addTextEntryComponents("HotKey to select this connection (ONE character, optional):", cd,
                 ConnectionSettingsWindow::getHotKeyString, HOTKEY_BOX_LEN, mainPanel);
 
-        orderTextBox = addTextEntryComponents("Number for ordering in list (number, optional)", cd,
+        orderTextBox = addTextEntryComponents("Number for ordering in list (number, optional):", cd,
                 ConnectionSettingsWindow::getOrderText, ORDER_BOX_LEN, mainPanel);
 
         Panel buttonPanel = getButtonPanel();
@@ -127,10 +137,35 @@ public final class ConnectionSettingsWindow extends ApplicationWindow {
 
         setComponent(mainPanel);
 
-        addWindowListener(HotKeyWindowListener.builder()
+        addWindowListener(getHotKeyWindowListener());
+    }
+
+    private static Boolean isLoginAutomaticallyEnabled(ConnectionDefinition cd) {
+        if (cd == null) {
+            return false;
+        } else {
+            return cd.getLoginAutomatically();
+        }
+    }
+
+    private HotKeyWindowListener getHotKeyWindowListener() {
+        return HotKeyWindowListener.builder()
                 .keyType(KeyType.F5).invoke(this::onSaveButtonSelected)
                 .keyType(KeyType.Escape).invoke(this::onCancelButtonSelected)
-                .build());
+                .build();
+    }
+
+    private static int getBoxLength(TerminalUI terminalUI, int defaultLength) {
+
+        WindowBasedTextGUI windowBasedTextGUI = terminalUI.getWindowBasedTextGUI();
+        Screen screen = windowBasedTextGUI.getScreen();
+        TerminalSize terminalSize = screen.getTerminalSize();
+
+        final int uiBordersColumns = 4;
+
+        int columns = terminalSize.getColumns() - uiBordersColumns;
+
+        return Math.min(columns, defaultLength);
     }
 
     private static TextBox addTextEntryComponents(String label, ConnectionDefinition cd,
@@ -219,6 +254,8 @@ public final class ConnectionSettingsWindow extends ApplicationWindow {
             final String userName = userNameTextBox.getText();
             final String password = passwordPasswordBox.getText();
 
+            final String statementSeparator = statementSeparatorBox.getText();
+
             final String hotkeyString = hotkeyTextBox.getText();
             final Character hotkey = mapHotKey(hotkeyString);
 
@@ -232,16 +269,15 @@ public final class ConnectionSettingsWindow extends ApplicationWindow {
                     loginAutomatically,
                     userName,
                     password,
+                    statementSeparator,
                     hotkey,
                     order);
 
             switch (dialogMode) {
-
                 case ADD:
                 case COPY:
                     saveConnectionDefinition(connectionDefinition);
                     break;
-
 
                 case EDIT:
                     updateConnectionDefinition(connectionDefinition);

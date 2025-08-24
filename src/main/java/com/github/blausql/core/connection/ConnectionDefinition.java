@@ -22,15 +22,30 @@ import java.util.Objects;
 
 public final class ConnectionDefinition {
 
+    private static final String DEFAULT_STATEMENT_SEPARATOR = ";";
+
     private String connectionName;
     private String driverClassName;
     private String jdbcUrl;
     private boolean loginAutomatically;
     private String userName;
     private String password;
+    private String statementSeparator;
     private Character hotkey;
     private Integer order;
 
+
+    public ConnectionDefinition(String connectionName) {
+        this(connectionName,
+                null,
+                null,
+                false,
+                null,
+                null,
+                DEFAULT_STATEMENT_SEPARATOR,
+                null,
+                null);
+    }
 
     public ConnectionDefinition(
             String connectionName,
@@ -39,6 +54,7 @@ public final class ConnectionDefinition {
             boolean loginAutomatically,
             String userName,
             String password,
+            String statementSeparator,
             Character hotkey,
             Integer order) {
 
@@ -48,6 +64,7 @@ public final class ConnectionDefinition {
         this.loginAutomatically = loginAutomatically;
         this.userName = userName;
         this.password = password;
+        this.statementSeparator = statementSeparator;
         this.hotkey = hotkey;
         this.order = order;
     }
@@ -65,6 +82,7 @@ public final class ConnectionDefinition {
                 connectionDefinition.getLoginAutomatically(),
                 connectionDefinition.getUserName(),
                 connectionDefinition.getPassword(),
+                connectionDefinition.getStatementSeparator(),
                 connectionDefinition.getHotkey(),
                 connectionDefinition.getOrder());
     }
@@ -74,26 +92,21 @@ public final class ConnectionDefinition {
         return connectionName;
     }
 
-
     public void setConnectionName(String connectionName) {
         this.connectionName = connectionName;
     }
-
 
     public String getDriverClassName() {
         return driverClassName;
     }
 
-
     public void setDriverClassName(String driverClassName) {
         this.driverClassName = driverClassName;
     }
 
-
     public String getJdbcUrl() {
         return jdbcUrl;
     }
-
 
     public void setJdbcUrl(String jdbcUrl) {
         this.jdbcUrl = jdbcUrl;
@@ -104,29 +117,32 @@ public final class ConnectionDefinition {
         return loginAutomatically;
     }
 
-
     public void setLoginAutomatically(boolean loginAutomatically) {
         this.loginAutomatically = loginAutomatically;
     }
-
 
     public String getUserName() {
         return userName;
     }
 
-
     public void setUserName(String userName) {
         this.userName = userName;
     }
-
 
     public String getPassword() {
         return password;
     }
 
-
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getStatementSeparator() {
+        return statementSeparator;
+    }
+
+    public void setStatementSeparator(String statementSeparator) {
+        this.statementSeparator = statementSeparator;
     }
 
     public Character getHotkey() {
@@ -148,7 +164,7 @@ public final class ConnectionDefinition {
     @Override
     public int hashCode() {
         return Objects.hash(connectionName, driverClassName, jdbcUrl, loginAutomatically,
-                userName, password, hotkey, order);
+                userName, password, statementSeparator, hotkey, order);
     }
 
 
@@ -164,6 +180,7 @@ public final class ConnectionDefinition {
                 && Objects.equals(jdbcUrl, that.jdbcUrl)
                 && Objects.equals(userName, that.userName)
                 && Objects.equals(password, that.password)
+                && Objects.equals(statementSeparator, that.statementSeparator)
                 && Objects.equals(hotkey, that.hotkey)
                 && Objects.equals(order, that.order);
     }
@@ -179,6 +196,7 @@ public final class ConnectionDefinition {
                 + ", loginAutomatically=" + loginAutomatically
                 + ", userName='" + userName + '\''
                 + ", password='" + password + '\''
+                + ", statementSeparator='" + statementSeparator + '\''
                 + ", hotkey=" + hotkey
                 + ", order=" + order
                 + '}';
