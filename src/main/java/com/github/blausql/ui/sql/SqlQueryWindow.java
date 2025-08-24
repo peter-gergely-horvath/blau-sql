@@ -61,7 +61,7 @@ public final class SqlQueryWindow extends ApplicationWindow {
     private final String statementSeparator;
 
     private final AtomicReference<BackgroundWorker<?>> backgroundWorkerReference = new AtomicReference<>();
-    private final Menu menuFile;
+    private final Menu fileMenu;
 
     public SqlQueryWindow(ConnectionDefinition connectionDefinition,
                           DatabaseConnection databaseConnection,
@@ -104,7 +104,8 @@ public final class SqlQueryWindow extends ApplicationWindow {
 
         MenuBar menubar = new MenuBar();
 
-        menubar.add(menuFile = createFileMenu());
+        fileMenu = createFileMenu();
+        menubar.add(fileMenu);
         menubar.add(createExecuteMenu());
         menubar.add(createHelpMenu());
 
@@ -115,15 +116,15 @@ public final class SqlQueryWindow extends ApplicationWindow {
     }
 
     private Menu createFileMenu() {
-        final Menu menuFile;
-        menuFile = new Menu("File");
-        menuFile.add(new MenuItem("Clear editor content  (F2)", this::clearEditor));
-        menuFile.add(new MenuItem(SEPARATOR).setEnabled(false));
-        menuFile.add(new MenuItem("Save SQL to file...   (F5)", this::saveSqlFile));
-        menuFile.add(new MenuItem("Load SQL from file... (F6)", this::selectSqlFileToLoad));
-        menuFile.add(new MenuItem(SEPARATOR).setEnabled(false));
-        menuFile.add(new MenuItem("Exit                  (ESC)", this::closeWindow));
-        return menuFile;
+        final Menu menu;
+        menu = new Menu("File");
+        menu.add(new MenuItem("Clear editor content  (F2)", this::clearEditor));
+        menu.add(new MenuItem(SEPARATOR).setEnabled(false));
+        menu.add(new MenuItem("Save SQL to file...   (F5)", this::saveSqlFile));
+        menu.add(new MenuItem("Load SQL from file... (F6)", this::selectSqlFileToLoad));
+        menu.add(new MenuItem(SEPARATOR).setEnabled(false));
+        menu.add(new MenuItem("Exit                  (ESC)", this::closeWindow));
+        return menu;
     }
 
     private Menu createExecuteMenu() {
@@ -168,8 +169,8 @@ public final class SqlQueryWindow extends ApplicationWindow {
 
 
     private void openMenu() {
-        setFocusedInteractable(menuFile);
-        menuFile.handleInput(new KeyStroke(KeyType.Enter));
+        setFocusedInteractable(fileMenu);
+        fileMenu.handleInput(new KeyStroke(KeyType.Enter));
     }
 
 
