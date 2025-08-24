@@ -1,4 +1,4 @@
-<FindBugsFilter>
+<spotbugsFilter>
     <Match>
         <Class name="~.*Window\$.*" />
         <Bug pattern="SIC_INNER_SHOULD_BE_STATIC_ANON" />
@@ -15,4 +15,10 @@
         <Bug pattern="SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE" />
         <!-- The passed string is coming from the user -->
     </Match>
-</FindBugsFilter>
+    <Match>
+        <Class name="com.github.blausql.StandardTerminalUI" />
+        <Method name="getWindowBasedTextGUI" />
+        <Bug pattern="EI_EXPOSE_REP" />
+        <!-- This behaviour is intentional -->
+    </Match>
+</spotbugsFilter>

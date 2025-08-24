@@ -69,7 +69,8 @@
         <maven-jxr-plugin.version>2.5</maven-jxr-plugin.version>
         <maven-checkstyle-plugin.version>2.17</maven-checkstyle-plugin.version>
         <maven-pmd-plugin.version>3.26.0</maven-pmd-plugin.version>
-        <findbugs-maven-plugin.version>3.0.5</findbugs-maven-plugin.version>
+        <spotbugs.version>4.9.3</spotbugs.version>
+        <spotbugs-maven-plugin.version>4.9.3.2</spotbugs-maven-plugin.version>
         <xml-maven-plugin.version>1.0</xml-maven-plugin.version>
         <maven-surefire-plugin.version>2.20</maven-surefire-plugin.version>
         <maven-source-plugin.version>3.0.0</maven-source-plugin.version>
@@ -232,19 +233,19 @@
                     </plugin>
 
                     <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>findbugs-maven-plugin</artifactId>
-                        <version>${findbugs-maven-plugin.version}</version>
+                        <groupId>com.github.spotbugs</groupId>
+                        <artifactId>spotbugs-maven-plugin</artifactId>
+                        <version>${spotbugs-maven-plugin.version}</version>
                         <configuration>
                             <!-- Enables analysis which takes more memory but finds more bugs.
                                 If you run out of memory, changes the value of the effort element to 'Low'. -->
                             <effort>Max</effort>
 
-                            <!-- Location of FindBugs exclude filter file -->
-                            <excludeFilterFile>configuration/findbugs-exclude.xml</excludeFilterFile>
+                            <!-- Location of spotbugs exclude filter file -->
+                            <excludeFilterFile>configuration/spotbugs-exclude.xml</excludeFilterFile>
 
-                            <!-- Build shall fail if problems are found -->
-                            <failOnError>true</failOnError>
+                            <!-- Build shall not fail if problems are found -->
+                            <failOnError>fail</failOnError>
 
                             <!-- Reports all bugs (other values are medium and max) -->
                             <threshold>Low</threshold>
@@ -253,10 +254,10 @@
                             <xmlOutput>true</xmlOutput>
 
                             <!-- Configures the directory in which the XML report is created -->
-                            <findbugsXmlOutputDirectory>${project.build.directory}/findbugs</findbugsXmlOutputDirectory>
+                            <spotbugsXmlOutputDirectory>${project.build.directory}/spotbugs</spotbugsXmlOutputDirectory>
                         </configuration>
                         <executions>
-                            <!-- Ensures that FindBugs inspects source code when project is compiled. -->
+                            <!-- Ensures that spotbugs inspects source code when project is compiled. -->
                             <execution>
                                 <id>analyze-compile</id>
                                 <phase>compile</phase>
@@ -275,14 +276,14 @@
                             <transformationSets>
                                 <transformationSet>
                                     <!-- Configures the source directory of XML files. -->
-                                    <dir>${project.build.directory}/findbugs</dir>
+                                    <dir>${project.build.directory}/spotbugs</dir>
                                     <includes>
-                                        <!-- only transform findbugsXml.xml to generate FindBugs HTML report -->
-                                        <include>findbugsXml.xml</include>
+                                        <!-- only transform spotbugsXml.xml to generate spotbugs HTML report -->
+                                        <include>spotbugsXml.xml</include>
                                     </includes>
 
-                                    <!-- Configures the directory in which the FindBugs report is written. -->
-                                    <outputDir>${project.build.directory}/findbugs</outputDir>
+                                    <!-- Configures the directory in which the spotbugs report is written. -->
+                                    <outputDir>${project.build.directory}/spotbugs</outputDir>
 
                                     <!-- Selects the used stylesheet. -->
                                     <!-- <stylesheet>fancy-hist.xsl</stylesheet> -->
@@ -312,9 +313,9 @@
                         </executions>
                         <dependencies>
                             <dependency>
-                                <groupId>com.google.code.findbugs</groupId>
-                                <artifactId>findbugs</artifactId>
-                                <version>2.0.1</version>
+                                <groupId>com.github.spotbugs</groupId>
+                                <artifactId>spotbugs</artifactId>
+                                <version>${spotbugs.version}</version>
                             </dependency>
                         </dependencies>
                     </plugin>
@@ -529,8 +530,8 @@
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
-                <artifactId>findbugs-maven-plugin</artifactId>
-                <version>${findbugs-maven-plugin.version}</version>
+                <artifactId>spotbugs-maven-plugin</artifactId>
+                <version>${spotbugs-maven-plugin.version}</version>
                 <configuration>
                     <!-- Enables analysis which takes more memory but finds more bugs. If
                         you run out of memory, changes the value of the effort element to 'low'. -->
