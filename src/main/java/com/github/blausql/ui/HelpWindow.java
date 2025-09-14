@@ -42,7 +42,6 @@ import com.googlecode.lanterna.gui2.TextBox;
 import com.googlecode.lanterna.input.KeyType;
 
 import java.io.InputStream;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 

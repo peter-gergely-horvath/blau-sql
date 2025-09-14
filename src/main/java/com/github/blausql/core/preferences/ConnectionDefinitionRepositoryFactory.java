@@ -66,8 +66,8 @@ public final class ConnectionDefinitionRepositoryFactory {
         if (iterator.hasNext()) {
             // Multiple implementations found, which is not allowed
             throw new IllegalStateException(
-                "Multiple ConnectionDefinitionRepositoryProvider implementations found. " +
-                "Only one custom implementation is allowed.");
+                "Multiple ConnectionDefinitionRepositoryProvider implementations found. "
+                        + "Only one custom implementation is allowed.");
         }
         
         return provider.createRepository();

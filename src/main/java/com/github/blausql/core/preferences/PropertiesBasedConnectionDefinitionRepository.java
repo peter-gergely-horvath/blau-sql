@@ -28,6 +28,7 @@ import java.util.*;
  * Default implementation of {@link ConnectionDefinitionRepository} that stores connection definitions
  * in a properties file.
  */
+// CHECKSTYLE.OFF: AvoidInlineConditionals: here, they simplify trivial methods
 final class PropertiesBasedConnectionDefinitionRepository implements ConnectionDefinitionRepository {
 
     private static final String STATEMENT_SEPARATOR = ";";
@@ -284,3 +285,5 @@ final class PropertiesBasedConnectionDefinitionRepository implements ConnectionD
         }
     }
 }
+// CHECKSTYLE.ON
+
