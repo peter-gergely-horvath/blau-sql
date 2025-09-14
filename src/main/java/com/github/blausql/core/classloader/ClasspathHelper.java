@@ -43,7 +43,7 @@ public final class ClasspathHelper {
 
         } catch (MalformedURLException e) {
 
-            throw new RuntimeException("Failed to covert to URL: " + urlString, e);
+            throw new IllegalArgumentException("Failed to covert to URL: " + urlString, e);
         }
     }
 }
