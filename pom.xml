@@ -242,10 +242,10 @@
                             <effort>Max</effort>
 
                             <!-- Location of spotbugs exclude filter file -->
-                            <excludeFilterFile>configuration/spotbugs-exclude.xml</excludeFilterFile>
+                            <excludeFilterFile>${project.basedir}/configuration/spotbugs-exclude.xml</excludeFilterFile>
 
                             <!-- Build shall not fail if problems are found -->
-                            <failOnError>fail</failOnError>
+                            <failOnError>true</failOnError>
 
                             <!-- Reports all bugs (other values are medium and max) -->
                             <threshold>Low</threshold>

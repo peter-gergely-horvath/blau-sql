@@ -1,4 +1,4 @@
-<spotbugsFilter>
+<FindBugsFilter>
     <Match>
         <Class name="~.*Window\$.*" />
         <Bug pattern="SIC_INNER_SHOULD_BE_STATIC_ANON" />
@@ -21,4 +21,4 @@
         <Bug pattern="EI_EXPOSE_REP" />
         <!-- This behaviour is intentional -->
     </Match>
-</spotbugsFilter>
+</FindBugsFilter>
