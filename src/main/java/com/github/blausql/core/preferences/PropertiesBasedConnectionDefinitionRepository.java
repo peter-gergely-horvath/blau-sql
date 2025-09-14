@@ -245,7 +245,7 @@ final class PropertiesBasedConnectionDefinitionRepository implements ConnectionD
 
             @Override
             void setValue(ConnectionDefinition cd, String value) {
-                cd.setHotkey(value != null && !value.isEmpty() ? value.charAt(0) : null);
+                cd.setStatementSeparator(value);
             }
         },
         hotkey {
