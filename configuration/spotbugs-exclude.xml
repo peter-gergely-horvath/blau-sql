@@ -21,4 +21,13 @@
         <Bug pattern="EI_EXPOSE_REP" />
         <!-- This behaviour is intentional -->
     </Match>
+    <Match>
+        <Class name="com.github.blausql.ui.util.BackgroundWorker" />
+        <Or>
+            <Method name="start" />
+            <Method name="cancel" />
+        </Or>
+        <Bug pattern="THROWS_METHOD_THROWS_RUNTIMEEXCEPTION" />
+        <!-- This behaviour is intentional -->
+    </Match>
 </FindBugsFilter>
