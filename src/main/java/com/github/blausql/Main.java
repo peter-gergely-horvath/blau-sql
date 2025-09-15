@@ -21,8 +21,7 @@ import com.github.blausql.ui.MainMenuWindow;
 
 import java.io.IOException;
 
-//CHECKSTYLE.OFF: FinalClass: must be extensible for the testing frameworks
-public class Main {
+public final class Main {
 
     static {
         // Disable Apache Commons logging completely
