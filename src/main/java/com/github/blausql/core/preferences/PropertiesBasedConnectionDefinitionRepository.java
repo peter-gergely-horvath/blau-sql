@@ -97,6 +97,21 @@ final class PropertiesBasedConnectionDefinitionRepository implements ConnectionD
 
     @Override
     public void saveConnectionDefinition(ConnectionDefinition cd) throws SaveException {
+
+        Objects.requireNonNull(cd, "Argument cd cannot be null");
+
+        if (cd.getConnectionName() == null || cd.getConnectionName().isBlank()) {
+            throw new SaveException("A connection must have a non-empty name");
+        }
+
+        if (cd.getConnectionName().split(PROPERTY_SEPARATOR).length > 1) {
+            // names with a dot inside would interfere with our internal property storage, prevent them!
+            throw new SaveException(String.format(
+                    "A connection name cannot contain the character: '%s'",
+                    PROPERTY_SEPARATOR.replaceAll("\\\\", "")));
+        }
+
+
         Character hotkey = cd.getHotkey();
         if (hotkey != null) {
             List<ConnectionDefinition> existingConnectionDefinitions;
