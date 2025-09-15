@@ -37,6 +37,10 @@ public final class ExceptionUtils {
         String localizedMessage = t.getLocalizedMessage();
         String message = t.getMessage();
 
+        if (t instanceof ClassNotFoundException) {
+            sb.append("Class not found: ");
+        }
+
         if (localizedMessage != null && !"".equals(localizedMessage)) {
 
             sb.append(localizedMessage).append(TextUtils.LINE_SEPARATOR);
