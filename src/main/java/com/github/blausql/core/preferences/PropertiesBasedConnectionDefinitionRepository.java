@@ -87,7 +87,9 @@ final class PropertiesBasedConnectionDefinitionRepository implements ConnectionD
 
             ArrayList<ConnectionDefinition> connectionDefinitions = new ArrayList<>(map.values());
             connectionDefinitions.sort(CONNECTION_DEFINITION_COMPARATOR);
+
             return connectionDefinitions;
+
         } catch (IOException e) {
             throw new LoadException("Failed to load connection definitions", e);
         }
@@ -105,12 +107,17 @@ final class PropertiesBasedConnectionDefinitionRepository implements ConnectionD
             }
 
             for (ConnectionDefinition existingConnectionDefinition : existingConnectionDefinitions) {
-                if (!Objects.equals(existingConnectionDefinition.getConnectionName(), cd.getConnectionName())
+
+                Character existingHotkey = existingConnectionDefinition.getHotkey();
+
+                if (existingHotkey != null
+                        && !Objects.equals(existingConnectionDefinition.getConnectionName(), cd.getConnectionName())
                         && Objects.equals(
                             Character.toUpperCase(hotkey),
                             Character.toUpperCase(existingConnectionDefinition.getHotkey()))) {
 
                     String connectionName = existingConnectionDefinition.getConnectionName();
+
                     throw new SaveException("Hotkey '" + hotkey + "' is already used by: " + connectionName);
                 }
             }
@@ -157,10 +164,12 @@ final class PropertiesBasedConnectionDefinitionRepository implements ConnectionD
             throw new RuntimeException("Failed to delete connection definition", e);
         }
     }
-    
+
     @Override
     public ConnectionDefinition findConnectionDefinitionByName(String connectionName) throws LoadException {
+
         List<ConnectionDefinition> connections = getConnectionDefinitions();
+
         for (ConnectionDefinition connection : connections) {
             if (connectionName.equalsIgnoreCase(connection.getConnectionName())) {
                 return connection;
