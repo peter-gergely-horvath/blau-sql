@@ -54,13 +54,12 @@ public final class DatabaseConnectionFactory {
             return DatabaseConnection.getInstance(cd);
 
         } catch (MalformedURLException e) {
-            throw new RuntimeException(
-                    "Malformed URL: " + e.getMessage());
+            throw new IllegalArgumentException("Malformed URL in configured classpath: " + e.getMessage(), e);
 
         } catch (ReflectiveOperationException | SQLException e) {
-            throw new RuntimeException("Failure loading the JDBC driver", e);
+            throw new IllegalStateException("Failure loading the JDBC driver", e);
         } catch (LoadException e) {
-            throw new RuntimeException("Failure loading Configuration", e);
+            throw new IllegalStateException("Failure loading configuration", e);
         } finally {
             Thread.currentThread().setContextClassLoader(originalContextClassLoader);
         }
