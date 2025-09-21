@@ -42,6 +42,10 @@ public final class ConfigurationRepository {
         private static final String CLASSPATH = "classpath";
     }
 
+    private ConfigurationRepository() {
+        // disallow external instances
+    }
+
     public void saveClasspath(List<String> entries) throws SaveException {
 
         try {
