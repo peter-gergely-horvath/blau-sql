@@ -33,7 +33,40 @@ final class PropertiesBasedConnectionDefinitionRepository implements ConnectionD
 
     private static final String STATEMENT_SEPARATOR = ";";
 
-    private static final String PROPERTY_SEPARATOR = "\\.";
+    private static final char PROPERTY_SEPARATOR = '.';
+
+    private static final class ConnectionPropertyReference {
+
+        private final String connectionName;
+        private final String propertyName;
+
+        private ConnectionPropertyReference(String connectionName, String propertyName) {
+            this.connectionName = connectionName;
+            this.propertyName = propertyName;
+        }
+
+        private static ConnectionPropertyReference fromString(String key) {
+            int propertySeparatorIndex = key.lastIndexOf(PROPERTY_SEPARATOR);
+            if (propertySeparatorIndex == -1) {
+                throw new IllegalStateException("Property Separator not found: " + key);
+            }
+
+            final String connectionDefinitionName = key.substring(0, propertySeparatorIndex);
+            final String propertyName = key.substring(propertySeparatorIndex + 1);
+
+            return new ConnectionPropertyReference(connectionDefinitionName, propertyName);
+        }
+
+        @Override
+        public String toString() {
+            return "ConnectionPropertyReference{" +
+                    "connectionName='" + connectionName + '\'' +
+                    ", propertyName='" + propertyName + '\'' +
+                    '}';
+        }
+    }
+
+
 
     private static final PropertyStore CONNECTIONS_PROPERTY_STORE = PropertyStoreFactory.getConnectionsPropertyStore();
 
@@ -71,17 +104,12 @@ final class PropertiesBasedConnectionDefinitionRepository implements ConnectionD
                 final String key = entry.getKey().toString();
                 final String value = entry.getValue().toString();
 
-                final String[] splitString = key.split(PROPERTY_SEPARATOR);
-                if (splitString.length != 2) {
-                    throw new IllegalStateException("Unknown property found: " + key);
-                }
+                ConnectionPropertyReference propertyReference = ConnectionPropertyReference.fromString(key);
 
-                final String connectionDefinitionName = splitString[0];
-                final String propertyName = splitString[1];
+                ConnectionDefinition cd = map.computeIfAbsent(
+                        propertyReference.connectionName, ConnectionDefinition::new);
 
-                ConnectionDefinition cd = map.computeIfAbsent(connectionDefinitionName, ConnectionDefinition::new);
-
-                PropertyMapping propertyMapping = PropertyMapping.valueOf(propertyName);
+                PropertyMapping propertyMapping = PropertyMapping.valueOf(propertyReference.propertyName);
                 propertyMapping.setValue(cd, value);
             }
 
@@ -104,45 +132,17 @@ final class PropertiesBasedConnectionDefinitionRepository implements ConnectionD
             throw new SaveException("A connection must have a non-empty name");
         }
 
-        if (cd.getConnectionName().split(PROPERTY_SEPARATOR).length > 1) {
-            // names with a dot inside would interfere with our internal property storage, prevent them!
-            throw new SaveException(String.format(
-                    "A connection name cannot contain the character: '%s'",
-                    PROPERTY_SEPARATOR.replaceAll("\\\\", "")));
-        }
-
-
         Character hotkey = cd.getHotkey();
         if (hotkey != null) {
-            List<ConnectionDefinition> existingConnectionDefinitions;
-            try {
-                existingConnectionDefinitions = getConnectionDefinitions();
-            } catch (LoadException e) {
-                existingConnectionDefinitions = Collections.emptyList();
-            }
-
-            for (ConnectionDefinition existingConnectionDefinition : existingConnectionDefinitions) {
-
-                Character existingHotkey = existingConnectionDefinition.getHotkey();
-
-                if (existingHotkey != null
-                        && !Objects.equals(existingConnectionDefinition.getConnectionName(), cd.getConnectionName())
-                        && Objects.equals(
-                            Character.toUpperCase(hotkey),
-                            Character.toUpperCase(existingConnectionDefinition.getHotkey()))) {
-
-                    String connectionName = existingConnectionDefinition.getConnectionName();
-
-                    throw new SaveException("Hotkey '" + hotkey + "' is already used by: " + connectionName);
-                }
-            }
+            checkNoExistingConnectionDefinitionUsesTheHotKey(cd, hotkey);
         }
 
         try {
             Properties properties = CONNECTIONS_PROPERTY_STORE.loadProperties();
 
             // Remove all existing properties for this connection
-            properties.keySet().removeIf(key -> key.toString().startsWith(cd.getConnectionName() + PROPERTY_SEPARATOR));
+            properties.keySet().removeIf(key -> ConnectionPropertyReference.fromString(key.toString())
+                    .connectionName.equalsIgnoreCase(cd.getConnectionName()));
 
             // Add the updated properties
             for (PropertyMapping propertyMapping : PropertyMapping.values()) {
@@ -150,8 +150,37 @@ final class PropertiesBasedConnectionDefinitionRepository implements ConnectionD
             }
 
             CONNECTIONS_PROPERTY_STORE.persistProperties(properties);
+
         } catch (IOException e) {
             throw new SaveException("Failed to save connection definition", e);
+        }
+    }
+
+    private void checkNoExistingConnectionDefinitionUsesTheHotKey(ConnectionDefinition cd, Character hotkey)
+            throws SaveException {
+
+        List<ConnectionDefinition> existingConnectionDefinitions;
+        try {
+            existingConnectionDefinitions = getConnectionDefinitions();
+        } catch (LoadException e) {
+            // unlike righteous error handling, this allows recovering from issues, e.g. a corrupted config file.
+            existingConnectionDefinitions = Collections.emptyList();
+        }
+
+        for (ConnectionDefinition existingConnectionDefinition : existingConnectionDefinitions) {
+
+            Character existingHotkey = existingConnectionDefinition.getHotkey();
+
+            if (existingHotkey != null
+                    && !Objects.equals(existingConnectionDefinition.getConnectionName(), cd.getConnectionName())
+                    && Objects.equals(
+                        Character.toUpperCase(hotkey),
+                        Character.toUpperCase(existingConnectionDefinition.getHotkey()))) {
+
+                String connectionName = existingConnectionDefinition.getConnectionName();
+
+                throw new SaveException("Hotkey '" + hotkey + "' is already used by: " + connectionName);
+            }
         }
     }
 
@@ -164,7 +193,8 @@ final class PropertiesBasedConnectionDefinitionRepository implements ConnectionD
             Iterator<Object> iterator = properties.keySet().iterator();
             while (iterator.hasNext()) {
                 String key = iterator.next().toString();
-                if (key.split(PROPERTY_SEPARATOR)[0].equals(connectionName)) {
+
+                if (ConnectionPropertyReference.fromString(key).connectionName.equals(connectionName)) {
                     iterator.remove();
                     foundInProperties = true;
                 }
@@ -194,7 +224,7 @@ final class PropertiesBasedConnectionDefinitionRepository implements ConnectionD
     }
 
     private enum PropertyMapping {
-        connectionName {
+        ConnectionName {
             @Override
             String getValue(ConnectionDefinition cd) {
                 return cd.getConnectionName();
@@ -205,7 +235,7 @@ final class PropertiesBasedConnectionDefinitionRepository implements ConnectionD
                 cd.setConnectionName(value);
             }
         },
-        driverClassName {
+        DriverClassName {
             @Override
             String getValue(ConnectionDefinition cd) {
                 return cd.getDriverClassName();
@@ -216,7 +246,7 @@ final class PropertiesBasedConnectionDefinitionRepository implements ConnectionD
                 cd.setDriverClassName(value);
             }
         },
-        jdbcUrl {
+        JdbcUrl {
             @Override
             String getValue(ConnectionDefinition cd) {
                 return cd.getJdbcUrl();
@@ -227,7 +257,7 @@ final class PropertiesBasedConnectionDefinitionRepository implements ConnectionD
                 cd.setJdbcUrl(value);
             }
         },
-        userName {
+        UserName {
             @Override
             String getValue(ConnectionDefinition cd) {
                 return cd.getUserName();
@@ -238,7 +268,7 @@ final class PropertiesBasedConnectionDefinitionRepository implements ConnectionD
                 cd.setUserName(value);
             }
         },
-        password {
+        Password {
             @Override
             String getValue(ConnectionDefinition cd) {
                 return cd.getPassword();
@@ -249,7 +279,7 @@ final class PropertiesBasedConnectionDefinitionRepository implements ConnectionD
                 cd.setPassword(value);
             }
         },
-        loginAutomatically {
+        LoginAutomatically {
             @Override
             String getValue(ConnectionDefinition cd) {
                 return Boolean.toString(cd.getLoginAutomatically());
@@ -260,7 +290,7 @@ final class PropertiesBasedConnectionDefinitionRepository implements ConnectionD
                 cd.setLoginAutomatically(Boolean.parseBoolean(value));
             }
         },
-        statementSeparator {
+        StatementSeparator {
             @Override
             String getValue(ConnectionDefinition cd) {
                 String theStatementSeparator = cd.getStatementSeparator();
@@ -272,7 +302,7 @@ final class PropertiesBasedConnectionDefinitionRepository implements ConnectionD
                 cd.setStatementSeparator(value);
             }
         },
-        hotkey {
+        Hotkey {
             @Override
             String getValue(ConnectionDefinition cd) {
                 Character hotkey = cd.getHotkey();
@@ -284,7 +314,7 @@ final class PropertiesBasedConnectionDefinitionRepository implements ConnectionD
                 cd.setHotkey(value != null && !value.isEmpty() ? value.charAt(0) : null);
             }
         },
-        order {
+        Order {
             @Override
             String getValue(ConnectionDefinition cd) {
                 Integer order = cd.getOrder();
