@@ -88,11 +88,8 @@ public final class DatabaseConnection {
 
                         queryResult = ROW_MAPPER_RESULT_SET_EXTRACTOR.extractData(resultSet);
 
-                    } catch (SQLException e) {
-
-                        throw new RuntimeException("ResultSet processing failed", e);
-
                     }
+
                 } else {
                     updateCount = stmt.getUpdateCount();
 
