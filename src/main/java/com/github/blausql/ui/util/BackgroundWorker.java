@@ -86,7 +86,7 @@ public abstract class BackgroundWorker<R> {
 
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new RuntimeException(e);
+            throw new IllegalStateException("Interrupted while acquiring lock to start background task", e);
         }
     }
 
@@ -111,7 +111,7 @@ public abstract class BackgroundWorker<R> {
 
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new RuntimeException(e);
+            throw new IllegalStateException("Interrupted while acquiring lock to cancel background task", e);
         }
     }
 
