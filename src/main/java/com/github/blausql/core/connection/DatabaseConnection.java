@@ -14,95 +14,117 @@
  * limitations under the License.
  */
 
- 
 package com.github.blausql.core.connection;
 
-import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.ColumnMapRowMapper;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapperResultSetExtractor;
-import org.springframework.jdbc.core.StatementCallback;
-import org.springframework.jdbc.datasource.SingleConnectionDataSource;
-
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public final class DatabaseConnection {
 
-    private static final RowMapperResultSetExtractor<Map<String, Object>> ROW_MAPPER_RESULT_SET_EXTRACTOR =
-            new RowMapperResultSetExtractor<>(new ColumnMapRowMapper());
+    private final String url;
+    private final String username;
+    private final String password;
+    private final String driverClassName;
+    private Connection connection;
 
-    private final JdbcTemplate jdbcTemplate;
-
-    static DatabaseConnection fromConnectionDefinition(
-            ConnectionDefinition cd) {
+    static DatabaseConnection fromConnectionDefinition(ConnectionDefinition cd) {
         return new DatabaseConnection(cd.getDriverClassName(),
                 cd.getJdbcUrl(), cd.getUserName(), cd.getPassword());
     }
 
     DatabaseConnection(String driverClassName, String url, String username, String password) {
-
-        SingleConnectionDataSource dataSource = new SingleConnectionDataSource();
-        if (driverClassName != null && !"".equals(driverClassName.trim())) {
-            dataSource.setDriverClassName(driverClassName);
-        }
-
-        dataSource.setUrl(url);
-        dataSource.setUsername(username);
-        dataSource.setPassword(password);
-
-        dataSource.setSuppressClose(false);
-
-        this.jdbcTemplate = new JdbcTemplate(dataSource);
+        this.driverClassName = driverClassName;
+        this.url = url;
+        this.username = username;
+        this.password = password;
     }
 
     void establishConnection() {
         try {
-
-            ((SingleConnectionDataSource) jdbcTemplate.getDataSource()).initConnection();
-
-        } catch (SQLException e) {
+            if (driverClassName != null && !driverClassName.trim().isEmpty()) {
+                Class.forName(driverClassName);
+            }
+            this.connection = DriverManager.getConnection(url, username, password);
+        } catch (ClassNotFoundException | SQLException e) {
             throw new RuntimeException("Failed to establish connection", e);
         }
     }
 
-
-    public StatementResult executeStatement(final String sql, int limit) {
-
-        jdbcTemplate.setMaxRows(limit);
-
-         return jdbcTemplate.execute(new StatementCallback<StatementResult>() {
-
-            public StatementResult doInStatement(Statement stmt)
-                    throws SQLException, DataAccessException {
-
-                List<Map<String, Object>> queryResult = null;
-                int updateCount = -1;
-
-                final boolean yieldedResultSet = stmt.execute(sql);
-                if (yieldedResultSet) {
-                    try (ResultSet resultSet = stmt.getResultSet()) {
-
-                        queryResult = ROW_MAPPER_RESULT_SET_EXTRACTOR.extractData(resultSet);
-
-                    }
-
-                } else {
-                    updateCount = stmt.getUpdateCount();
-
-                }
-
-                return new StatementResult(yieldedResultSet, queryResult, updateCount);
+    public StatementResult executeStatement(String sql, int limit) {
+        try (Statement stmt = connection.createStatement()) {
+            if (limit > 0) {
+                stmt.setMaxRows(limit);
             }
-        });
+            
+            boolean yieldedResultSet = stmt.execute(sql);
+            
+            if (yieldedResultSet) {
+                try (ResultSet resultSet = stmt.getResultSet()) {
+                    List<Map<String, Object>> queryResult = extractResultSet(resultSet, limit);
+                    return new StatementResult(true, queryResult, -1);
+                }
+            } else {
+                int updateCount = stmt.getUpdateCount();
+                return new StatementResult(false, null, updateCount);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error executing SQL statement", e);
+        }
+    }
+    
+    private List<Map<String, Object>> extractResultSet(ResultSet resultSet, int limit) throws SQLException {
+        List<Map<String, Object>> resultList = new ArrayList<>();
+        ResultSetMetaData metaData = resultSet.getMetaData();
+        int columnCount = metaData.getColumnCount();
 
+        // Resolve column labels once for efficiency
+        List<String> columnNames = new ArrayList<>(columnCount);
+        for (int i = 1; i <= columnCount; i++) {
+            String columnName = metaData.getColumnLabel(i);
+            if (columnName == null || columnName.isEmpty()) {
+                columnName = metaData.getColumnName(i);
+            }
+            columnNames.add(columnName);
+        }
+
+        int processed = 0;
+        while (resultSet.next()) {
+            Map<String, Object> row = new HashMap<>();
+            for (int i = 1; i <= columnCount; i++) {
+                String columnName = columnNames.get(i - 1);
+                row.put(columnName, resultSet.getObject(i));
+            }
+            resultList.add(row);
+
+            processed++;
+            if (limit > 0 && processed >= limit) {
+                break; // Defensive cap in case the driver ignores Statement.setMaxRows
+            }
+        }
+
+        return resultList;
     }
 
 
     public void disconnect() {
-        ((SingleConnectionDataSource) jdbcTemplate.getDataSource()).resetConnection();
+        if (connection != null) {
+            try {
+                if (!connection.isClosed()) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                throw new RuntimeException("Error disconnecting from database", e);
+            } finally {
+                connection = null;
+            }
+        }
     }
 }
