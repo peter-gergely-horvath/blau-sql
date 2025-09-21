@@ -31,6 +31,20 @@
         <!-- This behaviour is intentional -->
     </Match>
 
+    <!-- Centralized suppressions added by request -->
+    <Match>
+        <Class name="com.github.blausql.core.connection.DatabaseConnection" />
+        <Method name="executeStatement" />
+        <Bug pattern="SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE" />
+        <!-- Interactive SQL client: executing user-provided SQL is intentional. -->
+    </Match>
+
+    <Match>
+        <Class name="com.github.blausql.ui.components.ApplicationWindow$ExceptionHandledAction" />
+        <Bug pattern="THROWS_METHOD_THROWS_CLAUSE_BASIC_EXCEPTION" />
+        <!-- UI actions may throw various checked exceptions; centrally handled and shown to users. -->
+    </Match>
+
     <Match>
         <Or>
             <Class name="com.github.blausql.core.connection.DatabaseConnectionFactory" />
