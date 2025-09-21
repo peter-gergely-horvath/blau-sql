@@ -65,7 +65,7 @@ final class ExecuteStatementBackgroundWorker extends BackgroundWorker<List<State
     }
 
     @Override
-    protected List<StatementResult> doBackgroundTask() {
+    protected List<StatementResult> doBackgroundTask() throws InterruptedException {
         WindowBasedTextGUI windowBasedTextGUI = terminalUI.getWindowBasedTextGUI();
         Screen screen = windowBasedTextGUI.getScreen();
         TerminalSize terminalSize = screen.getTerminalSize();
@@ -74,7 +74,7 @@ final class ExecuteStatementBackgroundWorker extends BackgroundWorker<List<State
         List<StatementResult> results = new ArrayList<>();
         for (String sql : sqlCommands) {
             if (Thread.currentThread().isInterrupted()) {
-                throw new RuntimeException("Statement execution was interrupted");
+                throw new InterruptedException("Statement execution was interrupted");
             }
             results.add(databaseConnection.executeStatement(sql, limit));
         }
