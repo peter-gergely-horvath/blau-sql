@@ -27,7 +27,9 @@ final class PropertyStoreFactory {
 
     private static final File USER_HOME = new File(System.getProperty("user.home"));
 
-    public static final File STORAGE_DIRECTORY = new File(USER_HOME, ".blauSQL");
+    public static final File USER_CONFIG_DIRECTORY = new File(USER_HOME, ".config");
+
+    public static final File STORAGE_DIRECTORY = new File(USER_CONFIG_DIRECTORY, "BlauSQL");
 
     private static final File SETTINGS_PROPERTIES_FILE = new File(STORAGE_DIRECTORY, "settings.properties");
 
