@@ -143,7 +143,8 @@ public final class ExceptionUtils {
             return stringWriter.toString();
 
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            // should not happen
+            throw new IllegalStateException(e);
         }
     }
 }

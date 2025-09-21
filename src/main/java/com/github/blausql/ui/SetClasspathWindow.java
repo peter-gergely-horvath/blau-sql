@@ -161,7 +161,7 @@ final class SetClasspathWindow extends ApplicationWindow {
 
                 for (String path : classPathStrings) {
                     if (!"".equals(path) && !new File(path).exists()) {
-                        throw new RuntimeException("Not found: " + path);
+                        throw new SaveException("Not found: " + path);
                     }
                 }
 
