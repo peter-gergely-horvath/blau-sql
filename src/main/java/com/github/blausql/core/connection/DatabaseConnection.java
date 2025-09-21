@@ -35,24 +35,24 @@ public final class DatabaseConnection {
     private final String driverClassName;
     private Connection connection;
 
-    static DatabaseConnection fromConnectionDefinition(ConnectionDefinition cd) {
-        return new DatabaseConnection(cd.getDriverClassName(),
+    static DatabaseConnection getInstance(ConnectionDefinition cd) {
+
+        DatabaseConnection connection = new DatabaseConnection(cd.getDriverClassName(),
                 cd.getJdbcUrl(), cd.getUserName(), cd.getPassword());
+
+        connection.establishConnection();
+
+        return connection;
     }
 
-    DatabaseConnection(String driverClassName, String url, String username, String password) {
+    private DatabaseConnection(String driverClassName, String url, String username, String password) {
         this.driverClassName = driverClassName;
         this.url = url;
         this.username = username;
         this.password = password;
     }
 
-    void establishConnection() {
-        // Backward-compatible method: now simply ensures a connection is available
-        ensureConnection();
-    }
-
-    private void ensureConnection() {
+    private void establishConnection() {
         try {
             if (connection == null || connection.isClosed()) {
                 if (driverClassName != null && !driverClassName.trim().isEmpty()) {
@@ -67,7 +67,9 @@ public final class DatabaseConnection {
 
     public StatementResult executeStatement(String sql, int limit) {
 
-        ensureConnection();
+        if (connection == null) {
+            throw new IllegalStateException("Connection is closed");
+        }
 
         try (Statement stmt = connection.createStatement()) {
             if (limit > 0) {
@@ -124,7 +126,7 @@ public final class DatabaseConnection {
     }
 
 
-    public void disconnect() {
+    public void close() {
         if (connection != null) {
             try {
                 if (!connection.isClosed()) {

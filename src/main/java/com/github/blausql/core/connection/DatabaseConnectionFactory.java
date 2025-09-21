@@ -51,11 +51,7 @@ public final class DatabaseConnectionFactory {
             }
 
 
-            DatabaseConnection databaseConnection = DatabaseConnection.fromConnectionDefinition(cd);
-
-            databaseConnection.establishConnection();
-
-            return databaseConnection;
+            return DatabaseConnection.getInstance(cd);
 
         } catch (MalformedURLException e) {
             throw new RuntimeException(

@@ -311,7 +311,7 @@ public final class SqlQueryWindow extends ApplicationWindow {
                 MessageDialogButton.OK, MessageDialogButton.Cancel);
 
         if (dialogResult == MessageDialogButton.OK) {
-            databaseConnection.disconnect();
+            databaseConnection.close();
             close();
         }
     }
