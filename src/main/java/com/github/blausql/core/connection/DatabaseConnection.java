@@ -61,7 +61,7 @@ public final class DatabaseConnection {
                 this.connection = DriverManager.getConnection(url, username, password);
             }
         } catch (ClassNotFoundException | SQLException e) {
-            throw new RuntimeException("Failed to establish connection", e);
+            throw new IllegalStateException("Failed to establish connection", e);
         }
     }
 
@@ -88,7 +88,7 @@ public final class DatabaseConnection {
                 return new StatementResult(false, null, updateCount);
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Error executing SQL statement", e);
+            throw new QueryExecutionException(e);
         }
     }
     
@@ -133,7 +133,7 @@ public final class DatabaseConnection {
                     connection.close();
                 }
             } catch (SQLException e) {
-                throw new RuntimeException("Error disconnecting from database", e);
+                throw new IllegalStateException("Error disconnecting from database", e);
             } finally {
                 connection = null;
             }
