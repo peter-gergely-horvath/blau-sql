@@ -35,6 +35,7 @@
         <Or>
             <Class name="com.github.blausql.core.connection.DatabaseConnectionFactory" />
             <Class name="com.github.blausql.core.connection.DatabaseConnection" />
+            <Class name="com.github.blausql.ui.sql.ExecuteStatementBackgroundWorker" />
         </Or>
 
 
@@ -44,6 +45,19 @@
         exceptions with human friendly explanations.
         -->
     </Match>
+
+
+    <Match>
+        <Or>
+            <Class name="com.github.blausql.ui.DisplayThrowableDialog" />
+        </Or>
+
+
+        <Bug pattern="MC_OVERRIDABLE_METHOD_CALL_IN_CONSTRUCTOR" />
+        <!-- Detection is incorrect. -->
+    </Match>
+
+
 
 
 

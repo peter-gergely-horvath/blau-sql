@@ -31,7 +31,7 @@ import java.nio.file.Files;
 import java.util.List;
 import java.util.Optional;
 
-public class DisplayThrowableDialog extends ApplicationWindow {
+public final class DisplayThrowableDialog extends ApplicationWindow {
 
     private interface SelectablePanel extends Component {
         void onSelected();

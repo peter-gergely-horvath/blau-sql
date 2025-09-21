@@ -31,7 +31,7 @@ import com.googlecode.lanterna.input.KeyType;
 
 import java.util.List;
 
-class ManageConnectionsWindow extends ApplicationWindow {
+final class ManageConnectionsWindow extends ApplicationWindow {
 
     ManageConnectionsWindow(TerminalUI terminalUI) {
 
