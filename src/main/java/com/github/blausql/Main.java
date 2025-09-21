@@ -47,7 +47,7 @@ public final class Main {
             exitApplication(0);
 
         } catch (IOException ex) {
-            // handles cases TerminalUI.getInstance() throws an exception, too
+            // handles cases when new StandardTerminalUI() throws an exception, too
             handleUnexpectedException(Thread.currentThread(), ex);
         }
     }

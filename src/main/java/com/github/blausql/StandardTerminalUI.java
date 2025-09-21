@@ -61,17 +61,12 @@ public final class StandardTerminalUI implements TerminalUI {
     private final Screen screen;
     private final WindowBasedTextGUI windowBasedTextGUI;
 
-    public StandardTerminalUI() {
-        try {
-            Terminal terminal = new DefaultTerminalFactory().createTerminal();
-            screen = new TerminalScreen(terminal);
-            screen.startScreen();
+    public StandardTerminalUI() throws IOException {
+        Terminal terminal = new DefaultTerminalFactory().createTerminal();
+        screen = new TerminalScreen(terminal);
+        screen.startScreen();
 
-            windowBasedTextGUI = new MultiWindowTextGUI(screen);
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        windowBasedTextGUI = new MultiWindowTextGUI(screen);
     }
 
     @Override
