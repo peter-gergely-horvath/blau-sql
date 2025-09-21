@@ -5,15 +5,28 @@
         <!-- Windows may have Runnable classes as members -->
     </Match>
     <Match>
-        <Class name="com.github.blausql.core.connection.DatabaseConnection$1" />
-        <Bug pattern="SIC_INNER_SHOULD_BE_STATIC_ANON" />
-        <!-- Inline Spring StatementCallback -->
+        <Class name="com.github.blausql.core.connection.StatementResult" />
+        <Method name="getQueryResult" />
+        <Bug pattern="EI_EXPOSE_REP" />
+        <!-- Acceptable, as the class is used to pass data -->
     </Match>
     <Match>
-        <Class name="com.github.blausql.core.connection.DatabaseConnection$1" />
-        <Method name="doInStatement" />
+        <Class name="com.github.blausql.ui.sql.ExecuteStatementBackgroundWorker" />
+        <Method name="doBackgroundTask" />
         <Bug pattern="SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE" />
         <!-- The passed string is coming from the user -->
+    </Match>
+    <Match>
+        <Class name="com.github.blausql.ui.util.BackgroundWorker" />
+        <Method name="doBackgroundTask" />
+        <Bug pattern="THROWS_METHOD_THROWS_CLAUSE_BASIC_EXCEPTION" />
+        <!-- Framework method, that must handle all possible types actually used -->
+    </Match>
+    <Match>
+        <Class name="com.github.blausql.core.preferences.ConnectionDefinitionRepositoryFactory" />
+        <Method name="getRepository" />
+        <Bug pattern="MS_EXPOSE_REP" />
+        <!-- The returned type is an interface, and the object shall not be mutable -->
     </Match>
     <Match>
         <Class name="com.github.blausql.StandardTerminalUI" />
