@@ -48,17 +48,27 @@ public final class DatabaseConnection {
     }
 
     void establishConnection() {
+        // Backward-compatible method: now simply ensures a connection is available
+        ensureConnection();
+    }
+
+    private void ensureConnection() {
         try {
-            if (driverClassName != null && !driverClassName.trim().isEmpty()) {
-                Class.forName(driverClassName);
+            if (connection == null || connection.isClosed()) {
+                if (driverClassName != null && !driverClassName.trim().isEmpty()) {
+                    Class.forName(driverClassName);
+                }
+                this.connection = DriverManager.getConnection(url, username, password);
             }
-            this.connection = DriverManager.getConnection(url, username, password);
         } catch (ClassNotFoundException | SQLException e) {
             throw new RuntimeException("Failed to establish connection", e);
         }
     }
 
     public StatementResult executeStatement(String sql, int limit) {
+
+        ensureConnection();
+
         try (Statement stmt = connection.createStatement()) {
             if (limit > 0) {
                 stmt.setMaxRows(limit);
