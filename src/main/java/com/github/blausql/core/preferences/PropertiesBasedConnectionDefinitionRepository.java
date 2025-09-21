@@ -18,6 +18,7 @@ package com.github.blausql.core.preferences;
 
 import com.github.blausql.core.connection.ConnectionDefinition;
 import com.github.blausql.spi.connections.ConnectionDefinitionRepository;
+import com.github.blausql.spi.connections.DeleteException;
 import com.github.blausql.spi.connections.LoadException;
 import com.github.blausql.spi.connections.SaveException;
 
@@ -185,7 +186,7 @@ final class PropertiesBasedConnectionDefinitionRepository implements ConnectionD
     }
 
     @Override
-    public void deleteConnectionDefinitionByName(String connectionName) {
+    public void deleteConnectionDefinitionByName(String connectionName) throws DeleteException {
         try {
             boolean foundInProperties = false;
             Properties properties = CONNECTIONS_PROPERTY_STORE.loadProperties();
@@ -205,8 +206,9 @@ final class PropertiesBasedConnectionDefinitionRepository implements ConnectionD
             }
 
             CONNECTIONS_PROPERTY_STORE.persistProperties(properties);
+
         } catch (IOException e) {
-            throw new RuntimeException("Failed to delete connection definition", e);
+            throw new DeleteException("Failed to delete connection definition", e);
         }
     }
 
