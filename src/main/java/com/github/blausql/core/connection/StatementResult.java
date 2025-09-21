@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
- 
 package com.github.blausql.core.connection;
-
-import org.springframework.util.Assert;
 
 import java.util.List;
 import java.util.Map;
@@ -29,8 +26,7 @@ public final class StatementResult {
     private final int updateCount;
 
     StatementResult(boolean isResultSet,
-                    List<Map<String, Object>> queryResult, int updateCount) {
-
+                   List<Map<String, Object>> queryResult, int updateCount) {
         this.isResultSet = isResultSet;
         this.queryResult = queryResult;
         this.updateCount = updateCount;
@@ -41,12 +37,16 @@ public final class StatementResult {
     }
 
     public List<Map<String, Object>> getQueryResult() {
-        Assert.isTrue(isResultSet, "Statement yielded update count");
+        if (!isResultSet) {
+            throw new IllegalStateException("Statement yielded update count, not a result set");
+        }
         return queryResult;
     }
 
     public int getUpdateCount() {
-        Assert.isTrue(!isResultSet, "Statement yielded result set");
+        if (isResultSet) {
+            throw new IllegalStateException("Statement yielded result set, not an update count");
+        }
         return updateCount;
     }
 }
