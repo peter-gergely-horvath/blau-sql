@@ -59,10 +59,10 @@ final class PropertiesBasedConnectionDefinitionRepository implements ConnectionD
 
         @Override
         public String toString() {
-            return "ConnectionPropertyReference{" +
-                    "connectionName='" + connectionName + '\'' +
-                    ", propertyName='" + propertyName + '\'' +
-                    '}';
+            return "ConnectionPropertyReference{"
+                    + "connectionName='" + connectionName + '\''
+                    + ", propertyName='" + propertyName + '\''
+                    + '}';
         }
     }
 
