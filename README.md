@@ -13,12 +13,13 @@ It connects to any JDBC-compatible database and runs on any system with Java ins
 
 ## Why BlauSQL?
 
-Traditional terminal database tools are often clunky and slow. BlauSQL provides 
-an intuitive menu interface that gets you connected and querying quickly - 
-typically in just two keystrokes with saved connections.
+Traditional terminal database tools require memorizing database-specific commands 
+and syntax. BlauSQL provides a universal, menu-driven interface that works 
+consistently across all JDBC-compatible databases - typically getting you connected 
+and querying in just two keystrokes with saved connections. 
 
-Particularly useful when working remotely on Linux/Unix servers through SSH 
-sessions, where GUI clients aren't available or practical.
+Particularly useful when working remotely on Linux/Unix servers through SSH sessions, 
+where GUI clients aren't available or practical.
 
 Perfect for:
 - Quick queries during SSH sessions on remote servers
@@ -31,3 +32,9 @@ Perfect for:
 - Java 11 or higher
 - JDBC drivers for your databases
 - Terminal access
+
+## License
+
+BlauSQL is released under the 
+[Apache License Version 2.0](https://www.apache.org/licenses/LICENSE-2.0)
+
