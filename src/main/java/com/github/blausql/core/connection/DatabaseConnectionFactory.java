@@ -50,30 +50,61 @@ public final class DatabaseConnectionFactory {
                 initDriver(driverClassName);
             }
 
+            String jdbcUrl = cd.getJdbcUrl();
+            String userName = cd.getUserName();
+            String password = cd.getPassword();
 
-            return DatabaseConnection.getInstance(cd);
+            Connection connection = DriverManager.getConnection(jdbcUrl, userName, password);
+
+            return new DatabaseConnection(connection);
+
 
         } catch (MalformedURLException e) {
             throw new IllegalArgumentException("Malformed URL in configured classpath: " + e.getMessage(), e);
 
-        } catch (ReflectiveOperationException | SQLException e) {
+        } catch (SQLException e) {
+            throw new IllegalStateException("Failure establishing the connection", e);
+
+        } catch (ReflectiveOperationException e) {
             throw new IllegalStateException("Failure loading the JDBC driver", e);
+
         } catch (LoadException e) {
             throw new IllegalStateException("Failure loading configuration", e);
+
         } finally {
+
             Thread.currentThread().setContextClassLoader(originalContextClassLoader);
         }
-
-
     }
 
     private static void initDriver(String driverClassName) throws ReflectiveOperationException, SQLException {
+
+        /*
+        Work-around for the limitation of DriverManager, that prevents loading a JDBC driver
+        from a custom class loader: we manually register the driver by instantiating it via reflection,
+        and wrapping it in a DelegatingDriver, which delegates all calls to the actual driver instance.
+
+        DriverManager perform tasks using the immediate caller's class loader: Guideline 9-9 / ACCESS-9:
+        https://www.oracle.com/java/technologies/javase/seccodeguide.html
+
+        This work-around is based on the StackOverflow thread:
+        https://stackoverflow.com/questions/288828/how-to-use-a-jdbc-driver-from-an-arbitrary-location/288941
+         */
+
         ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
 
-        @SuppressWarnings("unchecked")
-        Class<Driver> driverClass = (Class<Driver>) Class.forName(driverClassName, true, contextClassLoader);
+        Class<?> loadedClass = Class.forName(driverClassName,     true, contextClassLoader);
+        if (!Driver.class.isAssignableFrom(loadedClass)) {
+            throw new IllegalArgumentException(
+                    "The specified driver class does not implement java.sql.Driver: " + driverClassName);
+        }
+
+        @SuppressWarnings("unchecked") // we just checked the type above
+        Class<Driver> driverClass = (Class<Driver>) loadedClass;
         Constructor<Driver> declaredConstructor = driverClass.getDeclaredConstructor();
+
         Driver driver = declaredConstructor.newInstance();
+
         DriverManager.registerDriver(new DelegatingDriver(driver));
     }
 }
