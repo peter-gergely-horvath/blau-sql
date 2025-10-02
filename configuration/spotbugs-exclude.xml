@@ -5,6 +5,12 @@
         <!-- Windows may have Runnable classes as members -->
     </Match>
     <Match>
+        <Class name="com.github.blausql.core.connection.DatabaseConnection" />
+        <Method name="&lt;init&gt;"/>
+        <Bug pattern="EI_EXPOSE_REP" />
+        <!-- Acceptable, as the wrapped connection is created for this object only: see DatabaseConnectionFactory -->
+    </Match>
+    <Match>
         <Class name="com.github.blausql.core.connection.StatementResult" />
         <Method name="getQueryResult" />
         <Bug pattern="EI_EXPOSE_REP" />

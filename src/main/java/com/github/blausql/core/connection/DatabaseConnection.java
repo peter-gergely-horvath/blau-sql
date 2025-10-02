@@ -17,7 +17,6 @@
 package com.github.blausql.core.connection;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -29,40 +28,11 @@ import java.util.Map;
 
 public final class DatabaseConnection {
 
-    private final String url;
-    private final String username;
-    private final String password;
-    private final String driverClassName;
-    private Connection connection;
+    private final Connection connection;
 
-    static DatabaseConnection getInstance(ConnectionDefinition cd) {
+    DatabaseConnection(Connection connection) {
 
-        DatabaseConnection connection = new DatabaseConnection(cd.getDriverClassName(),
-                cd.getJdbcUrl(), cd.getUserName(), cd.getPassword());
-
-        connection.establishConnection();
-
-        return connection;
-    }
-
-    private DatabaseConnection(String driverClassName, String url, String username, String password) {
-        this.driverClassName = driverClassName;
-        this.url = url;
-        this.username = username;
-        this.password = password;
-    }
-
-    private void establishConnection() {
-        try {
-            if (connection == null || connection.isClosed()) {
-                if (driverClassName != null && !driverClassName.trim().isEmpty()) {
-                    Class.forName(driverClassName);
-                }
-                this.connection = DriverManager.getConnection(url, username, password);
-            }
-        } catch (ClassNotFoundException | SQLException e) {
-            throw new IllegalStateException("Failed to establish connection", e);
-        }
+        this.connection = connection;
     }
 
     public StatementResult executeStatement(String sql, int limit) {
@@ -134,8 +104,6 @@ public final class DatabaseConnection {
                 }
             } catch (SQLException e) {
                 throw new IllegalStateException("Error disconnecting from database", e);
-            } finally {
-                connection = null;
             }
         }
     }
