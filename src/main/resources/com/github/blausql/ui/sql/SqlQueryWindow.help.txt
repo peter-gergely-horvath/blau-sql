@@ -13,18 +13,19 @@ Navigation
 
 File Operations
 
-Action          Shortcut    Menu Option
-Clear editor    F2          File > Clear
-Save content    F5          File > Save
-Load file       F6          File > Load
+ACTION                          SHORTCUT    MENU OPTION
+Clear editor                    F2          File > Clear editor content
+Duplicate current statement     F4          File > Duplicate current statement
+Save content                    F5          File > Save SQL to file
+Load file                       F6          File > Load SQL from file
 
 
 Query Execution
 
-Action                      Shortcut    Menu Option
-Execute each statement      F7          Execute > Execute Each
-Execute current statement   F8          Execute > Execute Current
-Execute all content         F9          Execute > Execute All
+ACTION                      SHORTCUT    MENU OPTION
+Execute each statement      F7          Execute > Execute each statement
+Execute current statement   F8          Execute > Execute statement at cursor
+Execute all content         F9          Execute > Execute all content at once
 
 
 Additional Features

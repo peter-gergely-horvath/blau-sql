@@ -94,6 +94,7 @@ public final class SqlQueryWindow extends ApplicationWindow {
                 .keyType(KeyType.Escape).invoke(this::closeWindow)
                 .keyType(KeyType.F1).invoke(this::displayHelp)
                 .keyType(KeyType.F2).invoke(this::clearEditor)
+                .keyType(KeyType.F4).invoke(this::duplicateStatementAtCursor)
                 .keyType(KeyType.F5).invoke(this::saveSqlFile)
                 .keyType(KeyType.F6).invoke(this::selectSqlFileToLoad)
                 .keyType(KeyType.F7).invoke(this::executeQueryEach)
@@ -118,10 +119,11 @@ public final class SqlQueryWindow extends ApplicationWindow {
     private Menu createFileMenu() {
         final Menu menu;
         menu = new Menu("File");
-        menu.add(new MenuItem("Clear editor content  (F2)", this::clearEditor));
+        menu.add(new MenuItem("Clear editor content         (F2)", this::clearEditor));
+        menu.add(new MenuItem("Duplicate current statement  (F4)", this::duplicateStatementAtCursor));
         menu.add(new MenuItem(SEPARATOR).setEnabled(false));
-        menu.add(new MenuItem("Save SQL to file...   (F5)", this::saveSqlFile));
-        menu.add(new MenuItem("Load SQL from file... (F6)", this::selectSqlFileToLoad));
+        menu.add(new MenuItem("Save SQL to file...          (F5)", this::saveSqlFile));
+        menu.add(new MenuItem("Load SQL from file...        (F6)", this::selectSqlFileToLoad));
         menu.add(new MenuItem(SEPARATOR).setEnabled(false));
         menu.add(new MenuItem("Exit                  (ESC)", this::closeWindow));
         return menu;
@@ -197,6 +199,23 @@ public final class SqlQueryWindow extends ApplicationWindow {
 
     private void executeQueryAtCursor() {
 
+        String statementToExecute = getStatementAtCursor();
+
+        executeStatement(statementToExecute);
+    }
+
+    private void duplicateStatementAtCursor() {
+
+        String currentStatement = getStatementAtCursor();
+
+        String currentEditorContent = sqlQueryTextBox.getText();
+
+        String newContent = TextUtils.joinStringsWithNewLine(currentEditorContent, currentStatement);
+
+        sqlQueryTextBox.setText(newContent);
+    }
+
+    private String getStatementAtCursor() {
         TerminalPosition cursorLocation = sqlQueryTextBox.getCursorLocation();
 
         final int cursorLinePosition = cursorLocation.getRow();
@@ -228,9 +247,7 @@ public final class SqlQueryWindow extends ApplicationWindow {
             lines.addAll(afterCursorLines);
         }
 
-        String statementToExecute = TextUtils.joinStringsWithNewLine(lines);
-
-        executeStatement(statementToExecute);
+        return TextUtils.joinStringsWithNewLine(lines);
     }
 
     private LinkedList<String> getBeforeCursorLines(int cursorLine) {
