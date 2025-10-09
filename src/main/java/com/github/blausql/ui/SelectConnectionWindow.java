@@ -57,18 +57,23 @@ abstract class SelectConnectionWindow extends ApplicationWindow {
         } else {
             for (final ConnectionConfiguration connectionConfiguration : connectionConfigurations) {
 
-                Button button = new Button(connectionConfiguration.getConnectionName(), new Runnable() {
+                String buttonText;
+
+                Character hotkey = connectionConfiguration.getHotkey();
+                if (hotkey != null) {
+                    buttonText = String.format("[%s] %s", hotkey, connectionConfiguration.getConnectionName());
+
+                    hotKeyMap.put(normalizeHotkey(hotkey), connectionConfiguration);
+                } else {
+                    buttonText = connectionConfiguration.getConnectionName();
+                }
+
+                Button button = new Button(buttonText, new Runnable() {
 
                     public void run() {
                         onConnectionSelected(connectionConfiguration);
                     }
-
                 });
-
-                Character hotkey = connectionConfiguration.getHotkey();
-                if (hotkey != null) {
-                    hotKeyMap.put(Character.toUpperCase(hotkey), connectionConfiguration);
-                }
 
                 panel.addComponent(button);
             }
@@ -85,7 +90,7 @@ abstract class SelectConnectionWindow extends ApplicationWindow {
             if (keyStroke.getKeyType() == KeyType.Character) {
                 Character character = keyStroke.getCharacter();
 
-                ConnectionConfiguration connectionConfiguration = hotKeyMap.get(Character.toUpperCase(character));
+                ConnectionConfiguration connectionConfiguration = hotKeyMap.get(normalizeHotkey(character));
 
                 if (connectionConfiguration != null) {
                     onConnectionSelected(connectionConfiguration);
@@ -97,6 +102,10 @@ abstract class SelectConnectionWindow extends ApplicationWindow {
                 deliverEvent.set(false);
             }
         }
+    }
+
+    private static char normalizeHotkey(Character hotkey) {
+        return Character.toUpperCase(hotkey);
     }
 
     protected abstract void onConnectionSelected(
