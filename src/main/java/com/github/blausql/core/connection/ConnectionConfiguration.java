@@ -20,7 +20,7 @@ package com.github.blausql.core.connection;
 
 import java.util.Objects;
 
-public final class ConnectionDefinition {
+public final class ConnectionConfiguration {
 
     private static final String DEFAULT_STATEMENT_SEPARATOR = ";";
 
@@ -35,7 +35,7 @@ public final class ConnectionDefinition {
     private Integer order;
 
 
-    public ConnectionDefinition(String connectionName) {
+    public ConnectionConfiguration(String connectionName) {
         this(connectionName,
                 null,
                 null,
@@ -47,7 +47,7 @@ public final class ConnectionDefinition {
                 null);
     }
 
-    public ConnectionDefinition(
+    public ConnectionConfiguration(
             String connectionName,
             String driverClassName,
             String jdbcUrl,
@@ -73,18 +73,18 @@ public final class ConnectionDefinition {
     /**
      * Copy constructor: constructs an object with the same field values as the parameter
      *
-     * @param connectionDefinition the object to copy from, can <b>NOT</b> be {@code null}
+     * @param connectionConfiguration the object to copy from, can <b>NOT</b> be {@code null}
      */
-    public ConnectionDefinition(ConnectionDefinition connectionDefinition) {
-        this(connectionDefinition.getConnectionName(),
-                connectionDefinition.getDriverClassName(),
-                connectionDefinition.getJdbcUrl(),
-                connectionDefinition.getLoginAutomatically(),
-                connectionDefinition.getUserName(),
-                connectionDefinition.getPassword(),
-                connectionDefinition.getStatementSeparator(),
-                connectionDefinition.getHotkey(),
-                connectionDefinition.getOrder());
+    public ConnectionConfiguration(ConnectionConfiguration connectionConfiguration) {
+        this(connectionConfiguration.getConnectionName(),
+                connectionConfiguration.getDriverClassName(),
+                connectionConfiguration.getJdbcUrl(),
+                connectionConfiguration.getLoginAutomatically(),
+                connectionConfiguration.getUserName(),
+                connectionConfiguration.getPassword(),
+                connectionConfiguration.getStatementSeparator(),
+                connectionConfiguration.getHotkey(),
+                connectionConfiguration.getOrder());
     }
 
 
@@ -173,7 +173,7 @@ public final class ConnectionDefinition {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ConnectionDefinition that = (ConnectionDefinition) o;
+        ConnectionConfiguration that = (ConnectionConfiguration) o;
         return loginAutomatically == that.loginAutomatically
                 && Objects.equals(connectionName, that.connectionName)
                 && Objects.equals(driverClassName, that.driverClassName)
@@ -189,7 +189,7 @@ public final class ConnectionDefinition {
 
     @Override
     public String toString() {
-        return "ConnectionDefinition{"
+        return "ConnectionConfiguration{"
                 + "connectionName='" + connectionName + '\''
                 + ", driverClassName='" + driverClassName + '\''
                 + ", jdbcUrl='" + jdbcUrl + '\''

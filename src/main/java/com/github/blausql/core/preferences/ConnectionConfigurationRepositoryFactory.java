@@ -16,30 +16,30 @@
 
 package com.github.blausql.core.preferences;
 
-import com.github.blausql.spi.connections.ConnectionDefinitionRepository;
-import com.github.blausql.spi.connections.ConnectionDefinitionRepositoryProvider;
+import com.github.blausql.spi.connections.ConnectionConfigurationRepository;
+import com.github.blausql.spi.connections.ConnectionConfigurationRepositoryProvider;
 
 import java.util.Iterator;
 import java.util.ServiceLoader;
 
 /**
- * Factory class for creating and managing instances of {@link ConnectionDefinitionRepository}.
+ * Factory class for creating and managing instances of {@link ConnectionConfigurationRepository}.
  * This class uses the Java ServiceLoader mechanism to discover and load custom repository
  * implementations, falling back to the default implementation if none is provided.
  */
-public final class ConnectionDefinitionRepositoryFactory {
+public final class ConnectionConfigurationRepositoryFactory {
 
-    private static final DefaultConnectionDefinitionRepositoryProvider DEFAULT_PROVIDER =
-            new DefaultConnectionDefinitionRepositoryProvider();
+    private static final DefaultConnectionConfigurationRepositoryProvider DEFAULT_PROVIDER =
+            new DefaultConnectionConfigurationRepositoryProvider();
 
-    private static final ConnectionDefinitionRepository REPOSITORY_INSTANCE = createRepository();
+    private static final ConnectionConfigurationRepository REPOSITORY_INSTANCE = createRepository();
 
-    private ConnectionDefinitionRepositoryFactory() {
+    private ConnectionConfigurationRepositoryFactory() {
         // Private constructor to prevent instantiation
     }
 
     /**
-     * Returns the singleton instance of the ConnectionDefinitionRepository.
+     * Returns the singleton instance of the ConnectionConfigurationRepository.
      * If a custom implementation is provided via ServiceLoader, it will be used.
      * If multiple implementations are found, an exception is thrown.
      * If no implementation is found, the default implementation is used.
@@ -47,29 +47,29 @@ public final class ConnectionDefinitionRepositoryFactory {
      * @return the singleton repository instance
      * @throws IllegalStateException if multiple custom implementations are found
      */
-    public static ConnectionDefinitionRepository getRepository() {
+    public static ConnectionConfigurationRepository getRepository() {
         return REPOSITORY_INSTANCE;
     }
 
-    private static ConnectionDefinitionRepository createRepository() {
-        ServiceLoader<ConnectionDefinitionRepositoryProvider> loader =
-                ServiceLoader.load(ConnectionDefinitionRepositoryProvider.class);
-        Iterator<ConnectionDefinitionRepositoryProvider> iterator = loader.iterator();
-        
+    private static ConnectionConfigurationRepository createRepository() {
+        ServiceLoader<ConnectionConfigurationRepositoryProvider> loader =
+                ServiceLoader.load(ConnectionConfigurationRepositoryProvider.class);
+        Iterator<ConnectionConfigurationRepositoryProvider> iterator = loader.iterator();
+
         if (!iterator.hasNext()) {
             // No custom implementation found, use default
             return DEFAULT_PROVIDER.createRepository();
         }
-        
-        ConnectionDefinitionRepositoryProvider provider = iterator.next();
-        
+
+        ConnectionConfigurationRepositoryProvider provider = iterator.next();
+
         if (iterator.hasNext()) {
             // Multiple implementations found, which is not allowed
             throw new IllegalStateException(
-                "Multiple ConnectionDefinitionRepositoryProvider implementations found. "
+                "Multiple ConnectionConfigurationRepositoryProvider implementations found. "
                         + "Only one custom implementation is allowed.");
         }
-        
+
         return provider.createRepository();
     }
 }

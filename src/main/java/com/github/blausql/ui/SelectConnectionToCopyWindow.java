@@ -18,29 +18,29 @@
 package com.github.blausql.ui;
 
 import com.github.blausql.TerminalUI;
-import com.github.blausql.core.connection.ConnectionDefinition;
+import com.github.blausql.core.connection.ConnectionConfiguration;
 
 import java.util.List;
 
 final class SelectConnectionToCopyWindow extends SelectConnectionWindow {
 
-    SelectConnectionToCopyWindow(List<ConnectionDefinition> connectionDefinitions, TerminalUI terminalUI) {
-        super("Select Connection to Copy", connectionDefinitions, terminalUI);
+    SelectConnectionToCopyWindow(List<ConnectionConfiguration> connectionConfigurations, TerminalUI terminalUI) {
+        super("Select Connection to Copy", connectionConfigurations, terminalUI);
     }
 
     @Override
     protected void onConnectionSelected(
-            final ConnectionDefinition cd) {
+            final ConnectionConfiguration connectionConfiguration) {
 
-        ConnectionDefinition copyOfConnectionDefinition = new ConnectionDefinition(cd);
+        ConnectionConfiguration copyOfConnectionConfiguration = new ConnectionConfiguration(connectionConfiguration);
 
-        String connectionName = copyOfConnectionDefinition.getConnectionName();
+        String connectionName = copyOfConnectionConfiguration.getConnectionName();
 
-        copyOfConnectionDefinition.setConnectionName("Copy of " + connectionName);
+        copyOfConnectionConfiguration.setConnectionName("Copy of " + connectionName);
 
         close();
 
         showWindowCenter(new ConnectionSettingsWindow(
-                copyOfConnectionDefinition, ConnectionSettingsWindow.Mode.COPY, getTerminalUI()));
+                copyOfConnectionConfiguration, ConnectionSettingsWindow.Mode.COPY, getTerminalUI()));
     }
 }

@@ -18,8 +18,8 @@
 package com.github.blausql.ui;
 
 import com.github.blausql.TerminalUI;
-import com.github.blausql.core.connection.ConnectionDefinition;
-import com.github.blausql.core.preferences.ConnectionDefinitionRepositoryFactory;
+import com.github.blausql.core.connection.ConnectionConfiguration;
+import com.github.blausql.core.preferences.ConnectionConfigurationRepositoryFactory;
 import com.github.blausql.spi.connections.DeleteException;
 import com.github.blausql.ui.util.BackgroundWorker;
 
@@ -30,30 +30,28 @@ import java.util.List;
 
 final class SelectConnectionToDeleteWindow extends SelectConnectionWindow {
 
-    SelectConnectionToDeleteWindow(List<ConnectionDefinition> connectionDefinitions, TerminalUI terminalUI) {
+    SelectConnectionToDeleteWindow(List<ConnectionConfiguration> connectionDefinitions, TerminalUI terminalUI) {
         super("Select Connection to Delete", connectionDefinitions, terminalUI);
     }
 
     @Override
-    protected void onConnectionSelected(
-            final ConnectionDefinition cd) {
-
+    protected void onConnectionSelected(final ConnectionConfiguration connectionConfiguration) {
 
         MessageDialogButton dialogResult = showMessageBox(
                 "Confirm deletion of connection",
-                "Delete connection: " + cd.getConnectionName(),
+                "Delete connection: " + connectionConfiguration.getConnectionName(),
                 MessageDialogButton.OK, MessageDialogButton.Cancel);
 
         if (MessageDialogButton.OK.equals(dialogResult)) {
             final Window showWaitDialog = showWaitDialog("Please wait",
-                    "Deleting " + cd.getConnectionName() + "... ");
+                    "Deleting " + connectionConfiguration.getConnectionName() + "... ");
 
             new BackgroundWorker<Void>(this) {
 
                 @Override
                 protected Void doBackgroundTask() throws DeleteException {
-                    ConnectionDefinitionRepositoryFactory.getRepository()
-                            .deleteConnectionDefinitionByName(cd.getConnectionName());
+                    ConnectionConfigurationRepositoryFactory.getRepository()
+                            .deleteConnectionConfigurationByName(connectionConfiguration.getConnectionName());
 
                     return null;
                 }

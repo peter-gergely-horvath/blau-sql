@@ -18,7 +18,7 @@
 package com.github.blausql.ui;
 
 import com.github.blausql.TerminalUI;
-import com.github.blausql.core.connection.ConnectionDefinition;
+import com.github.blausql.core.connection.ConnectionConfiguration;
 import com.github.blausql.ui.components.ApplicationWindow;
 import com.googlecode.lanterna.gui2.*;
 
@@ -33,9 +33,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 abstract class SelectConnectionWindow extends ApplicationWindow {
 
-    private final Map<Character, ConnectionDefinition> hotKeyMap = new ConcurrentHashMap<>();
+    private final Map<Character, ConnectionConfiguration> hotKeyMap = new ConcurrentHashMap<>();
 
-    SelectConnectionWindow(String title, List<ConnectionDefinition> connectionDefinitions, TerminalUI terminalUI) {
+    SelectConnectionWindow(String title, List<ConnectionConfiguration> connectionConfigurations,
+                           TerminalUI terminalUI) {
         super(title, terminalUI);
 
         addWindowListener(new HotKeyWindowListener());
@@ -49,61 +50,56 @@ abstract class SelectConnectionWindow extends ApplicationWindow {
             }
         }));
 
+        panel.addComponent(new EmptySpace());
 
-        if (connectionDefinitions.isEmpty()) {
-            panel.addComponent(new Label("No connections defined"));
-            panel.addComponent(new Label("Go to Manage Connections menu and define connections first!"));
+        if (connectionConfigurations.isEmpty()) {
+            panel.addComponent(new Label("(No connection configuration is available)"));
         } else {
+            for (final ConnectionConfiguration connectionConfiguration : connectionConfigurations) {
 
-            for (final ConnectionDefinition connectionDefinition : connectionDefinitions) {
-                String connectionName;
-
-                Character hotkey = connectionDefinition.getHotkey();
-                if (hotkey != null) {
-                    connectionName = String.format("[%s] %s", hotkey, connectionDefinition.getConnectionName());
-
-                    hotKeyMap.put(hotkey, connectionDefinition);
-                } else {
-                    connectionName = connectionDefinition.getConnectionName();
-                }
-
-                panel.addComponent(new Button(connectionName, new Runnable() {
+                Button button = new Button(connectionConfiguration.getConnectionName(), new Runnable() {
 
                     public void run() {
-                        SelectConnectionWindow.this.onConnectionSelected(connectionDefinition);
+                        onConnectionSelected(connectionConfiguration);
                     }
-                }));
+
+                });
+
+                Character hotkey = connectionConfiguration.getHotkey();
+                if (hotkey != null) {
+                    hotKeyMap.put(Character.toUpperCase(hotkey), connectionConfiguration);
+                }
+
+                panel.addComponent(button);
             }
         }
 
         setComponent(panel);
     }
 
-    private final class HotKeyWindowListener extends WindowListenerAdapter {
+    class HotKeyWindowListener extends WindowListenerAdapter {
 
         @Override
-        public void onUnhandledInput(Window basePane, KeyStroke keyStroke, AtomicBoolean hasBeenHandled) {
+        public void onInput(Window basePane, KeyStroke keyStroke, AtomicBoolean deliverEvent) {
 
-            Character character = keyStroke.getCharacter();
-            if (character != null) {
+            if (keyStroke.getKeyType() == KeyType.Character) {
+                Character character = keyStroke.getCharacter();
 
-                ConnectionDefinition connectionDefinition = hotKeyMap.get(Character.toUpperCase(character));
-                if (connectionDefinition == null) {
-                    connectionDefinition = hotKeyMap.get(Character.toLowerCase(character));
+                ConnectionConfiguration connectionConfiguration = hotKeyMap.get(Character.toUpperCase(character));
+
+                if (connectionConfiguration != null) {
+                    onConnectionSelected(connectionConfiguration);
+                    deliverEvent.set(false);
                 }
 
-                if (connectionDefinition != null) {
-                    SelectConnectionWindow.this.onConnectionSelected(connectionDefinition);
-                }
-            }
-
-            if (KeyType.Escape.equals(keyStroke.getKeyType())) {
-                SelectConnectionWindow.this.close();
+            } else if (keyStroke.getKeyType() == KeyType.Escape) {
+                close();
+                deliverEvent.set(false);
             }
         }
     }
 
     protected abstract void onConnectionSelected(
-            ConnectionDefinition connectionDefinition);
+            ConnectionConfiguration connectionConfiguration);
 
 }

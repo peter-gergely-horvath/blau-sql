@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
- 
+
 package com.github.blausql.ui.components;
 
 import com.github.blausql.TerminalUI;
@@ -95,9 +95,9 @@ public abstract class ApplicationWindow extends BasicWindow {
 
 
     protected final MessageDialogButton showMessageBox(String title,
-                                                 String messageText,
-                                                 MessageDialogButton firstButton,
-                                                 MessageDialogButton... additionalButtons) {
+                                                       String messageText,
+                                                       MessageDialogButton firstButton,
+                                                       MessageDialogButton... additionalButtons) {
 
         return terminalUI.showMessageBox(title, messageText, firstButton, additionalButtons);
     }

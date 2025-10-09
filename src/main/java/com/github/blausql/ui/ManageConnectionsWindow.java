@@ -18,8 +18,8 @@
 package com.github.blausql.ui;
 
 import com.github.blausql.TerminalUI;
-import com.github.blausql.core.connection.ConnectionDefinition;
-import com.github.blausql.core.preferences.ConnectionDefinitionRepositoryFactory;
+import com.github.blausql.core.connection.ConnectionConfiguration;
+import com.github.blausql.core.preferences.ConnectionConfigurationRepositoryFactory;
 import com.github.blausql.spi.connections.LoadException;
 import com.github.blausql.ui.components.ApplicationWindow;
 
@@ -27,7 +27,6 @@ import com.github.blausql.ui.hotkey.HotKeyWindowListener;
 import com.googlecode.lanterna.gui2.Panel;
 import com.googlecode.lanterna.gui2.Panels;
 import com.googlecode.lanterna.input.KeyType;
-
 
 import java.util.List;
 
@@ -66,29 +65,29 @@ final class ManageConnectionsWindow extends ApplicationWindow {
 
         this.close();
 
-        List<ConnectionDefinition> connectionDefinitions =
-                ConnectionDefinitionRepositoryFactory.getRepository().getConnectionDefinitions();
+        List<ConnectionConfiguration> connectionConfigurations =
+                ConnectionConfigurationRepositoryFactory.getRepository().getConnectionConfigurations();
 
-        showWindowCenter(new SelectConnectionToCopyWindow(connectionDefinitions, getTerminalUI()));
+        showWindowCenter(new SelectConnectionToCopyWindow(connectionConfigurations, getTerminalUI()));
     }
 
     private void onEditConnectionButtonSelected() throws LoadException {
 
         this.close();
 
-        List<ConnectionDefinition> connectionDefinitions =
-                ConnectionDefinitionRepositoryFactory.getRepository().getConnectionDefinitions();
+        List<ConnectionConfiguration> connectionConfigurations =
+                ConnectionConfigurationRepositoryFactory.getRepository().getConnectionConfigurations();
 
-        showWindowCenter(new SelectConnectionToEditWindow(connectionDefinitions, getTerminalUI()));
+        showWindowCenter(new SelectConnectionToEditWindow(connectionConfigurations, getTerminalUI()));
     }
 
     private void onDeleteConnectionButtonSelected() throws LoadException {
 
         this.close();
 
-        List<ConnectionDefinition> connectionDefinitions =
-                ConnectionDefinitionRepositoryFactory.getRepository().getConnectionDefinitions();
+        List<ConnectionConfiguration> connectionConfigurations =
+                ConnectionConfigurationRepositoryFactory.getRepository().getConnectionConfigurations();
 
-        showWindowCenter(new SelectConnectionToDeleteWindow(connectionDefinitions, getTerminalUI()));
+        showWindowCenter(new SelectConnectionToDeleteWindow(connectionConfigurations, getTerminalUI()));
     }
 }

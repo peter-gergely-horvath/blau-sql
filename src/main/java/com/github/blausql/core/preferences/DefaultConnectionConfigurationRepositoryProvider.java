@@ -16,19 +16,20 @@
 
 package com.github.blausql.core.preferences;
 
-import com.github.blausql.spi.connections.ConnectionDefinitionRepository;
-import com.github.blausql.spi.connections.ConnectionDefinitionRepositoryProvider;
+import com.github.blausql.spi.connections.ConnectionConfigurationRepository;
+import com.github.blausql.spi.connections.ConnectionConfigurationRepositoryProvider;
 
 /**
- * Default provider for the {@link ConnectionDefinitionRepository} that uses properties files for storage.
+ * Default provider for the {@link ConnectionConfigurationRepository} that uses properties files for storage.
  * This is used when no custom implementation is provided via the ServiceLoader mechanism.
  */
-final class DefaultConnectionDefinitionRepositoryProvider implements ConnectionDefinitionRepositoryProvider {
+final class DefaultConnectionConfigurationRepositoryProvider implements ConnectionConfigurationRepositoryProvider {
 
-    private static final ConnectionDefinitionRepository INSTANCE = new PropertiesBasedConnectionDefinitionRepository();
+    private static final ConnectionConfigurationRepository INSTANCE =
+            new PropertiesBasedConnectionConfigurationRepository();
 
     @Override
-    public ConnectionDefinitionRepository createRepository() {
+    public ConnectionConfigurationRepository createRepository() {
         return INSTANCE;
     }
 }

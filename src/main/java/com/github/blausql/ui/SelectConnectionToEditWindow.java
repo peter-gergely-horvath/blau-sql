@@ -18,23 +18,24 @@
 package com.github.blausql.ui;
 
 import com.github.blausql.TerminalUI;
-import com.github.blausql.core.connection.ConnectionDefinition;
+import com.github.blausql.core.connection.ConnectionConfiguration;
 
 import java.util.List;
 
 final class SelectConnectionToEditWindow extends SelectConnectionWindow {
 
-    SelectConnectionToEditWindow(List<ConnectionDefinition> connectionDefinitions, TerminalUI terminalUI) {
-        super("Select Connection to Edit", connectionDefinitions, terminalUI);
+    SelectConnectionToEditWindow(List<ConnectionConfiguration> connectionConfigurations, TerminalUI terminalUI) {
+        super("Select Connection to Edit", connectionConfigurations, terminalUI);
     }
 
     @Override
     protected void onConnectionSelected(
-            final ConnectionDefinition cd) {
+            final ConnectionConfiguration connectionConfiguration) {
 
         close();
 
         showWindowCenter(
-                new ConnectionSettingsWindow(cd, ConnectionSettingsWindow.Mode.EDIT, getTerminalUI()));
+                new ConnectionSettingsWindow(connectionConfiguration,
+                        ConnectionSettingsWindow.Mode.EDIT, getTerminalUI()));
     }
 }

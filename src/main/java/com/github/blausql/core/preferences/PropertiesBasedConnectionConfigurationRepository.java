@@ -16,8 +16,8 @@
 
 package com.github.blausql.core.preferences;
 
-import com.github.blausql.core.connection.ConnectionDefinition;
-import com.github.blausql.spi.connections.ConnectionDefinitionRepository;
+import com.github.blausql.core.connection.ConnectionConfiguration;
+import com.github.blausql.spi.connections.ConnectionConfigurationRepository;
 import com.github.blausql.spi.connections.DeleteException;
 import com.github.blausql.spi.connections.LoadException;
 import com.github.blausql.spi.connections.SaveException;
@@ -26,11 +26,11 @@ import java.io.IOException;
 import java.util.*;
 
 /**
- * Default implementation of {@link ConnectionDefinitionRepository} that stores connection definitions
+ * Default implementation of {@link ConnectionConfigurationRepository} that stores connection configurations
  * in a properties file.
  */
 // CHECKSTYLE.OFF: AvoidInlineConditionals: here, they simplify trivial methods
-final class PropertiesBasedConnectionDefinitionRepository implements ConnectionDefinitionRepository {
+final class PropertiesBasedConnectionConfigurationRepository implements ConnectionConfigurationRepository {
 
     private static final String STATEMENT_SEPARATOR = ";";
 
@@ -67,11 +67,9 @@ final class PropertiesBasedConnectionDefinitionRepository implements ConnectionD
         }
     }
 
-
-
     private static final PropertyStore CONNECTIONS_PROPERTY_STORE = PropertyStoreFactory.getConnectionsPropertyStore();
 
-    private static final Comparator<ConnectionDefinition> CONNECTION_DEFINITION_COMPARATOR =
+    private static final Comparator<ConnectionConfiguration> CONNECTION_CONFIGURATION_COMPARATOR =
             (left, right) -> {
                 if (left == null || right == null) {
                     return 0;
@@ -96,9 +94,9 @@ final class PropertiesBasedConnectionDefinitionRepository implements ConnectionD
             };
 
     @Override
-    public List<ConnectionDefinition> getConnectionDefinitions() throws LoadException {
+    public List<ConnectionConfiguration> getConnectionConfigurations() throws LoadException {
         try {
-            LinkedHashMap<String, ConnectionDefinition> map = new LinkedHashMap<>();
+            LinkedHashMap<String, ConnectionConfiguration> map = new LinkedHashMap<>();
             Properties properties = CONNECTIONS_PROPERTY_STORE.loadProperties();
 
             for (Map.Entry<Object, Object> entry : properties.entrySet()) {
@@ -107,35 +105,35 @@ final class PropertiesBasedConnectionDefinitionRepository implements ConnectionD
 
                 ConnectionPropertyReference propertyReference = ConnectionPropertyReference.fromString(key);
 
-                ConnectionDefinition cd = map.computeIfAbsent(
-                        propertyReference.connectionName, ConnectionDefinition::new);
+                ConnectionConfiguration connectionConfig = map.computeIfAbsent(
+                        propertyReference.connectionName, ConnectionConfiguration::new);
 
                 PropertyMapping propertyMapping = PropertyMapping.valueOf(propertyReference.propertyName);
-                propertyMapping.setValue(cd, value);
+                propertyMapping.setValue(connectionConfig, value);
             }
 
-            ArrayList<ConnectionDefinition> connectionDefinitions = new ArrayList<>(map.values());
-            connectionDefinitions.sort(CONNECTION_DEFINITION_COMPARATOR);
+            ArrayList<ConnectionConfiguration> connectionConfigurations = new ArrayList<>(map.values());
+            connectionConfigurations.sort(CONNECTION_CONFIGURATION_COMPARATOR);
 
-            return connectionDefinitions;
+            return connectionConfigurations;
 
         } catch (IOException e) {
-            throw new LoadException("Failed to load connection definitions", e);
+            throw new LoadException("Failed to load connection configurations", e);
         }
     }
 
     @Override
-    public void saveConnectionDefinition(ConnectionDefinition cd) throws SaveException {
+    public void saveConnectionConfiguration(ConnectionConfiguration connectionConfig) throws SaveException {
 
-        Objects.requireNonNull(cd, "Argument cd cannot be null");
+        Objects.requireNonNull(connectionConfig, "Argument connectionConfig cannot be null");
 
-        if (cd.getConnectionName() == null || cd.getConnectionName().isBlank()) {
+        if (connectionConfig.getConnectionName() == null || connectionConfig.getConnectionName().isBlank()) {
             throw new SaveException("A connection must have a non-empty name");
         }
 
-        Character hotkey = cd.getHotkey();
+        Character hotkey = connectionConfig.getHotkey();
         if (hotkey != null) {
-            checkNoExistingConnectionDefinitionUsesTheHotKey(cd, hotkey);
+            checkNoExistingConnectionConfigurationUsesTheHotKey(connectionConfig, hotkey);
         }
 
         try {
@@ -143,42 +141,42 @@ final class PropertiesBasedConnectionDefinitionRepository implements ConnectionD
 
             // Remove all existing properties for this connection
             properties.keySet().removeIf(key -> ConnectionPropertyReference.fromString(key.toString())
-                    .connectionName.equalsIgnoreCase(cd.getConnectionName()));
+                    .connectionName.equalsIgnoreCase(connectionConfig.getConnectionName()));
 
             // Add the updated properties
             for (PropertyMapping propertyMapping : PropertyMapping.values()) {
-                propertyMapping.putPropertyKeyValue(cd, properties);
+                propertyMapping.putPropertyKeyValue(connectionConfig, properties);
             }
 
             CONNECTIONS_PROPERTY_STORE.persistProperties(properties);
 
         } catch (IOException e) {
-            throw new SaveException("Failed to save connection definition", e);
+            throw new SaveException("Failed to save connection configuration", e);
         }
     }
 
-    private void checkNoExistingConnectionDefinitionUsesTheHotKey(ConnectionDefinition cd, Character hotkey)
-            throws SaveException {
+    private void checkNoExistingConnectionConfigurationUsesTheHotKey(
+            ConnectionConfiguration configuration, Character hotkey) throws SaveException {
 
-        List<ConnectionDefinition> existingConnectionDefinitions;
+        List<ConnectionConfiguration> existingConnectionConfigurations;
         try {
-            existingConnectionDefinitions = getConnectionDefinitions();
+            existingConnectionConfigurations = getConnectionConfigurations();
         } catch (LoadException e) {
             // unlike righteous error handling, this allows recovering from issues, e.g. a corrupted config file.
-            existingConnectionDefinitions = Collections.emptyList();
+            existingConnectionConfigurations = Collections.emptyList();
         }
 
-        for (ConnectionDefinition existingConnectionDefinition : existingConnectionDefinitions) {
+        for (ConnectionConfiguration existingConfiguration : existingConnectionConfigurations) {
 
-            Character existingHotkey = existingConnectionDefinition.getHotkey();
+            Character existingHotkey = existingConfiguration.getHotkey();
 
             if (existingHotkey != null
-                    && !Objects.equals(existingConnectionDefinition.getConnectionName(), cd.getConnectionName())
+                    && !Objects.equals(existingConfiguration.getConnectionName(), configuration.getConnectionName())
                     && Objects.equals(
                         Character.toUpperCase(hotkey),
-                        Character.toUpperCase(existingConnectionDefinition.getHotkey()))) {
+                        Character.toUpperCase(existingConfiguration.getHotkey()))) {
 
-                String connectionName = existingConnectionDefinition.getConnectionName();
+                String connectionName = existingConfiguration.getConnectionName();
 
                 throw new SaveException("Hotkey '" + hotkey + "' is already used by: " + connectionName);
             }
@@ -186,7 +184,7 @@ final class PropertiesBasedConnectionDefinitionRepository implements ConnectionD
     }
 
     @Override
-    public void deleteConnectionDefinitionByName(String connectionName) throws DeleteException {
+    public void deleteConnectionConfigurationByName(String connectionName) throws DeleteException {
         try {
             boolean foundInProperties = false;
             Properties properties = CONNECTIONS_PROPERTY_STORE.loadProperties();
@@ -202,22 +200,22 @@ final class PropertiesBasedConnectionDefinitionRepository implements ConnectionD
             }
 
             if (!foundInProperties) {
-                throw new IllegalStateException("Connection definition not found:" + connectionName);
+                throw new IllegalStateException("Connection configuration not found:" + connectionName);
             }
 
             CONNECTIONS_PROPERTY_STORE.persistProperties(properties);
 
         } catch (IOException e) {
-            throw new DeleteException("Failed to delete connection definition", e);
+            throw new DeleteException("Failed to delete connection configuration", e);
         }
     }
 
     @Override
-    public ConnectionDefinition findConnectionDefinitionByName(String connectionName) throws LoadException {
+    public ConnectionConfiguration findConnectionConfigurationByName(String connectionName) throws LoadException {
 
-        List<ConnectionDefinition> connections = getConnectionDefinitions();
+        List<ConnectionConfiguration> connections = getConnectionConfigurations();
 
-        for (ConnectionDefinition connection : connections) {
+        for (ConnectionConfiguration connection : connections) {
             if (connectionName.equalsIgnoreCase(connection.getConnectionName())) {
                 return connection;
             }
@@ -228,118 +226,117 @@ final class PropertiesBasedConnectionDefinitionRepository implements ConnectionD
     private enum PropertyMapping {
         ConnectionName {
             @Override
-            String getValue(ConnectionDefinition cd) {
-                return cd.getConnectionName();
+            String getValue(ConnectionConfiguration connectionConfig) {
+                return connectionConfig.getConnectionName();
             }
 
             @Override
-            void setValue(ConnectionDefinition cd, String value) {
-                cd.setConnectionName(value);
+            void setValue(ConnectionConfiguration connectionConfig, String value) {
+                connectionConfig.setConnectionName(value);
             }
         },
         DriverClassName {
             @Override
-            String getValue(ConnectionDefinition cd) {
-                return cd.getDriverClassName();
+            String getValue(ConnectionConfiguration connectionConfig) {
+                return connectionConfig.getDriverClassName();
             }
 
             @Override
-            void setValue(ConnectionDefinition cd, String value) {
-                cd.setDriverClassName(value);
+            void setValue(ConnectionConfiguration connectionConfig, String value) {
+                connectionConfig.setDriverClassName(value);
             }
         },
         JdbcUrl {
             @Override
-            String getValue(ConnectionDefinition cd) {
-                return cd.getJdbcUrl();
+            String getValue(ConnectionConfiguration connectionConfig) {
+                return connectionConfig.getJdbcUrl();
             }
 
             @Override
-            void setValue(ConnectionDefinition cd, String value) {
-                cd.setJdbcUrl(value);
+            void setValue(ConnectionConfiguration connectionConfig, String value) {
+                connectionConfig.setJdbcUrl(value);
             }
         },
         UserName {
             @Override
-            String getValue(ConnectionDefinition cd) {
-                return cd.getUserName();
+            String getValue(ConnectionConfiguration connectionConfig) {
+                return connectionConfig.getUserName();
             }
 
             @Override
-            void setValue(ConnectionDefinition cd, String value) {
-                cd.setUserName(value);
+            void setValue(ConnectionConfiguration connectionConfig, String value) {
+                connectionConfig.setUserName(value);
             }
         },
         Password {
             @Override
-            String getValue(ConnectionDefinition cd) {
-                return cd.getPassword();
+            String getValue(ConnectionConfiguration connectionConfig) {
+                return connectionConfig.getPassword();
             }
 
             @Override
-            void setValue(ConnectionDefinition cd, String value) {
-                cd.setPassword(value);
+            void setValue(ConnectionConfiguration connectionConfig, String value) {
+                connectionConfig.setPassword(value);
             }
         },
         LoginAutomatically {
             @Override
-            String getValue(ConnectionDefinition cd) {
-                return Boolean.toString(cd.getLoginAutomatically());
+            String getValue(ConnectionConfiguration connectionConfig) {
+                return Boolean.toString(connectionConfig.getLoginAutomatically());
             }
 
             @Override
-            void setValue(ConnectionDefinition cd, String value) {
-                cd.setLoginAutomatically(Boolean.parseBoolean(value));
+            void setValue(ConnectionConfiguration connectionConfig, String value) {
+                connectionConfig.setLoginAutomatically(Boolean.parseBoolean(value));
             }
         },
         StatementSeparator {
             @Override
-            String getValue(ConnectionDefinition cd) {
-                String theStatementSeparator = cd.getStatementSeparator();
+            String getValue(ConnectionConfiguration connectionConfig) {
+                String theStatementSeparator = connectionConfig.getStatementSeparator();
                 return theStatementSeparator != null ? theStatementSeparator : STATEMENT_SEPARATOR;
             }
 
             @Override
-            void setValue(ConnectionDefinition cd, String value) {
-                cd.setStatementSeparator(value);
+            void setValue(ConnectionConfiguration connectionConfig, String value) {
+                connectionConfig.setStatementSeparator(value);
             }
         },
         Hotkey {
             @Override
-            String getValue(ConnectionDefinition cd) {
-                Character hotkey = cd.getHotkey();
+            String getValue(ConnectionConfiguration connectionConfig) {
+                Character hotkey = connectionConfig.getHotkey();
                 return hotkey != null ? hotkey.toString() : "";
             }
 
             @Override
-            void setValue(ConnectionDefinition cd, String value) {
-                cd.setHotkey(value != null && !value.isEmpty() ? value.charAt(0) : null);
+            void setValue(ConnectionConfiguration connectionConfig, String value) {
+                connectionConfig.setHotkey(value != null && !value.isEmpty() ? value.charAt(0) : null);
             }
         },
         Order {
             @Override
-            String getValue(ConnectionDefinition cd) {
-                Integer order = cd.getOrder();
+            String getValue(ConnectionConfiguration connectionConfig) {
+                Integer order = connectionConfig.getOrder();
                 return order != null ? order.toString() : "";
             }
 
             @Override
-            void setValue(ConnectionDefinition cd, String value) {
-                cd.setOrder(value != null && !value.isEmpty() ? Integer.valueOf(value) : null);
+            void setValue(ConnectionConfiguration connectionConfig, String value) {
+                connectionConfig.setOrder(value != null && !value.isEmpty() ? Integer.valueOf(value) : null);
             }
         };
 
-        abstract String getValue(ConnectionDefinition cd);
+        abstract String getValue(ConnectionConfiguration connectionConfig);
 
-        abstract void setValue(ConnectionDefinition cd, String value);
+        abstract void setValue(ConnectionConfiguration connectionConfig, String value);
 
-        void putPropertyKeyValue(ConnectionDefinition cd, Properties properties) {
-            String value = getValue(cd);
+        void putPropertyKeyValue(ConnectionConfiguration connectionConfig, Properties properties) {
+            String value = getValue(connectionConfig);
             if (value != null && !value.isEmpty()) {
-                properties.setProperty(cd.getConnectionName() + "." + name(), value);
+                properties.setProperty(connectionConfig.getConnectionName() + "." + name(), value);
             }
         }
     }
 }
 // CHECKSTYLE.ON
-

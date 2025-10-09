@@ -17,7 +17,7 @@
 
 package com.github.blausql.ui;
 
-import com.github.blausql.core.connection.ConnectionDefinition;
+import com.github.blausql.core.connection.ConnectionConfiguration;
 import com.github.blausql.ui.components.PasswordBox;
 import com.github.blausql.ui.hotkey.HotKeyWindowListener;
 import com.googlecode.lanterna.TerminalSize;
@@ -36,14 +36,14 @@ final class CredentialsDialog extends BasicWindow {
 
     private MessageDialogButton selectedButton = null;
 
-    CredentialsDialog(ConnectionDefinition cd) {
+    CredentialsDialog(ConnectionConfiguration cc) {
 
-        super("Enter credentials for " + cd.getConnectionName());
+        super("Enter credentials for " + cc.getConnectionName());
 
         userNameTextBox = new TextBox(new TerminalSize(USERNAME_BOX_LEN, 1),
-                cd.getUserName(), TextBox.Style.SINGLE_LINE);
+                cc.getUserName(), TextBox.Style.SINGLE_LINE);
 
-        passwordPasswordBox = new PasswordBox(cd.getPassword(), PASSWORD_BOX_LEN);
+        passwordPasswordBox = new PasswordBox(cc.getPassword(), PASSWORD_BOX_LEN);
 
         Button okButton = new Button("OK", this::onOkButtonSelected);
         Button cancelButton = new Button("Cancel", this::onCancelButtonSelected);

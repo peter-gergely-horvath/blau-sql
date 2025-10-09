@@ -18,7 +18,7 @@
 package com.github.blausql.ui;
 
 import com.github.blausql.TerminalUI;
-import com.github.blausql.core.connection.ConnectionDefinition;
+import com.github.blausql.core.connection.ConnectionConfiguration;
 import com.github.blausql.core.connection.DatabaseConnectionFactory;
 import com.github.blausql.core.connection.DatabaseConnection;
 import com.github.blausql.ui.components.WaitDialog;
@@ -32,13 +32,13 @@ import java.util.concurrent.atomic.AtomicReference;
 
 final class SelectConnectionForQueryWindow extends SelectConnectionWindow {
 
-    SelectConnectionForQueryWindow(List<ConnectionDefinition> connectionDefinitions, TerminalUI terminalUI) {
+    SelectConnectionForQueryWindow(List<ConnectionConfiguration> connectionDefinitions, TerminalUI terminalUI) {
         super("Select connection to Connect to", connectionDefinitions, terminalUI);
     }
 
     @Override
     protected void onConnectionSelected(
-            ConnectionDefinition connectionDefinition) {
+            ConnectionConfiguration connectionDefinition) {
 
         this.close();
 
@@ -55,22 +55,22 @@ final class SelectConnectionForQueryWindow extends SelectConnectionWindow {
                 return;
             }
 
-            ConnectionDefinition actualConnectionDefinition = new ConnectionDefinition(connectionDefinition);
+            ConnectionConfiguration actualConnectionConfiguration = new ConnectionConfiguration(connectionDefinition);
 
             String userName = credentialsDialog.getUserName();
-            actualConnectionDefinition.setUserName(userName);
+            actualConnectionConfiguration.setUserName(userName);
 
             String password = credentialsDialog.getPassword();
-            actualConnectionDefinition.setPassword(password);
+            actualConnectionConfiguration.setPassword(password);
 
-            connectionDefinition = actualConnectionDefinition;
+            connectionDefinition = actualConnectionConfiguration;
         }
 
         establishConnection(connectionDefinition);
     }
 
     private void establishConnection(
-            final ConnectionDefinition connectionDefinition) {
+            final ConnectionConfiguration connectionDefinition) {
 
         final AtomicReference<Window> waitDialogRef = new AtomicReference<>();
         final BackgroundWorker<DatabaseConnection> backgroundWorker = new BackgroundWorker<>(this) {

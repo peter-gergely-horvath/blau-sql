@@ -18,7 +18,7 @@ package com.github.blausql.ui.sql;
 
 import com.github.blausql.TerminalUI;
 import com.github.blausql.core.Constants;
-import com.github.blausql.core.connection.ConnectionDefinition;
+import com.github.blausql.core.connection.ConnectionConfiguration;
 import com.github.blausql.core.connection.DatabaseConnection;
 import com.github.blausql.ui.HelpWindow;
 import com.github.blausql.ui.components.ApplicationWindow;
@@ -63,14 +63,14 @@ public final class SqlQueryWindow extends ApplicationWindow {
     private final AtomicReference<BackgroundWorker<?>> backgroundWorkerReference = new AtomicReference<>();
     private final Menu fileMenu;
 
-    public SqlQueryWindow(ConnectionDefinition connectionDefinition,
+    public SqlQueryWindow(ConnectionConfiguration connectionConfiguration,
                           DatabaseConnection databaseConnection,
                           TerminalUI terminalUI) {
 
-        super(String.format(" %s ", connectionDefinition.getConnectionName()), terminalUI);
+        super(String.format(" %s ", connectionConfiguration.getConnectionName()), terminalUI);
 
-        connectionName = connectionDefinition.getConnectionName();
-        statementSeparator = connectionDefinition.getStatementSeparator();
+        connectionName = connectionConfiguration.getConnectionName();
+        statementSeparator = connectionConfiguration.getStatementSeparator();
 
         this.databaseConnection = databaseConnection;
 
@@ -128,21 +128,21 @@ public final class SqlQueryWindow extends ApplicationWindow {
     }
 
     private Menu createExecuteMenu() {
-        final Menu menuExecute;
-        menuExecute = new Menu("Execute");
-        menuExecute.add(new MenuItem("Execute each statement       (F7)", this::executeQueryEach));
-        menuExecute.add(new MenuItem("Execute statement at cursor  (F8)", this::executeQueryAtCursor));
-        menuExecute.add(new MenuItem("Execute all content at once  (F9)", this::executeQueryAll));
-        return menuExecute;
+        final Menu menu;
+        menu = new Menu("Execute");
+        menu.add(new MenuItem("Execute each statement       (F7)", this::executeQueryEach));
+        menu.add(new MenuItem("Execute statement at cursor  (F8)", this::executeQueryAtCursor));
+        menu.add(new MenuItem("Execute all content at once  (F9)", this::executeQueryAll));
+        return menu;
     }
 
     private Menu createHelpMenu() {
-        final Menu menuExecute;
-        menuExecute = new Menu("Help");
-        menuExecute.add(new MenuItem("Show Help (F1)", this::displayHelp));
-        menuExecute.add(new MenuItem(SEPARATOR).setEnabled(false));
-        menuExecute.add(new MenuItem("About", this::displayAbout));
-        return menuExecute;
+        final Menu menu;
+        menu = new Menu("Help");
+        menu.add(new MenuItem("Show Help (F1)", this::displayHelp));
+        menu.add(new MenuItem(SEPARATOR).setEnabled(false));
+        menu.add(new MenuItem("About", this::displayAbout));
+        return menu;
     }
 
     private TerminalSize getDesiredSizeForSqlQueryTextBox() {

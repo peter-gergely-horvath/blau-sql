@@ -29,7 +29,7 @@
         <!-- Framework method, that must handle all possible types actually used -->
     </Match>
     <Match>
-        <Class name="com.github.blausql.core.preferences.ConnectionDefinitionRepositoryFactory" />
+        <Class name="com.github.blausql.core.preferences.ConnectionConfigurationRepositoryFactory" />
         <Method name="getRepository" />
         <Bug pattern="MS_EXPOSE_REP" />
         <!-- The returned type is an interface, and the object shall not be mutable -->
@@ -81,15 +81,10 @@
 
 
     <Match>
-        <Or>
-            <Class name="com.github.blausql.ui.DisplayThrowableDialog" />
-        </Or>
-
-
-        <Bug pattern="MC_OVERRIDABLE_METHOD_CALL_IN_CONSTRUCTOR" />
-        <!-- Detection is incorrect. -->
+        <Class name="com.github.blausql.core.preferences.ConnectionConfigurationRepositoryFactory" />
+        <Method name="createRepository" />
+        <Bug pattern="MS_EXPOSE_REP" />
     </Match>
-
 
 
 

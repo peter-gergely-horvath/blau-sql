@@ -69,7 +69,7 @@ public final class DisplayThrowableDialog extends ApplicationWindow {
 
         private final Button closeButton;
 
-        private DetailsPanel() {
+        private DetailsPanel(TerminalUI terminalUI) {
             TerminalSize terminalSize = terminalUI.getWindowBasedTextGUI().getScreen().getTerminalSize();
 
             closeButton = new Button("Close (ESC)",
@@ -108,7 +108,6 @@ public final class DisplayThrowableDialog extends ApplicationWindow {
     private final SummaryPanel summaryPanel;
     private final DetailsPanel detailsPanel;
 
-    private final TerminalUI terminalUI;
     private final String stackTraceString;
 
     public DisplayThrowableDialog(String title,
@@ -116,7 +115,6 @@ public final class DisplayThrowableDialog extends ApplicationWindow {
                                   Throwable throwableToDisplay,
                                   TerminalUI terminalUI) {
         super(title, terminalUI);
-        this.terminalUI = terminalUI;
 
         setHints(List.of(Hint.MODAL));
 
@@ -130,7 +128,7 @@ public final class DisplayThrowableDialog extends ApplicationWindow {
 
         summaryPanel = new SummaryPanel(message);
 
-        detailsPanel = new DetailsPanel();
+        detailsPanel = new DetailsPanel(terminalUI);
 
         contentPanel = Panels.vertical(summaryPanel);
 
@@ -165,7 +163,7 @@ public final class DisplayThrowableDialog extends ApplicationWindow {
     }
 
     private void onSaveDetailsToFile() {
-        File file = terminalUI.showFileSelectorDialog(
+        File file = showFileSelectorDialog(
                 "Save error detail",
                 "Please select the location to save the error details",
                 "Save");
@@ -174,7 +172,7 @@ public final class DisplayThrowableDialog extends ApplicationWindow {
             try {
                 Files.writeString(file.toPath(), stackTraceString);
             } catch (IOException e) {
-                terminalUI.showMessageBox("Could not save error details",
+                showMessageBox("Could not save error details",
                         "An error has occurred saving the error details: \n"
                                 + e.getMessage());
             }

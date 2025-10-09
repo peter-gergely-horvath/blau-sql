@@ -33,7 +33,7 @@ public final class DatabaseConnectionFactory {
         // no external instances
     }
 
-    public static DatabaseConnection getDatabaseConnection(ConnectionDefinition cd) {
+    public static DatabaseConnection getDatabaseConnection(ConnectionConfiguration connectionConfiguration) {
 
         ClassLoader originalContextClassLoader = Thread.currentThread().getContextClassLoader();
         try {
@@ -45,14 +45,14 @@ public final class DatabaseConnectionFactory {
                 Thread.currentThread().setContextClassLoader(classLoader);
             }
 
-            String driverClassName = cd.getDriverClassName();
+            String driverClassName = connectionConfiguration.getDriverClassName();
             if (driverClassName != null && !driverClassName.isBlank()) {
                 initDriver(driverClassName);
             }
 
-            String jdbcUrl = cd.getJdbcUrl();
-            String userName = cd.getUserName();
-            String password = cd.getPassword();
+            String jdbcUrl = connectionConfiguration.getJdbcUrl();
+            String userName = connectionConfiguration.getUserName();
+            String password = connectionConfiguration.getPassword();
 
             Connection connection = DriverManager.getConnection(jdbcUrl, userName, password);
 
@@ -93,7 +93,7 @@ public final class DatabaseConnectionFactory {
 
         ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
 
-        Class<?> loadedClass = Class.forName(driverClassName,     true, contextClassLoader);
+        Class<?> loadedClass = Class.forName(driverClassName, true, contextClassLoader);
         if (!Driver.class.isAssignableFrom(loadedClass)) {
             throw new IllegalArgumentException(
                     "The specified driver class does not implement java.sql.Driver: " + driverClassName);
