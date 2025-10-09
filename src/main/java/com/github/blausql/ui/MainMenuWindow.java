@@ -28,6 +28,7 @@ import com.github.blausql.ui.components.ActionButton;
 import com.github.blausql.ui.components.ApplicationWindow;
 import com.github.blausql.ui.hotkey.HotKeyWindowListener;
 import com.googlecode.lanterna.gui2.Panels;
+import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton;
 
 
 import java.util.List;
@@ -74,7 +75,19 @@ public class MainMenuWindow extends ApplicationWindow {
         List<ConnectionConfiguration> connectionConfigurations =
                 ConnectionConfigurationRepositoryFactory.getRepository().getConnectionConfigurations();
 
-        showWindowCenter(new SelectConnectionForQueryWindow(connectionConfigurations, getTerminalUI()));
+        if (!connectionConfigurations.isEmpty()) {
+            showWindowCenter(new SelectConnectionForQueryWindow(connectionConfigurations, getTerminalUI()));
+        } else {
+            MessageDialogButton selectedButton = showMessageBox(
+                    "No connection configurations",
+                    "There are no connection configurations available. \n"
+                            + "Do you want to create a new database connection configuration now?",
+                    MessageDialogButton.Yes, MessageDialogButton.No);
+
+            if (selectedButton == MessageDialogButton.Yes) {
+                showWindowCenter(new ConnectionSettingsWindow(getTerminalUI()));
+            }
+        }
     }
 
     private void onManageConnectionButtonSelected() {
