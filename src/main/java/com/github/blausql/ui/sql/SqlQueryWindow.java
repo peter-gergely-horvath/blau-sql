@@ -83,7 +83,7 @@ public final class SqlQueryWindow extends ApplicationWindow {
                 new Separator(Direction.VERTICAL),
                 new Label("F9: Execute All"),
                 new Separator(Direction.VERTICAL),
-                new Label("12: Menu"),
+                new Label("F12: Menu"),
                 new Separator(Direction.VERTICAL),
                 new Label("ESC: Exit"));
 
@@ -125,7 +125,7 @@ public final class SqlQueryWindow extends ApplicationWindow {
         menu.add(new MenuItem("Save SQL to file...          (F5)", this::saveSqlFile));
         menu.add(new MenuItem("Load SQL from file...        (F6)", this::selectSqlFileToLoad));
         menu.add(new MenuItem(SEPARATOR).setEnabled(false));
-        menu.add(new MenuItem("Exit                  (ESC)", this::closeWindow));
+        menu.add(new MenuItem("Exit                         (ESC)", this::closeWindow));
         return menu;
     }
 
